@@ -1,0 +1,235 @@
+[tool.poetry]
+name = "horizon"
+version = "0.1.0"
+description = ""
+authors = ["DataOps.ETL <onetools@mts.ru>"]
+readme = "README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^1.10.13"
+
+[tool.poetry.group.backend.dependencies]
+fastapi = "^0.99.1"
+uvicorn = "^0.22.0"
+alembic = "^1.12.0"
+sqlalchemy = "^2.0.21"
+asyncpg = "^0.28.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+httpx = "^0.24.1"
+pytest-asyncio = "^0.21.0"
+pytest-randomly = "^3.13.0"
+pytest-deadfixtures = "^2.2.1"
+coverage = "^7.3.2"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.3.3"
+mypy = "^1.4.1"
+black = "^23.3.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+bandit = "^1.7.5"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.21"}
+wemake-python-styleguide = "^0.18.0"
+flake8-pyproject = "^1.2.3"
+
+[[tool.poetry.source]]
+name = "nexus"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+priority = "default"
+
+[[tool.poetry.source]]
+name = "artifactory"
+url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
+priority = "primary"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+py_version = "311"
+known_first_party = ["app", "tests"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[tool.autoflake]
+imports = ["tests", "app"]
+ignore-init-module-imports = true
+remove-unused-variables = true
+
+[tool.darglint]
+docstring_style = "sphinx"
+
+[tool.flake8]
+jobs = 4
+# We don't control ones who use our code
+i-control-code = false
+# Max of noqa in a module
+max-noqa-comments = 10
+max-annotation-complexity = 4
+max-returns = 5
+max-awaits = 5
+max-local-variables = 20
+max-name-length = 60
+# Max of expressions in a function
+max-expressions = 15
+# Max args in a function
+max-arguments = 15
+# Max classes and functions in a single module
+max-module-members = 35
+max-methods = 25
+# Max line complexity measured in AST nodes
+max-line-complexity = 24
+# Max Jones Score for a module: the median of all lines complexity sum
+max-jones-score = 15
+# Max amount of cognitive complexity per function
+max-cognitive-score = 20
+# Max amount of cognitive complexity per module
+max-cognitive-average = 25
+max-imports = 25
+max-imported-names = 50
+# Max of expression usages in a module
+max-module-expressions = 15
+# Max of expression usages in a function
+max-function-expressions = 15
+max-base-classes = 5
+max-decorators = 6
+# Max of repeated string constants in your modules
+max-string-usages = 15
+max-try-body-length = 15
+max-asserts = 15
+# Max number of access level in an expression
+max-access-level = 6
+# maximum number of public instance attributes
+max-attributes = 20
+
+max-line-length = 120
+max-doc-length = 120
+
+# https://pypi.org/project/flake8-quotes/
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
+
+# https://wemake-python-stylegui.de/en/latest/pages/usage/formatter.html
+show-source = true
+# Print total number of errors
+count = true
+statistics = true
+
+exclude = [
+  ".tox",
+  "migrations",
+  "dist",
+  "build",
+  "hadoop_archive_plugin",
+  "virtualenv",
+  "venv",
+  "venv36",
+  "ve",
+  ".venv",
+  "tox.ini",
+  "docker",
+  "Jenkinsfile",
+  "dags",
+  "setup.py",
+  "docs"
+]
+rst-directives = [
+  "autosummary",
+  "data",
+  "currentmodule",
+  "deprecated",
+  "glossary",
+  "moduleauthor",
+  "plot",
+  "testcode",
+  "versionadded",
+  "versionchanged"
+]
+# https://github.com/peterjc/flake8-rst-docstrings/pull/16
+rst-roles = [
+  "attr",
+  "class",
+  "func",
+  "meth",
+  "mod",
+  "obj",
+  "ref",
+  "term",
+  "py:func",
+  "py:mod"
+]
+
+ignore = [
+  "ANN",
+  "FI1",
+# Found upper-case constant in a class: DB_URL
+  "WPS115",
+# Found statement that has no effect
+  "WPS428",
+# Found `f` string [opinionated]
+  "WPS305",
+# Found class without a base class (goes against PEP8) [opinionated]
+  "WPS306",
+# Found line break before binary operator [goes against PEP8] [opinionated]
+  "W503",
+# Found multiline conditions [opinionated]
+  "WPS337",
+# Found mutable module constant [opinionated]
+  "WPS407",
+# Found empty module:
+  "WPS411",
+# Found nested import [opinionated]
+  "WPS433",
+# Found negated condition [opinionated]
+  "WPS504",
+# Found implicit `.get()` dict usage
+  "WPS529",
+# Docstrings [opinionated]
+  "D",
+# string does contain unindexed parameters'
+  "P101",
+  "P103",
+# Found implicit string concatenation [optional]
+  "WPS326",
+# Found wrong function call: locals'
+  "WPS421",
+# module level import not at top of file
+  "E402",
+# Document or section may not begin with a transition.
+  "RST399",
+# Error in "code" directive
+  "RST307",
+# Found `%` string formatting
+  "WPS323",
+# doc line too long
+  "W505",
+# line too long
+  "E501",
+# Found wrong module name: util
+  "WPS100",
+# Found wrong keyword: pass
+  "WPS420",
+# Found incorrect node inside `class` body: pass
+  "WPS604",
+# Found wrong variable name: data
+  "WPS110",
+]
+
+per-file-ignores = [
+# F401 imported but unused
+  "__init__.py:F401",
+# TAE001 too few type annotations
+# WPS231 Found function with too much cognitive complexity
+# S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+# WPS442 Found outer scope names shadowing
+# WPS432 Found magic number
+  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432",
+]

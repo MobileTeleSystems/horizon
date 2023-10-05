@@ -1,0 +1,37 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file: .env.docker
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready
+      start_period: 5s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    image: sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:${TAG:-develop}
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+      target: prod
+      network: host
+      extra_hosts:
+        artifactory.mts.ru: 10.72.54.165
+        nexus.services.mts.ru: 10.72.54.140
+    env_file: .env.docker
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 8000:8000
+
+volumes:
+  postgres_data:

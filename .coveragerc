@@ -1,0 +1,17 @@
+[run]
+branch = True
+omit = tests/*
+parallel = true
+data_file = reports/.coverage
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    if log.isEnabledFor(logging.DEBUG):
+    if sys.version_info

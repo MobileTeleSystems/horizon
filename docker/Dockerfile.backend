@@ -1,0 +1,36 @@
+FROM sregistry.mts.ru/bigdata/platform/docker-images/python:3.11-slim as base
+
+RUN pip install poetry \
+    && poetry config virtualenvs.create false
+
+WORKDIR /horizon
+ENV PYTHONPATH=/horizon
+
+COPY ./pyproject.toml ./poetry.lock* ./
+
+FROM base AS test
+RUN poetry export \
+        --with backend,dev,test \
+        --without-hashes \
+        --with-credentials \
+        --without-urls \
+        --output ./requirements.txt \
+    && pip install -r ./requirements.txt
+
+FROM base AS prod
+RUN poetry export \
+        -f requirements.txt \
+        --with backend \
+        --without-hashes \
+        --with-credentials \
+        --without-urls \
+        --output ./requirements.txt \
+    && pip install -r ./requirements.txt
+
+COPY ./docker/entrypoint.sh ./docker/
+RUN chmod +x ./docker/*.sh
+
+COPY ./horizon/app/ ./app/
+COPY ./horizon/alembic.ini ./alembic.ini
+CMD ["/horizon/docker/entrypoint.sh"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]

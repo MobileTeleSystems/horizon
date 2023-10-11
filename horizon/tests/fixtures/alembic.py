@@ -12,12 +12,12 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.db.base import Base
+from app.db.models import Base
 
 if TYPE_CHECKING:
     from sqlalchemy import Connection, MetaData
 
-    from app.config import Settings
+    from app.settings import Settings
 
 PROJECT_PATH = Path(__file__).parent.parent.parent.resolve()
 
@@ -25,7 +25,7 @@ PROJECT_PATH = Path(__file__).parent.parent.parent.resolve()
 @pytest.fixture(scope="session")
 def alembic_config(settings: Settings) -> AlembicConfig:
     alembic_cfg = AlembicConfig(PROJECT_PATH / "alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", settings.DB_URL)
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.database.url)
     alembic_cfg.set_main_option(
         "script_location",
         os.fspath(PROJECT_PATH / "app/db/migrations"),

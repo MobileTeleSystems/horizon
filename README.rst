@@ -47,7 +47,7 @@ Setup environment
 
 .. code:: bash
 
-    make venv
+    make venv-init
 
 
 Enable pre-commit hooks

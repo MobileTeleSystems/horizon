@@ -15,6 +15,8 @@ uvicorn = "^0.22.0"
 alembic = "^1.12.0"
 sqlalchemy = "^2.0.21"
 asyncpg = "^0.28.0"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.6"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
@@ -23,6 +25,7 @@ pytest-asyncio = "^0.21.0"
 pytest-randomly = "^3.13.0"
 pytest-deadfixtures = "^2.2.1"
 coverage = "^7.3.2"
+polyfactory = "^2.9.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -34,6 +37,7 @@ bandit = "^1.7.5"
 sqlalchemy = {extras = ["mypy"], version = "^2.0.21"}
 wemake-python-styleguide = "^0.18.0"
 flake8-pyproject = "^1.2.3"
+types-python-jose = "^3.3.4.8"
 
 [[tool.poetry.source]]
 name = "nexus"
@@ -49,9 +53,14 @@ priority = "primary"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 120
+target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+include = "\\.pyi?$"
+exclude = "(\\.eggs|\\.git|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist)"
+
 [tool.isort]
 profile = "black"
-py_version = "311"
 known_first_party = ["app", "tests"]
 
 [tool.mypy]
@@ -221,11 +230,24 @@ ignore = [
   "WPS604",
 # Found wrong variable name: data
   "WPS110",
+# Found builtin shadowing: id
+  "WPS125",
+# Found too short name: e < 2
+  "WPS111",
+# Found a line that starts with a dot
+  "WPS348",
+# first argument of a method should be named 'self'
+  "N805",
 ]
 
 per-file-ignores = [
 # F401 imported but unused
   "__init__.py:F401",
+# WPS102 Found incorrect module name pattern
+  "*migrations/*.py:WPS102",
+# WPS237 Found a too complex `f` string
+  "*exceptions/*.py:WPS237",
+  "*exceptions/__init__.py:F401",
 # TAE001 too few type annotations
 # WPS231 Found function with too much cognitive complexity
 # S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.

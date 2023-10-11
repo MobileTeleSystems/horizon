@@ -10,13 +10,13 @@ from sqlalchemy.ext.asyncio import create_async_engine
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
-    from app.config import Settings
+    from app.settings import Settings
 
 
 @contextlib.asynccontextmanager
 async def get_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
     """Create test engine"""
-    connection_url = settings.DB_URL
+    connection_url = settings.database.url
     engine = create_async_engine(connection_url, echo=True)
     yield engine
     await engine.dispose()

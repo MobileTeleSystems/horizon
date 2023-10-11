@@ -5,4 +5,5 @@ pytest_plugins = [
     "tests.fixtures.alembic",
     "tests.fixtures.engine",
     "tests.fixtures.session",
+    "tests.factories.user",
 ]

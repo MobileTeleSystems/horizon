@@ -8,8 +8,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.config import Settings
-from app.db.base import Base
+from app.db.models import Base
+from app.settings import Settings
 
 config = context.config
 
@@ -17,7 +17,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", Settings().DB_URL)
+config.set_main_option("sqlalchemy.url", Settings().database.url)
 
 target_metadata = (Base.metadata,)
 

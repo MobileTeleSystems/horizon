@@ -1,8 +1,8 @@
 import pytest
 
-from app.config import Settings
+from app.settings import Settings
 
 
-@pytest.fixture(scope="session")
-def settings():
-    return Settings()
+@pytest.fixture(scope="session", params=[{}])
+def settings(request: pytest.FixtureRequest):
+    return Settings(**request.param)

@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-import re
 
 from sqlalchemy import MetaData
-from sqlalchemy.orm import as_declarative, declared_attr
+from sqlalchemy.orm import DeclarativeBase
 
 convention = {
     "all_column_names": lambda constraint, table: "_".join(
@@ -17,15 +16,8 @@ convention = {
     "pk": "pk__%(table_name)s",
 }
 
-metadata = MetaData(naming_convention=convention)  # type: ignore
+horizon_metadata = MetaData(naming_convention=convention)  # type: ignore
 
 
-@as_declarative(metadata=metadata)
-class Base:
-    __name__: str
-    metadata: MetaData
-
-    @declared_attr  # type: ignore
-    def __tablename__(cls) -> str:  # noqa: N805
-        name_list = re.findall(r"[A-Z][a-z\d]*", cls.__name__)
-        return "_".join(name_list).lower()
+class Base(DeclarativeBase):
+    metadata = horizon_metadata

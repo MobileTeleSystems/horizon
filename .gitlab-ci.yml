@@ -101,7 +101,9 @@ tests:
   image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}
   stage: tests
   variables:
-    HORIZON_DB_URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+    HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+    HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON_SERVER__DEBUG: 'true'
   services:
     - name: central-mirror.services.mts.ru/postgres:15-alpine
       alias: db

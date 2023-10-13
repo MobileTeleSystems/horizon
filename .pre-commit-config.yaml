@@ -46,6 +46,7 @@ repos:
         types: [shell]
       - id: insert-license
         files: horizon/app/.*\.py$
+        exclude: horizon/app/dependencies/stub.py
         args:
           - --license-filepath
           - .spdx-license-header.txt

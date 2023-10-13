@@ -4,7 +4,7 @@ from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Connection, MetaData
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.db.base import Base
+from app.db.models import Base
 
 
 def get_diff_db_metadata(connection: Connection, metadata: MetaData):

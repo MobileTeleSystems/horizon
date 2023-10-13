@@ -19,22 +19,28 @@ HELP_FUN = \
 
 all: help
 
-venv: ##@Env Init venv and install poetry dependencies
+venv-init: ##@Env Init venv and install poetry dependencies
 	@rm -rf .venv || true
 	python3 -m venv .venv
 	.venv/bin/pip install poetry
 	${POETRY} config virtualenvs.create false
 	${POETRY} install --no-root $(ARGS)
 
-requirements: ##@Env Install requirements
+venv-install: ##@Env Install requirements to venv
 	${POETRY} install --no-root $(ARGS)
+
+venv-add: ##@Env Add requirement to venv
+	${POETRY} add $(ARGS)
 
 help: ##@Help Show this help
 	@echo -e "Usage: make [target] ...\n"
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
+db: ##@DB Start database
+	docker-compose up -d db $(ARGS)
+
 add-revision: ##@DB Generate migration file
-	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate $(ARGS)
+	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate
 
 upgrade: ##@DB Run migrations to head
 	${POETRY} run alembic -c ./horizon/alembic.ini upgrade head
@@ -43,7 +49,7 @@ downgrade: ##@DB Downgrade head migration
 	${POETRY} run alembic -c ./horizon/alembic.ini downgrade head-1
 
 test: ##@Test Run tests
-	docker-compose up -d db $(ARGS)
+	docker-compose up -d db
 	${POETRY} run pytest ./horizon/tests/ $(ARGS)
 
 cleanup: ##@Test Cleanup tests dependencies

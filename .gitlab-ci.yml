@@ -8,6 +8,7 @@ stages:
   - build test image
   - static analysis
   - tests
+  - coverage
   - artifacts
 
 include:
@@ -114,8 +115,6 @@ tests:
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - python -m coverage run -m pytest ./horizon/tests -v -s --junitxml=reports/junit.xml
-    - python -m coverage combine
-    - python -m coverage xml -o ./reports/coverage.xml -i
   artifacts:
     when: always
     paths:
@@ -123,6 +122,27 @@ tests:
     reports:
       junit:
         - ${CI_PROJECT_DIR}/reports/junit.xml
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+  interruptible: true
+
+coverage:
+  image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}
+  stage: coverage
+  dependencies:
+    - tests
+  script:
+    - python -m coverage combine
+    - python -m coverage report -i
+    - python -m coverage xml -o ./reports/coverage.xml -i
+  coverage: /TOTAL.*?(\d+\.?\d+)?%/
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/reports/coverage.xml
+    reports:
       coverage_report:
         coverage_format: cobertura
         path: ${CI_PROJECT_DIR}/reports/coverage.xml

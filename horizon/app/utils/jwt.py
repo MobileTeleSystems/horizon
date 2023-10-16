@@ -9,16 +9,16 @@ from app.exceptions.setup import SetupError
 from app.settings.jwt import JWTSettings
 
 
-def sign_jwt(user_id: int, settings: JWTSettings) -> str:
+def sign_jwt(payload: dict, settings: JWTSettings) -> str:
     if not settings.secret_key:
         raise SetupError("Expected settings.jwt.secret_key to be set, got None")
 
-    payload = {
-        "user_id": user_id,
+    real_payload = {
         "exp": time.time() + settings.token_expired_seconds,
+        **payload,
     }
     return jwt.encode(
-        payload,
+        real_payload,
         settings.secret_key,
         algorithm=settings.security_algorithm,
     )

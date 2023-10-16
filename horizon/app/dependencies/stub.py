@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Andrey Tikhonov (@Tishka17)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable
-
 
 # Implementation copied from:
 # https://github.com/Tishka17/deseos17/blob/master/src/deseos17/presentation/web_api/dependencies/depends_stub.py
@@ -21,7 +19,7 @@ class Stub:
 
     """
 
-    def __init__(self, dependency: Callable, **kwargs):
+    def __init__(self, dependency: type, **kwargs):
         self._dependency = dependency
         self._kwargs = kwargs
 
@@ -45,3 +43,9 @@ class Stub:
             *self._kwargs.items(),
         )
         return hash(serial)
+
+    def __repr__(self):
+        args = "".join(f", {k}={v!r}" for k, v in self._kwargs.items())
+        class_name = self.__class__.__name__
+        dependency_class = self._dependency.__name__
+        return f"{class_name}({dependency_class}{args})"

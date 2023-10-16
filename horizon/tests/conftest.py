@@ -6,4 +6,6 @@ pytest_plugins = [
     "tests.fixtures.engine",
     "tests.fixtures.session",
     "tests.factories.user",
+    "tests.fixtures.jwt",
+    "tests.factories.namespace",
 ]

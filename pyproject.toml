@@ -17,6 +17,7 @@ sqlalchemy = "^2.0.21"
 asyncpg = "^0.28.0"
 python-jose = "^3.3.0"
 python-multipart = "^0.0.6"
+sqlalchemy-utils = "^0.41.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
@@ -26,6 +27,8 @@ pytest-randomly = "^3.13.0"
 pytest-deadfixtures = "^2.2.1"
 coverage = "^7.3.2"
 polyfactory = "^2.9.0"
+freezegun = "^1.2.2"
+pytest-lazy-fixture = "^0.6.3"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -66,6 +69,10 @@ known_first_party = ["app", "tests"]
 [tool.mypy]
 python_version = "3.11"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[[tool.mypy.overrides]]
+module = "sqlalchemy_utils"
+ignore_missing_imports = true
 
 [tool.autoflake]
 imports = ["tests", "app"]
@@ -244,7 +251,8 @@ per-file-ignores = [
 # F401 imported but unused
   "__init__.py:F401",
 # WPS102 Found incorrect module name pattern
-  "*migrations/*.py:WPS102",
+# WPS432 Found magic number: 256
+  "*migrations/*.py:WPS102,WPS432",
 # WPS237 Found a too complex `f` string
   "*exceptions/*.py:WPS237",
   "*exceptions/__init__.py:F401",
@@ -253,5 +261,6 @@ per-file-ignores = [
 # S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
 # WPS442 Found outer scope names shadowing
 # WPS432 Found magic number
-  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432",
+# WPS334 Found reversed complex comparison
+  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432,WPS334",
 ]

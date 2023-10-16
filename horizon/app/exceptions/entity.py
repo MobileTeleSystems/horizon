@@ -40,7 +40,7 @@ class EntityAlreadyExistsError(ApplicationError):
 
     @property
     def message(self) -> str:
-        return f"{self.entity_type.__name__} with {self.field}={self.value!r} already exist"
+        return f"{self.entity_type.__name__} with {self.field}={self.value!r} already exists"
 
     @property
     def details(self) -> dict[str, Any]:

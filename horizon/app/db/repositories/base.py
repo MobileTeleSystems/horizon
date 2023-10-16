@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from abc import ABC
-from typing import Annotated, ClassVar, Generic, TypeVar
+from typing import Annotated, Generic, TypeVar
 
 from fastapi import Depends
 from sqlalchemy import ScalarResult, Select, delete, func, insert, select, update
@@ -18,79 +18,91 @@ Model = TypeVar("Model", bound=Base)
 
 
 class Repository(ABC, Generic[Model]):
-    MODEL_TYPE: ClassVar[type]
-
     def __init__(
         self,
         session: Annotated[AsyncSession, Depends(Stub(AsyncSession))],
     ) -> None:
         self._session = session
 
+    def __repr__(self) -> str:
+        class_name = self.__class__.__name__
+        return f"{class_name}()"
+
+    @classmethod
+    def model_type(cls) -> type[Model]:
+        # Get `User` from `UserRepository(Repository[User])`
+        return cls.__orig_bases__[0].__args__[0]  # type: ignore[attr-defined]
+
     async def _get_by_id(
         self,
         id: int,
         *where: ColumnElement,
     ) -> Model | None:
-        query: Select = select(self.MODEL_TYPE).filter_by(id=id)
+        model_type = self.model_type()
+        query: Select = select(model_type).filter_by(id=id)
         if where:
             query = query.where(*where)
 
         result = await self._session.scalars(query)
-        return result.one()
+        return result.one_or_none()
 
-    async def _get(self, *where: ColumnElement) -> Model | None:
-        query: Select = select(self.MODEL_TYPE).where(*where)
+    async def _get(
+        self,
+        *where: ColumnElement,
+    ) -> Model | None:
+        model_type = self.model_type()
+        query: Select = select(model_type).where(*where)
         result = await self._session.scalars(query)
-        return result.first()
+        return result.one_or_none()
 
-    async def _create(self, data: dict) -> Model:
-        insert_query: ReturningInsert[tuple[Model]] = insert(self.MODEL_TYPE).values(**data).returning(self.MODEL_TYPE)
-        result = await self._session.scalars(insert_query)
+    async def _create(
+        self,
+        data: dict,
+    ) -> Model:
+        model_type = self.model_type()
+        query: ReturningInsert[tuple[Model]] = insert(model_type).values(**data).returning(model_type)
+        result = await self._session.scalars(query)
         return result.one()
 
-    async def _update(self, where: list[ColumnElement], changes: dict) -> Model | None:
-        query: ReturningUpdate[tuple[Model]] = (
-            update(self.MODEL_TYPE).where(*where).values(**changes).returning(self.MODEL_TYPE)
+    async def _update(
+        self,
+        where: list[ColumnElement],
+        changes: dict,
+    ) -> Model | None:
+        model_type = self.model_type()
+        query: ReturningUpdate[tuple[Model]] = update(model_type).where(*where).values(**changes).returning(model_type)
+        result = await self._session.scalars(query)
+        return result.one_or_none()
+
+    async def _delete(self, user_id: int) -> Model | None:
+        model_type = self.model_type()
+        query: ReturningDelete[tuple[Model]] = (
+            delete(model_type).where(model_type.id == user_id).returning(model_type)  # type: ignore[attr-defined]
         )
         result = await self._session.scalars(query)
-        return result.one()
-
-    async def _delete(self, id: int) -> Model:
-        query: ReturningUpdate[tuple[Model]] | ReturningDelete[tuple[Model]]
-        if hasattr(self.MODEL_TYPE, "is_deleted"):
-            query = (
-                update(self.MODEL_TYPE)
-                .where(self.MODEL_TYPE.id == id)  # type: ignore[attr-defined]
-                .values(is_deleted=True)
-                .returning(self.MODEL_TYPE)
-            )
-        else:
-            query = (
-                delete(self.MODEL_TYPE)
-                .where(self.MODEL_TYPE.id == id)  # type: ignore[attr-defined]
-                .returning(self.MODEL_TYPE)
-            )
-
-        result = await self._session.scalars(query)
-        return result.one()
+        return result.one_or_none()
 
     async def _paginate(
         self,
-        where: list[ColumnElement],
         order_by: list[InstrumentedAttribute],
         page: int,
         page_size: int,
-    ) -> Pagination:
-        query: Select = select(self.MODEL_TYPE).where(*where)
+        where: list[ColumnElement] | None = None,
+    ) -> Pagination[Model]:
+        model_type = self.model_type()
+        query: Select = select(model_type)
+        if where:
+            query = query.where(*where)
+
         items_result: ScalarResult[Model] = await self._session.scalars(
             query.order_by(*order_by).limit(page_size).offset((page - 1) * page_size),
         )
-        total: int = await self._session.scalar(  # type: ignore[assignment]
+        total_count: int = await self._session.scalar(  # type: ignore[assignment]
             select(func.count()).select_from(query.subquery()),
         )
-        return Pagination(
-            items=items_result.all(),
-            total=total,
+        return Pagination[model_type](  # type: ignore[valid-type]
+            items=list(items_result.all()),
+            total_count=total_count,
             page=page,
             page_size=page_size,
         )

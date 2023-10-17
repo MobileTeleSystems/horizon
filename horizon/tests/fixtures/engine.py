@@ -23,6 +23,6 @@ async def get_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
 
 
 @pytest_asyncio.fixture(scope="session")
-async def engine(run_migrations, settings: Settings):
+async def engine(settings: Settings):
     async with get_engine(settings) as result:
         yield result

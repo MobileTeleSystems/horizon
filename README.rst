@@ -79,8 +79,8 @@ Unit tests
 .. code:: bash
 
     make db-start
-    make db-up
-    make back-test
+    make db-upgrade
+    make test
 
 .. Makefile
 

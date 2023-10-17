@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-"""Initial migration
+"""Add user table
 
 Revision ID: b91de692624e
 Revises:
@@ -23,21 +23,21 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("username", sa.String(length=256), nullable=False),  # noqa: WPS432
-        sa.Column("is_active", sa.Boolean(), nullable=False, default=True),
+        sa.Column("username", sa.String(length=256), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("is_deleted", sa.Boolean(), nullable=False, default=False),
+        sa.Column("is_deleted", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk__user")),
     )
     op.create_index(op.f("ix__user__username"), "user", ["username"], unique=True)

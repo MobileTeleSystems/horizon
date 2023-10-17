@@ -1,21 +1,24 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-from sqlalchemy import BigInteger, Boolean, String
+from sqlalchemy import BigInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.db.mixins.changed_by import ChangedByMixin
 from app.db.mixins.deletable import DeletableMixin
-from app.db.mixins.timestamp import TimestampMixin
 from app.db.models.base import Base
 
 
-class User(Base, TimestampMixin, DeletableMixin):
-    __tablename__ = "user"
+class Namespace(Base, ChangedByMixin, DeletableMixin):
+    __tablename__ = "namespace"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    username: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         String(256),  # noqa: WPS432
         nullable=False,
         unique=True,
         index=True,
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    description: Mapped[str] = mapped_column(
+        Text(),
+        nullable=False,
+    )

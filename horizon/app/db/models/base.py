@@ -4,6 +4,7 @@
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy_utils import generic_repr
 
 convention = {
     "all_column_names": lambda constraint, table: "_".join(
@@ -19,5 +20,6 @@ convention = {
 horizon_metadata = MetaData(naming_convention=convention)  # type: ignore
 
 
+@generic_repr
 class Base(DeclarativeBase):
     metadata = horizon_metadata

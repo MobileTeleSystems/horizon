@@ -21,8 +21,12 @@ async def sessionmaker(engine: AsyncEngine):
 
 @pytest_asyncio.fixture
 async def session(sessionmaker: async_sessionmaker[AsyncSession]):
+    session: AsyncSession = sessionmaker()
     try:
-        session: AsyncSession = sessionmaker()
         yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
     finally:
         await session.close()

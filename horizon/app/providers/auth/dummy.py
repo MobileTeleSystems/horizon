@@ -31,7 +31,10 @@ class DummyAuthProvider(AuthProvider):
             raise AuthorizationError("Missing auth credentials")
 
         user_id = self._decode_jwt(access_token)
-        return await self._user_repo.get_by_id(user_id)
+        user = await self._user_repo.get_by_id(user_id)
+        if not user.is_active:
+            raise AuthorizationError(f"User {user.username!r} is disabled")
+        return user
 
     async def get_tokens(
         self,
@@ -53,7 +56,7 @@ class DummyAuthProvider(AuthProvider):
         return access_token, "refresh_token"
 
     def _sign_jwt(self, user_id: int) -> str:
-        return sign_jwt(user_id, self._settings.jwt)
+        return sign_jwt({"user_id": user_id}, self._settings.jwt)
 
     def _decode_jwt(self, token: str) -> int:
         try:

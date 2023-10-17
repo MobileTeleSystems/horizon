@@ -13,4 +13,4 @@ from app.exceptions.auth import AuthorizationError
     status=http.HTTPStatus.UNAUTHORIZED,
 )
 class NotAuthorizedSchema(ErrorSchema):
-    code: Literal["not_authorized"] = "not_authorized"
+    code: Literal["unauthorized"] = "unauthorized"

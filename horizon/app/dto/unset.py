@@ -8,10 +8,13 @@ from typing import ClassVar
 
 
 @dataclass
-class Unset:
+class Unset(str):  # noqa: WPS600
     _instance: ClassVar[Unset | None] = None
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super().__new__(cls)
+            cls._instance = super().__new__(cls, "<unset>")
         return cls._instance
+
+    def __repr__(self):
+        return "<unset>"

@@ -4,9 +4,8 @@
 import http
 import logging
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.api.errors.base import ErrorSchema
@@ -93,9 +92,11 @@ def exception_json_response(
     status: int,
     content: ErrorSchema,
     headers: dict[str, str] | None = None,
-) -> JSONResponse:
-    return JSONResponse(
+) -> Response:
+    # Using Response + `model.json()` because JSONResponse + `model.dict()` does not convert Unset() to JSON value "<unset>"
+    return Response(
         status_code=status,
-        content=APIErrorSchema(error=content).dict(exclude_none=True, by_alias=True),
+        content=APIErrorSchema(error=content).json(exclude_none=True, by_alias=True),
+        media_type="application/json",
         headers=headers,
     )

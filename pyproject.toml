@@ -262,5 +262,8 @@ per-file-ignores = [
 # WPS442 Found outer scope names shadowing
 # WPS432 Found magic number
 # WPS334 Found reversed complex comparison
-  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432,WPS334",
+# WPS218 Found too many `assert` statements: 19 > 15
+# WPS226 Found string literal over-use: value > 15
+# WPS118 Found too long name:
+  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432,WPS334,WPS218,WPS226,WPS118",
 ]

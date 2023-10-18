@@ -49,3 +49,22 @@ class EntityAlreadyExistsError(ApplicationError):
             "field": self.field,
             "value": self.value,
         }
+
+
+class EntityInvalidError(ApplicationError):
+    def __init__(self, entity_type: type, field: str, value: Any):
+        self.entity_type = entity_type
+        self.field = field
+        self.value = value
+
+    @property
+    def message(self) -> str:
+        return f"{self.entity_type.__name__} has wrong {self.field!r} value {self.value!r}"
+
+    @property
+    def details(self) -> dict[str, Any]:
+        return {
+            "entity_type": self.entity_type.__name__,
+            "field": self.field,
+            "value": self.value,
+        }

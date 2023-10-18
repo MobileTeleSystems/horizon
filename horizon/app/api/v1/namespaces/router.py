@@ -10,10 +10,13 @@ from app.api.pagination.query import PaginationArgs
 from app.api.pagination.schemas import PageSchema
 from app.api.v1.namespaces.schemas import (
     CreateNamespaceSchema,
+    ReadHWMSchema,
     ReadNamespaceSchema,
     UpdateNamespaceSchema,
+    WriteHWMSchema,
 )
 from app.db.models.user import User
+from app.db.repositories.hwm import HWMRepository
 from app.db.repositories.namespace import NamespaceRepository
 from app.dependencies import current_user
 
@@ -92,6 +95,87 @@ async def delete_namespace(
     user: Annotated[User, Depends(current_user)],
 ) -> None:
     await namespace_repo.delete(
+        name=name,
+        user=user,
+    )
+
+
+@router.get(
+    "/{namespace_name}/hwm/",
+    description="Get HWM list",
+)
+async def list_hwm(
+    namespace_name: str,
+    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    pagination_args: Annotated[PaginationArgs, Depends()],
+    hwm_repo: Annotated[HWMRepository, Depends()],
+    _user: Annotated[User, Depends(current_user)],
+) -> PageSchema[ReadHWMSchema]:
+    namespace = await namespace_repo.get_by_name(namespace_name)
+    pagination = await hwm_repo.paginate(
+        namespace_id=namespace.id,
+        page=pagination_args.page,
+        page_size=pagination_args.page_size,
+    )
+    return PageSchema[ReadHWMSchema].from_pagination(pagination)
+
+
+@router.get(
+    "/{namespace_name}/hwm/{name}",
+    description="Get HWM by name",
+)
+async def get_hwm(
+    namespace_name: str,
+    name: str,
+    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    hwm_repo: Annotated[HWMRepository, Depends()],
+    _user: Annotated[User, Depends(current_user)],
+) -> ReadHWMSchema:
+    namespace = await namespace_repo.get_by_name(namespace_name)
+    hwm = await hwm_repo.get_by_name(
+        namespace_id=namespace.id,
+        name=name,
+    )
+    return ReadHWMSchema.from_orm(hwm)
+
+
+@router.patch(
+    "/{namespace_name}/hwm/{name}",
+    description="Write HWM value",
+)
+async def write_hwm(
+    namespace_name: str,
+    name: str,
+    data: WriteHWMSchema,
+    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    hwm_repo: Annotated[HWMRepository, Depends()],
+    user: Annotated[User, Depends(current_user)],
+) -> ReadHWMSchema:
+    namespace = await namespace_repo.get_by_name(namespace_name)
+    hwm = await hwm_repo.write(
+        namespace_id=namespace.id,
+        name=name,
+        data=data.dict(exclude_unset=True),
+        user=user,
+    )
+    return ReadHWMSchema.from_orm(hwm)
+
+
+@router.delete(
+    "/{namespace_name}/hwm/{name}",
+    description="Delete HWM",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_hwm(
+    namespace_name: str,
+    name: str,
+    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    hwm_repo: Annotated[HWMRepository, Depends()],
+    user: Annotated[User, Depends(current_user)],
+) -> None:
+    namespace = await namespace_repo.get_by_name(namespace_name)
+    await hwm_repo.delete(
+        namespace_id=namespace.id,
         name=name,
         user=user,
     )

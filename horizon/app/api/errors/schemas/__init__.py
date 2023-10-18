@@ -7,5 +7,6 @@ from app.api.errors.schemas.invalid_request import (
     InvalidRequestErrorSchema,
     InvalidRequestSchema,
 )
+from app.api.errors.schemas.invalid_value import InvalidValueSchema
 from app.api.errors.schemas.not_authorized import NotAuthorizedSchema
 from app.api.errors.schemas.not_found import NotFoundSchema

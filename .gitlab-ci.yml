@@ -136,13 +136,14 @@ coverage:
     - tests
   script:
     - python -m coverage combine
-    - python -m coverage report -i
     - python -m coverage xml -o ./reports/coverage.xml -i
+    - python -m coverage html -d ./reports/coverage.html -i
+    - python -m coverage report -i
   coverage: /TOTAL.*?(\d+\.?\d+)?%/
   artifacts:
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/reports/coverage.xml
+      - ${CI_PROJECT_DIR}/reports/
     reports:
       coverage_report:
         coverage_format: cobertura

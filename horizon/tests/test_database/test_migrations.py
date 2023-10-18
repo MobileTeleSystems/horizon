@@ -1,8 +1,6 @@
-import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.runtime.migration import MigrationContext
-from sqlalchemy import Connection, MetaData
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy import Connection, MetaData, create_engine
 
 from app.db.models import Base
 
@@ -12,11 +10,7 @@ def get_diff_db_metadata(connection: Connection, metadata: MetaData):
     return compare_metadata(context=migration_ctx, metadata=metadata)
 
 
-@pytest.mark.asyncio
-async def test_migrations_up_to_date(engine: AsyncEngine):
-    async with engine.connect() as connection:
-        diff = await connection.run_sync(
-            get_diff_db_metadata,
-            metadata=(Base.metadata,),
-        )
+def test_migrations_up_to_date(empty_db_url: str, run_migrations):
+    with create_engine(empty_db_url).connect() as connection:
+        diff = get_diff_db_metadata(connection, metadata=Base.metadata)
     assert not diff

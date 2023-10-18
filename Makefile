@@ -36,16 +36,16 @@ help: ##@Help Show this help
 	@echo -e "Usage: make [target] ...\n"
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
-db: ##@DB Start database
+db-start: ##@DB Start database
 	docker-compose up -d db $(ARGS)
 
-add-revision: ##@DB Generate migration file
+db-revision: ##@DB Generate migration file
 	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate
 
-upgrade: ##@DB Run migrations to head
+db-upgrade: ##@DB Run migrations to head
 	${POETRY} run alembic -c ./horizon/alembic.ini upgrade head
 
-downgrade: ##@DB Downgrade head migration
+db-downgrade: ##@DB Downgrade head migration
 	${POETRY} run alembic -c ./horizon/alembic.ini downgrade head-1
 
 test: ##@Test Run tests

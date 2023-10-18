@@ -1,31 +1,51 @@
 from __future__ import annotations
 
 import os
+import secrets
+from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
+from urllib.parse import urlparse
 
 import pytest
-import pytest_asyncio
 from alembic.config import Config as AlembicConfig
 from alembic.runtime.environment import EnvironmentContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy import engine_from_config, pool
+from sqlalchemy_utils.functions import create_database, database_exists, drop_database
 
 from app.db.models import Base
 
 if TYPE_CHECKING:
-    from sqlalchemy import Connection, MetaData
+    from sqlalchemy import MetaData
 
     from app.settings import Settings
 
 PROJECT_PATH = Path(__file__).parent.parent.parent.resolve()
 
 
-@pytest.fixture(scope="session")
-def alembic_config(settings: Settings) -> AlembicConfig:
+@pytest.fixture
+def empty_db_url(settings: Settings) -> Generator[str, None, None]:
+    """Create new test DB to run migrations"""
+    new_db = secrets.token_hex(8)
+    original_url = urlparse(settings.database.url)
+
+    # updating original url with temp database name, and use it only for running migrations
+    # sqlalchemy-utils does not support asyncio, so using sync action instead
+    new_url = original_url._replace(scheme="postgresql+psycopg2", path=new_db).geturl()  # noqa: WPS437
+
+    if not database_exists(new_url):
+        create_database(new_url)
+
+    yield new_url
+
+    drop_database(new_url)
+
+
+@pytest.fixture
+def alembic_config(empty_db_url: str) -> AlembicConfig:
     alembic_cfg = AlembicConfig(PROJECT_PATH / "alembic.ini")
-    alembic_cfg.set_main_option("sqlalchemy.url", settings.database.url)
+    alembic_cfg.set_main_option("sqlalchemy.url", empty_db_url)
     alembic_cfg.set_main_option(
         "script_location",
         os.fspath(PROJECT_PATH / "app/db/migrations"),
@@ -33,27 +53,14 @@ def alembic_config(settings: Settings) -> AlembicConfig:
     return alembic_cfg
 
 
-@pytest_asyncio.fixture(scope="session")
-async def run_migrations(alembic_config: AlembicConfig):
-    try:
-        await run_async_migrations(alembic_config, Base.metadata, "-1", "down")
-    except Exception:  # noqa: S110
-        pass
-    await run_async_migrations(alembic_config, Base.metadata, "head")
+@pytest.fixture
+def run_migrations(alembic_config: AlembicConfig) -> None:
+    with suppress(Exception):
+        do_run_migrations(alembic_config, Base.metadata, "-1", "down")
+    do_run_migrations(alembic_config, Base.metadata, "head")
 
 
 def do_run_migrations(
-    connection: Connection,
-    target_metadata: MetaData,
-    context: EnvironmentContext,
-) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
-
-    with context.begin_transaction():
-        context.run_migrations()
-
-
-async def run_async_migrations(
     config: AlembicConfig,
     target_metadata: MetaData,
     revision: str,
@@ -75,17 +82,16 @@ async def run_async_migrations(
         starting_rev=None,
         destination_rev=revision,
     ) as context:
-        connectable = async_engine_from_config(
+        engine = engine_from_config(
             config.get_section(config.config_ini_section, {}),
             prefix="sqlalchemy.",
             poolclass=pool.NullPool,
         )
 
-        async with connectable.connect() as connection:
-            await connection.run_sync(
-                do_run_migrations,
-                target_metadata=target_metadata,
-                context=context,
-            )
+        with engine.connect() as connection:
+            context.configure(connection=connection, target_metadata=target_metadata)
 
-        await connectable.dispose()
+            with context.begin_transaction():
+                context.run_migrations()
+
+        engine.dispose()

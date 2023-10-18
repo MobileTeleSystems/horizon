@@ -114,6 +114,7 @@ tests:
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
+    - alembic -c ./horizon/alembic.ini upgrade head
     - python -m coverage run -m pytest ./horizon/tests -v -s --junitxml=reports/junit.xml
   artifacts:
     when: always

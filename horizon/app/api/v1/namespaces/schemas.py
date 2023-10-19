@@ -50,3 +50,19 @@ class WriteHWMSchema(BaseModel):
     value: Any | Unset = Unset()
     entity: str | None | Unset = Unset()
     expression: str | None | Unset = Unset()
+
+
+class ReadHWMHistorySchema(BaseModel):
+    id: int
+    hwm_id: int
+    name: str
+    description: str
+    type: str
+    value: Any
+    entity: str | None = None
+    expression: str | None = None
+    changed_at: datetime
+    changed_by: str | None = None
+
+    class Config:
+        orm_mode = True

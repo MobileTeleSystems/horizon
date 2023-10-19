@@ -72,7 +72,7 @@ async def test_create_namespace(
     assert created_namespace.name == content["name"]
     assert created_namespace.description == content["description"]
     assert created_namespace.changed_at == changed_at
-    assert naturally_equivalent(created_namespace.changed_by_user, user)
+    assert created_namespace.changed_by_user_id == user.id
     assert not created_namespace.is_deleted
 
 

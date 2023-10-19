@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy_utils.functions import naturally_equivalent
 
 from app.db.models import HWM, Namespace, User
+from app.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -111,5 +111,21 @@ async def test_delete_hwm(
     assert hwm_after.expression == hwm.expression
     # Internal fields are updated
     assert hwm_after.changed_at >= current_dt
-    assert naturally_equivalent(hwm_after.changed_by_user, user)
+    assert hwm_after.changed_by_user_id == user.id
     assert hwm_after.is_deleted
+
+    query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
+    query_result = await session.scalars(query)
+    created_hwm_history = query_result.one()
+
+    # Row is same as in body
+    assert created_hwm_history.name == hwm.name
+    assert created_hwm_history.description == hwm.description
+    assert created_hwm_history.type == hwm.type
+    assert created_hwm_history.value == hwm.value
+    assert created_hwm_history.entity == hwm.entity
+    assert created_hwm_history.expression == hwm.expression
+    # Internal fields are updated
+    assert created_hwm_history.changed_at >= current_dt
+    assert created_hwm_history.changed_by_user_id == user.id
+    assert created_hwm_history.is_deleted

@@ -1,4 +1,5 @@
 [run]
+concurrency = gevent
 branch = true
 omit =
     horizon/tests/*
@@ -9,6 +10,7 @@ data_file = reports/.coverage
 [report]
 exclude_lines =
     pragma: no cover
+    ...
     def __repr__
     if settings.DEBUG
     raise AssertionError

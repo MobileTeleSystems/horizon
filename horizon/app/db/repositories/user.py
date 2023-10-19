@@ -5,23 +5,10 @@ from sqlalchemy.exc import IntegrityError
 
 from app.db.models import User
 from app.db.repositories.base import Repository
-from app.dto.pagination import Pagination
 from app.exceptions.entity import EntityAlreadyExistsError, EntityNotFoundError
 
 
 class UserRepository(Repository[User]):
-    async def paginate(
-        self,
-        page: int,
-        page_size: int,
-    ) -> Pagination[User]:
-        return await self._paginate(
-            where=[User.is_active.is_(True), User.is_deleted.is_(False)],
-            order_by=[User.username],
-            page=page,
-            page_size=page_size,
-        )
-
     async def get_by_id(self, user_id: int) -> User:
         result = await self._get_by_id(user_id, User.is_deleted.is_(False))
         if result is None:

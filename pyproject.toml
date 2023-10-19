@@ -30,6 +30,7 @@ polyfactory = "^2.9.0"
 freezegun = "^1.2.2"
 pytest-lazy-fixture = "^0.6.3"
 psycopg2-binary = "^2.9.9"
+gevent = "^23.9.1"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -82,6 +83,9 @@ remove-unused-variables = true
 
 [tool.darglint]
 docstring_style = "sphinx"
+
+[tool.codespell]
+ignore-words-list = "selectin"
 
 [tool.flake8]
 jobs = 4

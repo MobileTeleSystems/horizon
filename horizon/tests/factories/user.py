@@ -39,9 +39,10 @@ async def user(request: pytest.FixtureRequest, session: AsyncSession) -> AsyncGe
 
     # remove current object from Session. this is required to compare object against new state fetched
     # from database, and also to remove it from cache
+    user_id = user.id
     session.expunge(user)
     yield user
 
-    query = delete(User).where(User.username == user.username)
+    query = delete(User).where(User.id == user_id)
     await session.execute(query)
     await session.commit()

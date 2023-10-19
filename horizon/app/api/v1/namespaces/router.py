@@ -10,6 +10,7 @@ from app.api.pagination.query import PaginationArgs
 from app.api.pagination.schemas import PageSchema
 from app.api.v1.namespaces.schemas import (
     CreateNamespaceSchema,
+    ReadHWMHistorySchema,
     ReadHWMSchema,
     ReadNamespaceSchema,
     UpdateNamespaceSchema,
@@ -17,6 +18,7 @@ from app.api.v1.namespaces.schemas import (
 )
 from app.db.models.user import User
 from app.db.repositories.hwm import HWMRepository
+from app.db.repositories.hwm_history import HWMHistoryRepository
 from app.db.repositories.namespace import NamespaceRepository
 from app.dependencies import current_user
 
@@ -25,9 +27,9 @@ router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error
 
 @router.get(
     "/",
-    description="Get namespaces list",
+    description="Paginage namespaces",
 )
-async def list_namespaces(
+async def paginate_namespaces(
     pagination_args: Annotated[PaginationArgs, Depends()],
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     _user: Annotated[User, Depends(current_user)],
@@ -102,9 +104,9 @@ async def delete_namespace(
 
 @router.get(
     "/{namespace_name}/hwm/",
-    description="Get HWM list",
+    description="Paginate HWM",
 )
-async def list_hwm(
+async def paginate_hwm(
     namespace_name: str,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     pagination_args: Annotated[PaginationArgs, Depends()],
@@ -149,6 +151,7 @@ async def write_hwm(
     data: WriteHWMSchema,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     hwm_repo: Annotated[HWMRepository, Depends()],
+    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> ReadHWMSchema:
     namespace = await namespace_repo.get_by_name(namespace_name)
@@ -157,6 +160,10 @@ async def write_hwm(
         name=name,
         data=data.dict(exclude_unset=True),
         user=user,
+    )
+    await hwm_history_repo.create(
+        hwm_id=hwm.id,
+        data=hwm.to_dict(exclude={"id"}),
     )
     return ReadHWMSchema.from_orm(hwm)
 
@@ -171,11 +178,42 @@ async def delete_hwm(
     name: str,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     hwm_repo: Annotated[HWMRepository, Depends()],
+    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> None:
     namespace = await namespace_repo.get_by_name(namespace_name)
-    await hwm_repo.delete(
+    hwm = await hwm_repo.delete(
         namespace_id=namespace.id,
         name=name,
         user=user,
     )
+    await hwm_history_repo.create(
+        hwm_id=hwm.id,
+        data=hwm.to_dict(exclude={"id"}),
+    )
+
+
+@router.get(
+    "/{namespace_name}/hwm/{name}/history",
+    description="Paginate HWM history",
+)
+async def paginate_hwm_history(
+    namespace_name: str,
+    name: str,
+    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    pagination_args: Annotated[PaginationArgs, Depends()],
+    hwm_repo: Annotated[HWMRepository, Depends()],
+    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
+    _user: Annotated[User, Depends(current_user)],
+) -> PageSchema[ReadHWMHistorySchema]:
+    namespace = await namespace_repo.get_by_name(namespace_name)
+    hwm = await hwm_repo.get_by_name(
+        namespace_id=namespace.id,
+        name=name,
+    )
+    pagination = await hwm_history_repo.paginate(
+        hwm_id=hwm.id,
+        page=pagination_args.page,
+        page_size=pagination_args.page_size,
+    )
+    return PageSchema[ReadHWMHistorySchema].from_pagination(pagination)

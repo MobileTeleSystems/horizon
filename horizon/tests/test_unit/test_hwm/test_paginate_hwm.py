@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from app.db.models import Namespace
+from app.db.models import HWM, Namespace
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 pytestmark = [pytest.mark.asyncio]
 
 
-async def test_list_namespaces_anonymous_user(
+async def test_paginate_hwm_anonymous_user(
     client: AsyncClient,
+    namespace: Namespace,
 ):
-    response = await client.get("v1/namespaces/")
+    response = await client.get(f"v1/namespaces/{namespace.name}/hwm/")
     assert response.status_code == 401
     assert response.json() == {
         "error": {
@@ -25,12 +26,36 @@ async def test_list_namespaces_anonymous_user(
     }
 
 
-async def test_list_namespaces_empty(
+async def test_paginate_hwm_missing_namespace(
     client: AsyncClient,
+    new_namespace: Namespace,
     access_token: str,
 ):
     response = await client.get(
-        "v1/namespaces/",
+        f"v1/namespaces/{new_namespace.name}/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "code": "not_found",
+            "message": f"Namespace with name='{new_namespace.name}' not found",
+            "details": {
+                "entity_type": "Namespace",
+                "field": "name",
+                "value": new_namespace.name,
+            },
+        },
+    }
+
+
+async def test_paginate_hwm_empty(
+    client: AsyncClient,
+    namespace: Namespace,
+    access_token: str,
+):
+    response = await client.get(
+        f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
@@ -49,26 +74,31 @@ async def test_list_namespaces_empty(
     }
 
 
-async def test_list_namespaces(
+async def test_paginate_hwm(
     client: AsyncClient,
+    namespace: Namespace,
     access_token: str,
-    namespaces: list[Namespace],
+    hwms: list[HWM],
 ):
     response = await client.get(
-        "v1/namespaces/",
+        f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
 
     items = [
         {
-            "id": namespace.id,
-            "name": namespace.name,
-            "description": namespace.description,
-            "changed_at": namespace.changed_at.isoformat(),
-            "changed_by": namespace.changed_by,
+            "id": hwm.id,
+            "name": hwm.name,
+            "description": hwm.description,
+            "type": hwm.type,
+            "value": hwm.value,
+            "entity": hwm.entity,
+            "expression": hwm.expression,
+            "changed_at": hwm.changed_at.isoformat(),
+            "changed_by": hwm.changed_by,
         }
-        for namespace in sorted(namespaces, key=lambda ns: ns.name)
+        for hwm in sorted(hwms, key=lambda ns: ns.name)
     ]
 
     assert response.json() == {
@@ -86,14 +116,15 @@ async def test_list_namespaces(
     }
 
 
-@pytest.mark.parametrize("namespace", [{"is_deleted": True}], indirect=True)
-async def test_list_namespaces_deleted_not_included(
+@pytest.mark.parametrize("hwm", [{"is_deleted": True}], indirect=True)
+async def test_paginate_hwm_deleted_not_included(
     client: AsyncClient,
-    access_token: str,
     namespace: Namespace,
+    access_token: str,
+    hwm: HWM,
 ):
     response = await client.get(
-        "v1/namespaces/",
+        f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200

@@ -44,10 +44,12 @@ async def namespace(
 
     # remove current object from Session. this is required to compare object against new state fetched
     # from database, and also to remove it from cache
+    namespace_id = namespace.id
+    await session.refresh(namespace, attribute_names=["changed_by_user"])
     session.expunge(namespace)
     yield namespace
 
-    query = delete(Namespace).where(Namespace.name == namespace.name)
+    query = delete(Namespace).where(Namespace.id == namespace_id)
     await session.execute(query)
     await session.commit()
 
@@ -60,17 +62,17 @@ async def namespaces(
 ) -> AsyncGenerator[list[Namespace], None]:
     NamespaceFactory.__async_session__ = session
     size, params = request.param
-    namespaces = await NamespaceFactory.create_batch_async(size, **params, changed_by_user_id=user.id)
+    result = await NamespaceFactory.create_batch_async(size, **params, changed_by_user_id=user.id)
 
-    namespace_names = []
-    for namespace in namespaces:
-        namespace_names.append(namespace.name)
+    namespace_ids = []
+    for item in result:
+        namespace_ids.append(item.id)
         # before removing object from Session load all relationships
-        await session.refresh(namespace, attribute_names=["changed_by_user"])
-        session.expunge(namespace)
+        await session.refresh(item, attribute_names=["changed_by_user"])
+        session.expunge(item)
 
-    yield namespaces
+    yield result
 
-    query = delete(Namespace).where(Namespace.name.in_(namespace_names))
+    query = delete(Namespace).where(Namespace.id.in_(namespace_ids))
     await session.execute(query)
     await session.commit()

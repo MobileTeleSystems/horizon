@@ -52,10 +52,12 @@ async def hwm(
 
     # remove current object from Session. this is required to compare object against new state fetched
     # from database, and also to remove it from cache
+    hwm_id = hwm.id
+    await session.refresh(hwm, attribute_names=["changed_by_user", "namespace"])
     session.expunge(hwm)
     yield hwm
 
-    query = delete(HWM).where(HWM.name == hwm.name)
+    query = delete(HWM).where(HWM.id == hwm_id)
     await session.execute(query)
     await session.commit()
 
@@ -69,17 +71,17 @@ async def hwms(
 ) -> AsyncGenerator[list[HWM], None]:
     HWMFactory.__async_session__ = session
     size, params = request.param
-    hwms = await HWMFactory.create_batch_async(size, **params, namespace_id=namespace.id, changed_by_user_id=user.id)
+    result = await HWMFactory.create_batch_async(size, **params, namespace_id=namespace.id, changed_by_user_id=user.id)
 
-    hwm_names = []
-    for hwm in hwms:
-        hwm_names.append(hwm.name)
+    hwm_ids = []
+    for item in result:
+        hwm_ids.append(item.id)
         # before removing object from Session load all relationships
-        await session.refresh(hwm, attribute_names=["changed_by_user", "namespace"])
-        session.expunge(hwm)
+        await session.refresh(item, attribute_names=["changed_by_user", "namespace"])
+        session.expunge(item)
 
-    yield hwms
+    yield result
 
-    query = delete(HWM).where(HWM.name.in_(hwm_names))
+    query = delete(HWM).where(HWM.id.in_(hwm_ids))
     await session.execute(query)
     await session.commit()

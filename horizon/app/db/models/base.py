@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, inspect
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy_utils import generic_repr
 
@@ -23,3 +23,7 @@ horizon_metadata = MetaData(naming_convention=convention)  # type: ignore
 @generic_repr
 class Base(DeclarativeBase):
     metadata = horizon_metadata
+
+    def to_dict(self, exclude: set[str] | None = None):
+        exclude = exclude or set()
+        return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs if c.key not in exclude}

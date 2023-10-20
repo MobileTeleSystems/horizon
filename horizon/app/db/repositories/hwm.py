@@ -79,7 +79,7 @@ class HWMRepository(Repository[HWM]):
         namespace_id: int,
         name: str,
         user: User,
-    ) -> None:
+    ) -> HWM:
         result = await self._update(
             where=[HWM.namespace_id == namespace_id, HWM.name == name, HWM.is_deleted.is_(False)],
             changes={"is_deleted": True, "changed_by_user_id": user.id},
@@ -88,3 +88,4 @@ class HWMRepository(Repository[HWM]):
             raise EntityNotFoundError(HWM, "name", name)
 
         await self._session.flush()
+        return result

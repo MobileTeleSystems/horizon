@@ -6,8 +6,7 @@ from typing import Annotated, Generic, TypeVar
 from fastapi import Depends
 from sqlalchemy import ScalarResult, Select, delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import InstrumentedAttribute
-from sqlalchemy.sql import ColumnElement
+from sqlalchemy.sql import ColumnElement, SQLColumnExpression
 from sqlalchemy.sql.dml import ReturningDelete, ReturningInsert, ReturningUpdate
 
 from app.db.models import Base
@@ -84,10 +83,10 @@ class Repository(ABC, Generic[Model]):
 
     async def _paginate(
         self,
-        order_by: list[InstrumentedAttribute],
+        order_by: list[SQLColumnExpression],
         page: int,
         page_size: int,
-        where: list[ColumnElement] | None = None,
+        where: list[SQLColumnExpression] | None = None,
     ) -> Pagination[Model]:
         model_type = self.model_type()
         query: Select = select(model_type)

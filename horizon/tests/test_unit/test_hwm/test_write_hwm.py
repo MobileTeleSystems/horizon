@@ -5,9 +5,8 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy_utils.functions import naturally_equivalent
 
-from app.db.models import HWM, Namespace, User
+from app.db.models import HWM, HWMHistory, Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -120,8 +119,23 @@ async def test_write_hwm_create_new(
     assert created_hwm.entity == content["entity"]
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
-    assert naturally_equivalent(created_hwm.changed_by_user, user)
+    assert created_hwm.changed_by_user_id == user.id
     assert not created_hwm.is_deleted
+
+    query = select(HWMHistory).where(HWMHistory.hwm_id == hmw_id)
+    query_result = await session.scalars(query)
+    created_hwm_history = query_result.one()
+
+    # Row is same as in body
+    assert created_hwm_history.name == content["name"]
+    assert created_hwm_history.description == content["description"]
+    assert created_hwm_history.type == content["type"]
+    assert created_hwm_history.value == content["value"]
+    assert created_hwm_history.entity == content["entity"]
+    assert created_hwm_history.expression == content["expression"]
+    assert created_hwm_history.changed_at == changed_at
+    assert created_hwm_history.changed_by_user_id == user.id
+    assert not created_hwm_history.is_deleted
 
 
 async def test_write_hwm_create_new_minimal(
@@ -170,7 +184,7 @@ async def test_write_hwm_create_new_minimal(
     assert created_hwm.entity == content["entity"]
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
-    assert naturally_equivalent(created_hwm.changed_by_user, user)
+    assert created_hwm.changed_by_user_id == user.id
     assert not created_hwm.is_deleted
 
 
@@ -302,8 +316,23 @@ async def test_write_hwm_replace_existing(
     assert updated_hwm.entity == content["entity"]
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
-    assert naturally_equivalent(updated_hwm.changed_by_user, user)
+    assert updated_hwm.changed_by_user_id == user.id
     assert not updated_hwm.is_deleted
+
+    query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
+    query_result = await session.scalars(query)
+    created_hwm_history = query_result.one()
+
+    # Row is same as in body
+    assert created_hwm_history.name == content["name"]
+    assert created_hwm_history.description == content["description"]
+    assert created_hwm_history.type == content["type"]
+    assert created_hwm_history.value == content["value"]
+    assert created_hwm_history.entity == content["entity"]
+    assert created_hwm_history.expression == content["expression"]
+    assert created_hwm_history.changed_at == changed_at
+    assert created_hwm_history.changed_by_user_id == user.id
+    assert not created_hwm_history.is_deleted
 
 
 @pytest.mark.parametrize(
@@ -369,8 +398,23 @@ async def test_write_hwm_replace_existing_partial(
     assert updated_hwm.entity == content["entity"]
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
-    assert naturally_equivalent(updated_hwm.changed_by_user, user)
+    assert updated_hwm.changed_by_user_id == user.id
     assert not updated_hwm.is_deleted
+
+    query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
+    query_result = await session.scalars(query)
+    created_hwm_history = query_result.one()
+
+    # Row is same as in body
+    assert created_hwm_history.name == content["name"]
+    assert created_hwm_history.description == content["description"]
+    assert created_hwm_history.type == content["type"]
+    assert created_hwm_history.value == content["value"]
+    assert created_hwm_history.entity == content["entity"]
+    assert created_hwm_history.expression == content["expression"]
+    assert created_hwm_history.changed_at == changed_at
+    assert created_hwm_history.changed_by_user_id == user.id
+    assert not created_hwm_history.is_deleted
 
 
 @pytest.mark.parametrize(

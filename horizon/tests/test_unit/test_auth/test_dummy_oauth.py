@@ -300,3 +300,34 @@ async def test_dummy_auth_check_invalid_token(
             "message": "Invalid token",
         },
     }
+
+
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"jwt": {"secret_key": None}, "server": {"debug": True}},
+        {"jwt": {"secret_key": None}, "server": {"debug": False}},
+    ],
+    indirect=True,
+)
+async def test_dummy_auth_check_token_with_missing_jwt_secret(
+    client: AsyncClient,
+    settings: Settings,
+):
+    response = await client.get(
+        "v1/namespaces/",
+        headers={"Authorization": "Bearer some"},
+    )
+    expected = {
+        "error": {
+            "code": "unknown",
+            "message": "Got unhandled exception. Please contact support",
+        },
+    }
+
+    if settings.server.debug:
+        # don't print error details in production
+        expected["error"]["details"] = ["Expected settings.jwt.secret_key to be set, got None"]
+
+    assert response.status_code == 500
+    assert response.json() == expected

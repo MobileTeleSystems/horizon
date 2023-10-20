@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy_utils.functions import naturally_equivalent
 
 from app.db.models import Namespace, User
 
@@ -80,5 +79,5 @@ async def test_delete_namespace(
     assert namespace_after.description == namespace.description
     # Internal fields are updated
     assert namespace_after.changed_at >= current_dt >= namespace.changed_at
-    assert naturally_equivalent(namespace_after.changed_by_user, user)
+    assert namespace_after.changed_by_user_id == user.id
     assert namespace_after.is_deleted

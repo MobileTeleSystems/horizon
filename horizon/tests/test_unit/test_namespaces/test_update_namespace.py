@@ -98,7 +98,7 @@ async def test_update_namespace_name(
     assert namespace_after.name == content["name"]
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
-    assert naturally_equivalent(namespace_after.changed_by_user, user)
+    assert namespace_after.changed_by_user_id == user.id
     assert not namespace_after.is_deleted
 
 
@@ -137,7 +137,7 @@ async def test_update_namespace_description(
     assert namespace_after.name == content["name"]
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
-    assert naturally_equivalent(namespace_after.changed_by_user, user)
+    assert namespace_after.changed_by_user_id == user.id
     assert not namespace_after.is_deleted
 
 

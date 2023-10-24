@@ -2,10 +2,9 @@
 
 include .env.local
 
-APP_PATH = ./horizon
 POETRY = ./.venv/bin/poetry
 
-# Fix docker build and docker-compose build using different backends
+# Fix docker build and docker compose build using different backends
 COMPOSE_DOCKER_CLI_BUILD = 1
 DOCKER_BUILDKIT = 1
 # Fix docker build on M1/M2
@@ -18,6 +17,12 @@ HELP_FUN = \
     @{$$help{$$_}},"\n" for keys %help; \
 
 all: help
+
+help: ##@Help Show this help
+	@echo -e "Usage: make [target] ...\n"
+	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
+
+
 
 venv-init: ##@Env Init venv and install poetry dependencies
 	@rm -rf .venv || true
@@ -32,12 +37,12 @@ venv-install: ##@Env Install requirements to venv
 venv-add: ##@Env Add requirement to venv
 	${POETRY} add $(ARGS)
 
-help: ##@Help Show this help
-	@echo -e "Usage: make [target] ...\n"
-	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
+
+
+db: db-start db-upgrade ##@DB Prepare database (in docker)
 
 db-start: ##@DB Start database
-	docker-compose up -d db $(ARGS)
+	docker compose up -d db $(ARGS)
 
 db-revision: ##@DB Generate migration file
 	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate
@@ -48,21 +53,25 @@ db-upgrade: ##@DB Run migrations to head
 db-downgrade: ##@DB Downgrade head migration
 	${POETRY} run alembic -c ./horizon/alembic.ini downgrade head-1
 
+
+
 test: ##@Test Run tests
-	docker-compose up -d db
-	${POETRY} run pytest ./horizon/tests/ $(ARGS)
+	docker compose up -d db
+	${POETRY} run pytest $(ARGS)
+
+check-fixtures: ##@Test Check declared fixtures
+	${POETRY} run pytest --dead-fixtures $(ARGS)
 
 cleanup: ##@Test Cleanup tests dependencies
-	docker-compose down $(ARGS)
+	docker compose down $(ARGS)
 
-dev: ##@Application Run development server (without docker)
-	${POETRY} run uvicorn --app-dir ./horizon --factory app.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
+
+
+dev: db-start ##@Application Run development server (without docker)
+	${POETRY} run uvicorn --app-dir ./horizon --factory horizon.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
 
 build: ##@Application Build docker image
 	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend --target=prod $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
-	docker-compose up -d
-
-check-fixtures: ##@Test Check declared fixtures
-	${POETRY} run pytest --dead-fixtures ./horizon/tests/ $(ARGS)
+	docker compose up -d

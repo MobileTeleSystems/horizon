@@ -2,8 +2,8 @@
 concurrency = gevent
 branch = true
 omit =
-    horizon/tests/*
-    horizon/app/db/migrations/*
+    tests/*
+    horizon/db/migrations/*
 parallel = true
 data_file = reports/.coverage
 

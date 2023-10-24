@@ -3,8 +3,8 @@ FROM sregistry.mts.ru/bigdata/platform/docker-images/python:3.11-slim as base
 RUN pip install poetry \
     && poetry config virtualenvs.create false
 
-WORKDIR /horizon
-ENV PYTHONPATH=/horizon
+WORKDIR /app
+ENV PYTHONPATH=/app
 
 COPY ./pyproject.toml ./poetry.lock* ./
 
@@ -30,7 +30,7 @@ RUN poetry export \
 COPY ./docker/entrypoint.sh ./docker/
 RUN chmod +x ./docker/*.sh
 
-COPY ./horizon/app/ ./app/
-COPY ./horizon/alembic.ini ./alembic.ini
-CMD ["/horizon/docker/entrypoint.sh"]
+COPY ./horizon/ ./horizon/
+COPY ./horizon_commons/ ./horizon_commons/
+CMD ["/app/docker/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]

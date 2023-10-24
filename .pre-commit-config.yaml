@@ -45,8 +45,8 @@ repos:
         args: ['755']
         types: [shell]
       - id: insert-license
-        files: horizon/app/.*\.py$
-        exclude: horizon/app/dependencies/stub.py
+        files: .*\.py$
+        exclude: ^(horizon/dependencies/stub.py|tests/.*\.py)$
         args:
           - --license-filepath
           - .spdx-license-header.txt
@@ -127,7 +127,7 @@ repos:
 
       - id: mypy
         name: mypy
-        entry: mypy ./horizon/app --config-file ./pyproject.toml
+        entry: mypy ./horizon ./horizon_commons --config-file ./pyproject.toml
         language: python
         types: [python]
         require_serial: true

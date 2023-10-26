@@ -15,11 +15,11 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_paginate_hwm_history_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     hwm: HWM,
 ):
-    response = await client.get(f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history")
+    response = await test_client.get(f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history")
     assert response.status_code == 401
     assert response.json() == {
         "error": {
@@ -30,12 +30,12 @@ async def test_paginate_hwm_history_anonymous_user(
 
 
 async def test_paginate_hwm_history_missing_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_namespace: Namespace,
     new_hwm: HWM,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}/history",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -54,12 +54,12 @@ async def test_paginate_hwm_history_missing_namespace(
 
 
 async def test_paginate_hwm_history_missing_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     new_hwm: HWM,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}/history",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -78,12 +78,12 @@ async def test_paginate_hwm_history_missing_hwm(
 
 
 async def test_paginate_hwm_history_empty(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     hwm: HWM,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -104,13 +104,13 @@ async def test_paginate_hwm_history_empty(
 
 
 async def test_paginate_hwm_history(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     hwm: HWM,
     access_token: str,
     hwm_history_items: list[HWMHistory],
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history",
         headers={"Authorization": f"Bearer {access_token}"},
     )

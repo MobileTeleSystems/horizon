@@ -23,3 +23,10 @@ class AlreadyExistsDetailsSchema(BaseModel):
 class AlreadyExistsSchema(BaseErrorSchema):
     code: Literal["already_exists"] = "already_exists"
     details: AlreadyExistsDetailsSchema
+
+    def to_exception(self) -> EntityAlreadyExistsError:
+        return EntityAlreadyExistsError(
+            entity_type=self.details.entity_type,
+            field=self.details.field,
+            value=self.details.value,
+        )

@@ -20,9 +20,9 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_create_namespace_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/namespaces/",
         json={
             "name": "test",
@@ -38,15 +38,15 @@ async def test_create_namespace_anonymous_user(
 
 
 async def test_create_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
     new_namespace: Namespace,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.post(
+    response = await test_client.post(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -67,7 +67,7 @@ async def test_create_namespace(
     assert changed_at >= current_dt
 
     query = select(Namespace).where(Namespace.id == namespace_id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_namespace = query_result.one()
 
     # Row is same as in body
@@ -79,12 +79,12 @@ async def test_create_namespace(
 
 
 async def test_create_namespace_duplicated_name(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     namespace: Namespace,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -106,7 +106,7 @@ async def test_create_namespace_duplicated_name(
     }
 
     query = select(Namespace).where(Namespace.id == namespace.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     namespace_after = query_result.one()
 
     # Nothing is changed

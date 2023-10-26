@@ -14,3 +14,9 @@ from horizon_commons.exceptions.auth import AuthorizationError
 )
 class NotAuthorizedSchema(BaseErrorSchema):
     code: Literal["unauthorized"] = "unauthorized"
+
+    def to_exception(self) -> AuthorizationError:
+        return AuthorizationError(
+            message=self.message,
+            details=self.details,
+        )

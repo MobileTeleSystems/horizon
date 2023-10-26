@@ -78,8 +78,8 @@ Unit tests
 
 .. code:: bash
 
-    make db-start
-    make db-upgrade
+    make db
+    make dev  # in separate terminal tab
     make test
 
 .. Makefile

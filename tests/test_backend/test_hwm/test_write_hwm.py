@@ -18,11 +18,11 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_write_hwm_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     new_hwm: HWM,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         json={
             "description": new_hwm.description,
@@ -42,12 +42,12 @@ async def test_write_hwm_anonymous_user(
 
 
 async def test_write_hwm_missing_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -73,16 +73,16 @@ async def test_write_hwm_missing_namespace(
 
 
 async def test_write_hwm_create_new(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     user: User,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -110,7 +110,7 @@ async def test_write_hwm_create_new(
     assert changed_at >= current_dt
 
     query = select(HWM).where(HWM.id == hmw_id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm = query_result.one()
 
     # Row is same as in body
@@ -125,7 +125,7 @@ async def test_write_hwm_create_new(
     assert not created_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hmw_id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm_history = query_result.one()
 
     # Row is same as in body
@@ -141,16 +141,16 @@ async def test_write_hwm_create_new(
 
 
 async def test_write_hwm_create_new_minimal(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     user: User,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -175,7 +175,7 @@ async def test_write_hwm_create_new_minimal(
     assert changed_at >= current_dt
 
     query = select(HWM).where(HWM.id == hmw_id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm = query_result.one()
 
     # Row is same as in body
@@ -198,14 +198,14 @@ async def test_write_hwm_create_new_minimal(
     ],
 )
 async def test_write_hwm_create_new_not_enough_arguments(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
     json: dict,
     missing: str,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json=json,
@@ -221,16 +221,16 @@ async def test_write_hwm_create_new_not_enough_arguments(
 
 
 async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespaces: list[Namespace],
     access_token: str,
     user: User,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     namespace1, namespace2, *_ = namespaces
 
-    response1 = await client.patch(
+    response1 = await test_client.patch(
         f"v1/namespaces/{namespace1.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -240,7 +240,7 @@ async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
     )
     assert response1.status_code == 200
 
-    response2 = await client.patch(
+    response2 = await test_client.patch(
         f"v1/namespaces/{namespace2.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -255,11 +255,11 @@ async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
     assert hmw1_id != hmw2_id
 
     query1 = select(HWM).where(HWM.id == hmw1_id)
-    query_result1 = await session.scalars(query1)
+    query_result1 = await async_session.scalars(query1)
     created_hwm1 = query_result1.one()
 
     query2 = select(HWM).where(HWM.id == hmw2_id)
-    query_result2 = await session.scalars(query2)
+    query_result2 = await async_session.scalars(query2)
     created_hwm2 = query_result2.one()
 
     assert created_hwm1.name == created_hwm2.name == new_hwm.name
@@ -270,17 +270,17 @@ async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
 
 
 async def test_write_hwm_replace_existing(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     user: User,
     hwm: HWM,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -307,7 +307,7 @@ async def test_write_hwm_replace_existing(
     assert changed_at >= current_dt >= hwm.changed_at
 
     query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     updated_hwm = query_result.one()
 
     # Row is same as in body
@@ -322,7 +322,7 @@ async def test_write_hwm_replace_existing(
     assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm_history = query_result.one()
 
     # Row is same as in body
@@ -351,20 +351,20 @@ async def test_write_hwm_replace_existing(
     ],
 )
 async def test_write_hwm_replace_existing_partial(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     user: User,
     hwm: HWM,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
     field: str,
     is_none: bool,
 ):
     current_dt = datetime.now(tz=timezone.utc)
     value = None if is_none else getattr(new_hwm, field)
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -389,7 +389,7 @@ async def test_write_hwm_replace_existing_partial(
     assert changed_at >= current_dt >= hwm.changed_at
 
     query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     updated_hwm = query_result.one()
 
     # Row is same as in body
@@ -404,7 +404,7 @@ async def test_write_hwm_replace_existing_partial(
     assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm_history = query_result.one()
 
     # Row is same as in body
@@ -436,14 +436,14 @@ async def test_write_hwm_replace_existing_partial(
     ],
 )
 async def test_write_hwm_value_can_be_any_valid_json(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
     value: Any,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -461,7 +461,7 @@ async def test_write_hwm_value_can_be_any_valid_json(
     assert content["value"] == value
 
     query = select(HWM).where(HWM.id == hmw_id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm = query_result.one()
 
     # Row is same as in body

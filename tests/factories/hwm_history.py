@@ -34,9 +34,9 @@ async def hwm_history_items(
     namespace: Namespace,
     hwm: HWM,
     request: pytest.FixtureRequest,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ) -> AsyncGenerator[list[HWMHistory], None]:
-    HWMHistoryFactory.__async_session__ = session
+    HWMHistoryFactory.__async_session__ = async_session
     size, params = request.param
     result = await HWMHistoryFactory.create_batch_async(
         size,
@@ -46,14 +46,16 @@ async def hwm_history_items(
         changed_by_user_id=user.id,
         **params,
     )
+    # this is not required for backend tests, but needed by client tests
+    await async_session.commit()
 
     for item in result:
         # before removing object from Session load all relationships
-        await session.refresh(item, attribute_names=["changed_by_user"])
-        session.expunge(item)
+        await async_session.refresh(item, attribute_names=["changed_by_user"])
+        async_session.expunge(item)
 
     yield result
 
     query = delete(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    await session.execute(query)
-    await session.commit()
+    await async_session.execute(query)
+    await async_session.commit()

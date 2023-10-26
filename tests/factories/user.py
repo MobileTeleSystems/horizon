@@ -22,29 +22,31 @@ class UserFactory(SQLAlchemyFactory[User]):
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def new_user(request: pytest.FixtureRequest, session: AsyncSession) -> AsyncGenerator[User, None]:
+async def new_user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
     params = request.param
     user = UserFactory.build(**params)
 
     yield user
 
     query = delete(User).where(User.username == user.username)
-    await session.execute(query)
-    await session.commit()
+    await async_session.execute(query)
+    await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def user(request: pytest.FixtureRequest, session: AsyncSession) -> AsyncGenerator[User, None]:
-    UserFactory.__async_session__ = session
+async def user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
+    UserFactory.__async_session__ = async_session
     params = request.param
     user = await UserFactory.create_async(**params)
+    # this is not required for backend tests, but needed by client tests
+    await async_session.commit()
 
-    # remove current object from Session. this is required to compare object against new state fetched
+    # remove current object from async_session. this is required to compare object against new state fetched
     # from database, and also to remove it from cache
     user_id = user.id
-    session.expunge(user)
+    async_session.expunge(user)
     yield user
 
     query = delete(User).where(User.id == user_id)
-    await session.execute(query)
-    await session.commit()
+    await async_session.execute(query)
+    await async_session.commit()

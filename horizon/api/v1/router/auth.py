@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from horizon.dependencies.stub import Stub
 from horizon.providers.auth import AuthProvider
 from horizon_commons.errors import get_error_responses
-from horizon_commons.schemas.errors import InvalidRequestSchema, NotAuthorizedSchema
+from horizon_commons.errors.schemas import InvalidRequestSchema, NotAuthorizedSchema
 from horizon_commons.schemas.v1 import AuthTokenSchemaV1
 
 router = APIRouter(prefix="/auth", tags=["Auth"])

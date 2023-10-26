@@ -40,7 +40,7 @@ class HWMRepository(Repository[HWM]):
             HWM.is_deleted.is_(False),
         )
         if result is None:
-            raise EntityNotFoundError(HWM, "name", name)
+            raise EntityNotFoundError("HWM", "name", name)
         return result
 
     async def write(
@@ -57,9 +57,9 @@ class HWMRepository(Repository[HWM]):
             )
             if result is None:
                 if "type" not in data:
-                    raise EntityInvalidError(HWM, "type", Unset())
+                    raise EntityInvalidError("HWM", "type", Unset())
                 if "value" not in data:
-                    raise EntityInvalidError(HWM, "value", Unset())
+                    raise EntityInvalidError("HWM", "value", Unset())
 
                 result = await self._create(
                     data={
@@ -72,7 +72,7 @@ class HWMRepository(Repository[HWM]):
             await self._session.flush()
             return result
         except IntegrityError as e:
-            raise EntityAlreadyExistsError(HWM, "name", name) from e
+            raise EntityAlreadyExistsError("HWM", "name", name) from e
 
     async def delete(
         self,
@@ -85,7 +85,7 @@ class HWMRepository(Repository[HWM]):
             changes={"is_deleted": True, "changed_by_user_id": user.id},
         )
         if result is None:
-            raise EntityNotFoundError(HWM, "name", name)
+            raise EntityNotFoundError("HWM", "name", name)
 
         await self._session.flush()
         return result

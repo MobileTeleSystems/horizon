@@ -23,3 +23,10 @@ class InvalidValueDetailsSchema(BaseModel):
 class InvalidValueSchema(BaseErrorSchema):
     code: Literal["invalid_value"] = "invalid_value"
     details: InvalidValueDetailsSchema
+
+    def to_exception(self) -> EntityInvalidError:
+        return EntityInvalidError(
+            entity_type=self.details.entity_type,
+            field=self.details.field,
+            value=self.details.value,
+        )

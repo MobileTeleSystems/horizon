@@ -24,3 +24,10 @@ class NotFoundDetailsSchema(BaseModel):
 class NotFoundSchema(BaseErrorSchema):
     code: Literal["not_found"] = "not_found"
     details: NotFoundDetailsSchema
+
+    def to_exception(self) -> EntityNotFoundError:
+        return EntityNotFoundError(
+            entity_type=self.details.entity_type,
+            field=self.details.field,
+            value=self.details.value,
+        )

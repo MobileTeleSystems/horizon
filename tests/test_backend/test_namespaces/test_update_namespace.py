@@ -143,6 +143,35 @@ async def test_update_namespace_description(
     assert not namespace_after.is_deleted
 
 
+async def test_update_namespace_no_data(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace: Namespace,
+):
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.name}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={},
+    )
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": {
+            "code": "invalid_request",
+            "details": {
+                "body": {},
+                "errors": [
+                    {
+                        "code": "value_error",
+                        "location": ["body", "__root__"],
+                        "message": "At least one field must be set.",
+                    }
+                ],
+            },
+            "message": "Invalid request",
+        }
+    }
+
+
 async def test_update_namespace_duplicated_name(
     test_client: AsyncClient,
     access_token: str,

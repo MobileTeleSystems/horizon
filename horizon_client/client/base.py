@@ -72,17 +72,11 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         auth: BaseAuth = values.get("auth")  # type: ignore[assignment]
         return auth.patch_session(session)
 
-    def _get_body(self, response: BaseResponse) -> dict:
-        try:
-            return response.json()
-        except Exception as err:
-            raise ValueError(response.content) from err
-
     def _parse_body(self, body: dict, response_class: type[ResponseSchema]) -> ResponseSchema:
         try:
             return parse_obj_as(response_class, body)
         except ValidationError as e:  # noqa: WPS329
-            # Response does not match expected schema. Either API was changed, or
+            # Response does not match expected schema. Probably API was changed.
             # ValidationError does not contain body, so we attaching it to response.
             raise e from ValueError(body)
 
@@ -92,27 +86,36 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         response_class: type[ResponseSchema] | None,
     ) -> ResponseSchema | None:
         """Convert Response object to expected response class, or raise an exception matching the status code"""
-        if response.status_code == http.HTTPStatus.NO_CONTENT.value or not response_class:
+        if response.status_code == http.HTTPStatus.NO_CONTENT.value:
             return None
 
-        if response.status_code < http.HTTPStatus.BAD_REQUEST.value:
-            body = self._get_body(response)
-            return self._parse_body(body, response_class)
+        if response.status_code < http.HTTPStatus.BAD_REQUEST.value and response_class:
+            return self._parse_body(response.json(), response_class)
 
         # raise_for_exception will definitely raise something, but mypy does not know that
         # so we create some exception to be bypass it
         http_exception: Exception = AssertionError("If you see this message, something went wrong")
         try:
             response.raise_for_status()
-        except Exception as ex:
-            http_exception = ex
+        except Exception as e:
+            http_exception = e
 
-        error_body = self._get_body(response)
         error_response = get_response_for_status_code(response.status_code)
         if not error_response:
+            # cannot handle this status code
             raise http_exception
 
-        error_value = self._parse_body(error_body, APIErrorSchema[error_response.schema])  # type: ignore[name-defined]
+        try:
+            error_body = response.json()
+        except Exception as format_err:  # noqa: WPS329
+            raise format_err from http_exception
+
+        try:
+            error_value = parse_obj_as(APIErrorSchema[error_response.schema], error_body)  # type: ignore[name-defined]
+        except ValidationError:  # noqa: WPS329
+            # Something wrong with API response, probably wrong URL
+            raise http_exception
+
         get_exception = getattr(error_value.error, "to_exception", None)
         if get_exception:
             raise get_exception() from http_exception

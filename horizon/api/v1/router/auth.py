@@ -10,7 +10,7 @@ from horizon.dependencies.stub import Stub
 from horizon.providers.auth import AuthProvider
 from horizon_commons.errors import get_error_responses
 from horizon_commons.errors.schemas import InvalidRequestSchema, NotAuthorizedSchema
-from horizon_commons.schemas.v1 import AuthTokenSchemaV1
+from horizon_commons.schemas.v1 import AuthTokenResponseV1
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     auth_provider: Annotated[AuthProvider, Depends(Stub(AuthProvider))],
-) -> AuthTokenSchemaV1:
+) -> AuthTokenResponseV1:
     access_token, refresh_token = await auth_provider.get_tokens(
         grant_type=form_data.grant_type,
         username=form_data.username,
@@ -32,4 +32,4 @@ async def login(
         client_id=form_data.client_id,
         client_secret=form_data.client_secret,
     )
-    return AuthTokenSchemaV1(access_token=access_token, refresh_token=refresh_token)
+    return AuthTokenResponseV1(access_token=access_token, refresh_token=refresh_token)

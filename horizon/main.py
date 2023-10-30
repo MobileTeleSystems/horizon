@@ -45,16 +45,11 @@ def application_factory(settings: Settings) -> FastAPI:
     engine = create_engine(connection_uri=settings.database.url, **settings.database.engine_args)
     session_factory = create_session_factory(engine)
 
-    auth_schema_class = settings.auth.schema_class
-    auth_schema = auth_schema_class(**settings.auth.schema_args)
-    auth_provider_class = settings.auth.provider_class
-
     application.dependency_overrides.update(
         {
             Settings: lambda: settings,
-            AsyncSession: session_factory,
-            auth_schema_class: lambda: auth_schema,
-            AuthProvider: auth_provider_class,
+            AsyncSession: session_factory,  # type: ignore[dict-item]
+            AuthProvider: settings.auth.provider_class,
         },
     )
     application.state.settings = settings

@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from typing import Annotated
 
-from fastapi import Depends, Request
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends
 
 from horizon.db.models.user import User
 from horizon.db.repositories.user import UserRepository
@@ -19,14 +18,11 @@ class DummyAuthProvider(AuthProvider):
         self,
         settings: Annotated[Settings, Depends(Stub(Settings))],
         user_repo: Annotated[UserRepository, Depends()],
-        auth_schema: Annotated[OAuth2PasswordBearer, Depends(Stub(OAuth2PasswordBearer))],
     ) -> None:
         self._settings = settings
         self._user_repo = user_repo
-        self._auth_schema = auth_schema
 
-    async def get_current_user(self, request: Request) -> User:
-        access_token = await self._auth_schema(request)
+    async def get_current_user(self, access_token: str) -> User:
         if not access_token:
             raise AuthorizationError("Missing auth credentials")
 

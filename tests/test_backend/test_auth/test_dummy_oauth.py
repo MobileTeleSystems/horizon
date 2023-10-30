@@ -23,14 +23,14 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_dummy_auth_get_token_creates_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_user: User,
     settings: Settings,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": new_user.username,
@@ -49,7 +49,7 @@ async def test_dummy_auth_get_token_creates_user(
     assert user_id
 
     query = select(User).where(User.id == user_id)
-    users = await session.scalars(query)
+    users = await async_session.scalars(query)
     created_user = users.one()
 
     assert created_user.username == new_user.username
@@ -60,12 +60,12 @@ async def test_dummy_auth_get_token_creates_user(
 
 
 async def test_dummy_auth_get_token_for_existing_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     user: User,
     settings: Settings,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": user.username,
@@ -84,7 +84,7 @@ async def test_dummy_auth_get_token_for_existing_user(
     assert user_id == user.id
 
     query = select(User).where(User.id == user.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     user_after = query_result.one()
 
     # Nothing is changed
@@ -93,10 +93,10 @@ async def test_dummy_auth_get_token_for_existing_user(
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
 async def test_dummy_auth_get_token_for_inactive_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     user: User,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": user.username,
@@ -114,10 +114,10 @@ async def test_dummy_auth_get_token_for_inactive_user(
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
 async def test_dummy_auth_get_token_for_deleted_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     user: User,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": user.username,
@@ -147,11 +147,11 @@ async def test_dummy_auth_get_token_for_deleted_user(
     indirect=True,
 )
 async def test_dummy_auth_get_token_with_missing_jwt_secret(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_user: User,
     settings: Settings,
 ):
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": new_user.username,
@@ -182,14 +182,14 @@ async def test_dummy_auth_get_token_with_missing_jwt_secret(
     indirect=True,
 )
 async def test_dummy_auth_get_token_with_malformed_input(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_user: User,
     settings: Settings,
 ):
     username = new_user.username
     password = secrets.token_hex(16)
 
-    response = await client.post(
+    response = await test_client.post(
         "v1/auth/token",
         data={
             "username": username,
@@ -223,11 +223,11 @@ async def test_dummy_auth_get_token_with_malformed_input(
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
 async def test_dummy_auth_check_inactive_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -241,11 +241,11 @@ async def test_dummy_auth_check_inactive_user(
 
 
 async def test_dummy_auth_check_missing_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     fake_access_token: str,
     new_user: User,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {fake_access_token}"},
     )
@@ -265,11 +265,11 @@ async def test_dummy_auth_check_missing_user(
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
 async def test_dummy_auth_check_disabled_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -288,10 +288,10 @@ async def test_dummy_auth_check_disabled_user(
 
 
 async def test_dummy_auth_check_invalid_token(
-    client: AsyncClient,
+    test_client: AsyncClient,
     invalid_access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {invalid_access_token}"},
     )
@@ -313,10 +313,10 @@ async def test_dummy_auth_check_invalid_token(
     indirect=True,
 )
 async def test_dummy_auth_check_token_with_missing_jwt_secret(
-    client: AsyncClient,
+    test_client: AsyncClient,
     settings: Settings,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": "Bearer some"},
     )

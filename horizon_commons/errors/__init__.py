@@ -6,4 +6,5 @@ from horizon_commons.errors.registration import (
     APIErrorResponse,
     get_error_responses,
     get_response_for_exception,
+    get_response_for_status_code,
 )

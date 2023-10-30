@@ -17,11 +17,11 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_get_hwm_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     hwm: HWM,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
     )
     assert response.status_code == 401
@@ -34,12 +34,12 @@ async def test_get_hwm_anonymous_user(
 
 
 async def test_get_hwm_missing_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -58,12 +58,12 @@ async def test_get_hwm_missing_namespace(
 
 
 async def test_get_hwm_missing_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -82,17 +82,17 @@ async def test_get_hwm_missing_hwm(
 
 
 async def test_get_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     real_hwm = query_result.one()
 
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )

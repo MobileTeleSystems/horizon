@@ -15,9 +15,9 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_paginate_namespaces_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
 ):
-    response = await client.get("v1/namespaces/")
+    response = await test_client.get("v1/namespaces/")
     assert response.status_code == 401
     assert response.json() == {
         "error": {
@@ -28,10 +28,10 @@ async def test_paginate_namespaces_anonymous_user(
 
 
 async def test_paginate_namespaces_empty(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -52,11 +52,11 @@ async def test_paginate_namespaces_empty(
 
 
 async def test_paginate_namespaces(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     namespaces: list[Namespace],
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -90,11 +90,11 @@ async def test_paginate_namespaces(
 
 @pytest.mark.parametrize("namespace", [{"is_deleted": True}], indirect=True)
 async def test_paginate_namespaces_deleted_not_included(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     namespace: Namespace,
 ):
-    response = await client.get(
+    response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )

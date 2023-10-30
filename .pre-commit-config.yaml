@@ -122,12 +122,12 @@ repos:
         entry: flake8
         language: python
         types: [python]
-        files: ^(horizon)/.*$
+        files: ^(horizon|horizon_commons|horizon_client)/.*$
         pass_filenames: true
 
       - id: mypy
         name: mypy
-        entry: mypy ./horizon ./horizon_commons --config-file ./pyproject.toml
+        entry: mypy ./horizon ./horizon_commons ./horizon_client --config-file ./pyproject.toml
         language: python
         types: [python]
         require_serial: true

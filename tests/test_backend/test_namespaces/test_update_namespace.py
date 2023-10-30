@@ -20,10 +20,10 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_update_namespace_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}",
         json={
             "name": secrets.token_hex(16),
@@ -39,11 +39,11 @@ async def test_update_namespace_anonymous_user(
 
 
 async def test_update_namespace_missing(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     new_namespace: Namespace,
 ):
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{new_namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -65,16 +65,16 @@ async def test_update_namespace_missing(
 
 
 async def test_update_namespace_name(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
     namespace: Namespace,
     new_namespace: Namespace,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -93,7 +93,7 @@ async def test_update_namespace_name(
     assert changed_at >= current_dt >= namespace.changed_at
 
     query = select(Namespace).where(Namespace.id == namespace.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     namespace_after = query_result.one()
 
     # Row is same as in body
@@ -105,15 +105,15 @@ async def test_update_namespace_name(
 
 
 async def test_update_namespace_description(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
     namespace: Namespace,
     new_namespace: Namespace,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -132,7 +132,7 @@ async def test_update_namespace_description(
     assert changed_at >= current_dt >= namespace.changed_at
 
     query = select(Namespace).where(Namespace.id == namespace.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     namespace_after = query_result.one()
 
     # Row is same as in body
@@ -144,14 +144,14 @@ async def test_update_namespace_description(
 
 
 async def test_update_namespace_duplicated_name(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     namespaces: list[Namespace],
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     namespace1, namespace2, *_ = namespaces
 
-    response = await client.patch(
+    response = await test_client.patch(
         f"v1/namespaces/{namespace1.name}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
@@ -172,7 +172,7 @@ async def test_update_namespace_duplicated_name(
     }
 
     query = select(Namespace).where(Namespace.id == namespace1.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     namespace1_after = query_result.one()
 
     # Nothing is changed

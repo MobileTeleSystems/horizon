@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any
 
 
-class ApplicationError(Exception):
+class ApplicationError(ABC, Exception):
     @property
     @abstractmethod
     def message(self) -> str:
@@ -16,5 +16,5 @@ class ApplicationError(Exception):
     def details(self) -> Any:
         ...
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.message}"
+    def __str__(self) -> str:
+        return self.message

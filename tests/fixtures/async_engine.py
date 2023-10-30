@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 @contextlib.asynccontextmanager
-async def get_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
+async def get_async_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
     """Create test engine"""
     connection_url = settings.database.url
     engine = create_async_engine(connection_url, echo=True)
@@ -25,6 +25,6 @@ async def get_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
 
 
 @pytest_asyncio.fixture(scope="session")
-async def engine(settings: Settings):
-    async with get_engine(settings) as result:
+async def async_engine(settings: Settings):
+    async with get_async_engine(settings) as result:
         yield result

@@ -42,7 +42,7 @@ venv-add: ##@Env Add requirement to venv
 db: db-start db-upgrade ##@DB Prepare database (in docker)
 
 db-start: ##@DB Start database
-	docker compose up -d db $(ARGS)
+	docker compose up -d db $(DOCKER_COMPOSE_ARGS)
 
 db-revision: ##@DB Generate migration file
 	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate
@@ -55,12 +55,11 @@ db-downgrade: ##@DB Downgrade head migration
 
 
 
-test: ##@Test Run tests
-	docker compose up -d db
-	${POETRY} run pytest $(ARGS)
+test: db-start ##@Test Run tests
+	${POETRY} run pytest $(PYTEST_ARGS)
 
 check-fixtures: ##@Test Check declared fixtures
-	${POETRY} run pytest --dead-fixtures $(ARGS)
+	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
 
 cleanup: ##@Test Cleanup tests dependencies
 	docker compose down $(ARGS)

@@ -18,10 +18,10 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_delete_namespace_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
 ):
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{namespace.name}",
     )
     assert response.status_code == 401
@@ -34,11 +34,11 @@ async def test_delete_namespace_anonymous_user(
 
 
 async def test_delete_namespace_missing(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     new_namespace: Namespace,
 ):
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{new_namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -57,15 +57,15 @@ async def test_delete_namespace_missing(
 
 
 async def test_delete_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     access_token: str,
     user: User,
     namespace: Namespace,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -73,7 +73,7 @@ async def test_delete_namespace(
     assert not response.content
 
     query = select(Namespace).where(Namespace.id == namespace.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     namespace_after = query_result.one()
 
     # Field values are left intact

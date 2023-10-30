@@ -19,11 +19,11 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_delete_hwm_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     new_hwm: HWM,
 ):
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
     )
     assert response.status_code == 401
@@ -36,12 +36,12 @@ async def test_delete_hwm_anonymous_user(
 
 
 async def test_delete_hwm_missing_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -60,12 +60,12 @@ async def test_delete_hwm_missing_namespace(
 
 
 async def test_delete_hwm_missing_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -84,16 +84,16 @@ async def test_delete_hwm_missing_hwm(
 
 
 async def test_delete_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     user: User,
     hwm: HWM,
-    session: AsyncSession,
+    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await client.delete(
+    response = await test_client.delete(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -101,7 +101,7 @@ async def test_delete_hwm(
     assert not response.content
 
     query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     hwm_after = query_result.one()
 
     # Field values are left intact
@@ -117,7 +117,7 @@ async def test_delete_hwm(
     assert hwm_after.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    query_result = await session.scalars(query)
+    query_result = await async_session.scalars(query)
     created_hwm_history = query_result.one()
 
     # Row is same as in body

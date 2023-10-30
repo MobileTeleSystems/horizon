@@ -32,7 +32,7 @@ class NamespaceRepository(Repository[Namespace]):
             Namespace.is_deleted.is_(False),
         )
         if result is None:
-            raise EntityNotFoundError(Namespace, "name", name)
+            raise EntityNotFoundError("Namespace", "name", name)
         return result
 
     async def create(
@@ -52,7 +52,7 @@ class NamespaceRepository(Repository[Namespace]):
             await self._session.flush()
             return result
         except IntegrityError as e:
-            raise EntityAlreadyExistsError(Namespace, "name", name) from e
+            raise EntityAlreadyExistsError("Namespace", "name", name) from e
 
     async def update(
         self,
@@ -66,13 +66,13 @@ class NamespaceRepository(Repository[Namespace]):
                 changes={**changes, "changed_by_user_id": user.id},
             )
             if result is None:
-                raise EntityNotFoundError(Namespace, "name", name)
+                raise EntityNotFoundError("Namespace", "name", name)
 
             await self._session.flush()
             return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError(
-                Namespace,
+                "Namespace",
                 "name",
                 changes.get("name"),
             ) from e
@@ -87,6 +87,6 @@ class NamespaceRepository(Repository[Namespace]):
             changes={"is_deleted": True, "changed_by_user_id": user.id},
         )
         if result is None:
-            raise EntityNotFoundError(Namespace, "name", name)
+            raise EntityNotFoundError("Namespace", "name", name)
 
         await self._session.flush()

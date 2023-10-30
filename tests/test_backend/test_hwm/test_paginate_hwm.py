@@ -15,10 +15,10 @@ pytestmark = [pytest.mark.asyncio]
 
 
 async def test_paginate_hwm_anonymous_user(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
 ):
-    response = await client.get(f"v1/namespaces/{namespace.name}/hwm/")
+    response = await test_client.get(f"v1/namespaces/{namespace.name}/hwm/")
     assert response.status_code == 401
     assert response.json() == {
         "error": {
@@ -29,11 +29,11 @@ async def test_paginate_hwm_anonymous_user(
 
 
 async def test_paginate_hwm_missing_namespace(
-    client: AsyncClient,
+    test_client: AsyncClient,
     new_namespace: Namespace,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{new_namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -52,11 +52,11 @@ async def test_paginate_hwm_missing_namespace(
 
 
 async def test_paginate_hwm_empty(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -77,12 +77,12 @@ async def test_paginate_hwm_empty(
 
 
 async def test_paginate_hwm(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     hwms: list[HWM],
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
@@ -120,12 +120,12 @@ async def test_paginate_hwm(
 
 @pytest.mark.parametrize("hwm", [{"is_deleted": True}], indirect=True)
 async def test_paginate_hwm_deleted_not_included(
-    client: AsyncClient,
+    test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
     hwm: HWM,
 ):
-    response = await client.get(
+    response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )

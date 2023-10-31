@@ -7,11 +7,11 @@ import requests
 from horizon.db.models import Namespace, User
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.exceptions import EntityAlreadyExistsError
-from horizon_commons.schemas.v1 import CreateNamespaceRequestV1, NamespaceResponseV1
+from horizon_commons.schemas.v1 import NamespaceCreateRequestV1, NamespaceResponseV1
 
 
 def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync_client: HorizonClientSync):
-    to_create = CreateNamespaceRequestV1(name=new_namespace.name, description=new_namespace.description)
+    to_create = NamespaceCreateRequestV1(name=new_namespace.name, description=new_namespace.description)
     response = sync_client.create_namespace(to_create)
 
     assert isinstance(response, NamespaceResponseV1)
@@ -23,7 +23,7 @@ def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync
 
 
 def test_sync_client_create_namespace_already_exists(namespace: Namespace, sync_client: HorizonClientSync):
-    to_create = CreateNamespaceRequestV1(name=namespace.name, description="abc")
+    to_create = NamespaceCreateRequestV1(name=namespace.name, description="abc")
     with pytest.raises(EntityAlreadyExistsError, match=f"Namespace with name='{namespace.name}' already exists") as e:
         sync_client.create_namespace(to_create)
 

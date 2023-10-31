@@ -12,15 +12,16 @@ from horizon.db.repositories.namespace import NamespaceRepository
 from horizon.dependencies import current_user
 from horizon_commons.errors import get_error_responses
 from horizon_commons.schemas.v1 import (
-    CreateNamespaceRequestV1,
+    HWMPaginateQueryV1,
+    HWMResponseV1,
+    HWMWriteRequestV1,
+    NamespaceCreateRequestV1,
+    NamespacePaginateQueryV1,
     NamespaceResponseV1,
+    NamespaceUpdateRequestV1,
     PageResponseV1,
-    PaginateNamespaceQueryV1,
     PaginateQueryV1,
     ReadHWMHistorySchemaV1,
-    ReadHWMSchemaV1,
-    UpdateNamespaceRequestV1,
-    WriteHWMSchemaV1,
 )
 
 router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error_responses())
@@ -31,7 +32,7 @@ router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error
     description="Paginage namespaces",
 )
 async def paginate_namespaces(
-    pagination_args: Annotated[PaginateNamespaceQueryV1, Depends()],
+    pagination_args: Annotated[NamespacePaginateQueryV1, Depends()],
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     _user: Annotated[User, Depends(current_user)],
 ) -> PageResponseV1[NamespaceResponseV1]:
@@ -45,7 +46,7 @@ async def paginate_namespaces(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_namespace(
-    data: CreateNamespaceRequestV1,
+    data: NamespaceCreateRequestV1,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
@@ -72,7 +73,7 @@ async def get_namespace(
 )
 async def update_namespace(
     namespace_name: str,
-    changes: UpdateNamespaceRequestV1,
+    changes: NamespaceUpdateRequestV1,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
@@ -107,17 +108,16 @@ async def delete_namespace(
 async def paginate_hwm(
     namespace_name: str,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
-    pagination_args: Annotated[PaginateQueryV1, Depends()],
+    pagination_args: Annotated[HWMPaginateQueryV1, Depends()],
     hwm_repo: Annotated[HWMRepository, Depends()],
     _user: Annotated[User, Depends(current_user)],
-) -> PageResponseV1[ReadHWMSchemaV1]:
+) -> PageResponseV1[HWMResponseV1]:
     namespace = await namespace_repo.get_by_name(namespace_name)
     pagination = await hwm_repo.paginate(
         namespace_id=namespace.id,
-        page=pagination_args.page,
-        page_size=pagination_args.page_size,
+        **pagination_args.dict(),
     )
-    return PageResponseV1[ReadHWMSchemaV1].from_pagination(pagination)
+    return PageResponseV1[HWMResponseV1].from_pagination(pagination)
 
 
 @router.get(
@@ -130,13 +130,13 @@ async def get_hwm(
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     hwm_repo: Annotated[HWMRepository, Depends()],
     _user: Annotated[User, Depends(current_user)],
-) -> ReadHWMSchemaV1:
+) -> HWMResponseV1:
     namespace = await namespace_repo.get_by_name(namespace_name)
     hwm = await hwm_repo.get_by_name(
         namespace_id=namespace.id,
         name=hwm_name,
     )
-    return ReadHWMSchemaV1.from_orm(hwm)
+    return HWMResponseV1.from_orm(hwm)
 
 
 @router.patch(
@@ -146,12 +146,12 @@ async def get_hwm(
 async def write_hwm(
     namespace_name: str,
     hwm_name: str,
-    data: WriteHWMSchemaV1,
+    data: HWMWriteRequestV1,
     namespace_repo: Annotated[NamespaceRepository, Depends()],
     hwm_repo: Annotated[HWMRepository, Depends()],
     hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
-) -> ReadHWMSchemaV1:
+) -> HWMResponseV1:
     namespace = await namespace_repo.get_by_name(namespace_name)
     hwm = await hwm_repo.write(
         namespace_id=namespace.id,
@@ -163,7 +163,7 @@ async def write_hwm(
         hwm_id=hwm.id,
         data=hwm.to_dict(exclude={"id"}),
     )
-    return ReadHWMSchemaV1.from_orm(hwm)
+    return HWMResponseV1.from_orm(hwm)
 
 
 @router.delete(

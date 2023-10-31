@@ -39,7 +39,7 @@ def test_sync_client_get_namespace_missing(new_namespace: Namespace, sync_client
 
 def test_sync_client_get_namespace_with_wrong_params(sync_client: HorizonClientSync):
     with pytest.raises(pydantic.ValidationError) as e:
-        sync_client.get_namespace(name="")
+        sync_client.get_namespace("")
 
     # exception with response body is attached as reason
     assert isinstance(e.value.__cause__, ValueError)

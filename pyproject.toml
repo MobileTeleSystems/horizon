@@ -113,6 +113,7 @@ max-expressions = 15
 max-arguments = 15
 # Max classes and functions in a single module
 max-module-members = 35
+max-import-from-members = 35
 max-methods = 25
 # Max line complexity measured in AST nodes
 max-line-complexity = 24

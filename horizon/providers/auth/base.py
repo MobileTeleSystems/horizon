@@ -2,14 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 from abc import ABC, abstractmethod
 
-from fastapi import Request
-
 from horizon.db.models.user import User
 
 
 class AuthProvider(ABC):
     @abstractmethod
-    async def get_current_user(self, request: Request) -> User:
+    async def get_current_user(self, access_token: str) -> User:
         ...
 
     @abstractmethod

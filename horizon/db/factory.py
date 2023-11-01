@@ -28,11 +28,6 @@ def create_session_factory(engine: AsyncEngine):
 
     async def wrapper() -> AsyncGenerator[AsyncSession, None]:
         async with Session.begin() as session:
-            try:
-                yield session
-                await session.commit()
-            except Exception:
-                await session.rollback()
-                raise
+            yield session
 
     return wrapper

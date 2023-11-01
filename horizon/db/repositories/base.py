@@ -1,16 +1,14 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from abc import ABC
-from typing import Annotated, Generic, TypeVar
+from typing import Generic, TypeVar
 
-from fastapi import Depends
 from sqlalchemy import ScalarResult, Select, delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import ColumnElement, SQLColumnExpression
 from sqlalchemy.sql.dml import ReturningDelete, ReturningInsert, ReturningUpdate
 
 from horizon.db.models import Base
-from horizon.dependencies import Stub
 from horizon_commons.dto.pagination import Pagination
 
 Model = TypeVar("Model", bound=Base)
@@ -19,7 +17,7 @@ Model = TypeVar("Model", bound=Base)
 class Repository(ABC, Generic[Model]):
     def __init__(
         self,
-        session: Annotated[AsyncSession, Depends(Stub(AsyncSession))],
+        session: AsyncSession,
     ) -> None:
         self._session = session
 

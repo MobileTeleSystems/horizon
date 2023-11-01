@@ -5,10 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
+from horizon.api.v1.router.service import UnitOfWork
 from horizon.db.models.user import User
-from horizon.db.repositories.hwm import HWMRepository
-from horizon.db.repositories.hwm_history import HWMHistoryRepository
-from horizon.db.repositories.namespace import NamespaceRepository
 from horizon.dependencies import current_user
 from horizon_commons.errors import get_error_responses
 from horizon_commons.schemas.v1 import (
@@ -30,13 +28,13 @@ router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error
 @router.get(
     "/",
     description="Paginage namespaces",
+    dependencies=[Depends(current_user)],
 )
 async def paginate_namespaces(
     pagination_args: Annotated[NamespacePaginateQueryV1, Depends()],
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
-    _user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> PageResponseV1[NamespaceResponseV1]:
-    pagination = await namespace_repo.paginate(**pagination_args.dict())
+    pagination = await unit_of_work.namespace.paginate(**pagination_args.dict())
     return PageResponseV1[NamespaceResponseV1].from_pagination(pagination)
 
 
@@ -47,23 +45,24 @@ async def paginate_namespaces(
 )
 async def create_namespace(
     data: NamespaceCreateRequestV1,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
-    namespace = await namespace_repo.create(**data.dict(), user=user)
+    async with unit_of_work:
+        namespace = await unit_of_work.namespace.create(**data.dict(), user=user)
     return NamespaceResponseV1.from_orm(namespace)
 
 
 @router.get(
     "/{namespace_name}",
     description="Get namespace by name",
+    dependencies=[Depends(current_user)],
 )
 async def get_namespace(
     namespace_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
-    _user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> NamespaceResponseV1:
-    namespace = await namespace_repo.get_by_name(namespace_name)
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
     return NamespaceResponseV1.from_orm(namespace)
 
 
@@ -74,14 +73,15 @@ async def get_namespace(
 async def update_namespace(
     namespace_name: str,
     changes: NamespaceUpdateRequestV1,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
-    namespace = await namespace_repo.update(
-        name=namespace_name,
-        changes=changes.dict(exclude_defaults=True),
-        user=user,
-    )
+    async with unit_of_work:
+        namespace = await unit_of_work.namespace.update(
+            name=namespace_name,
+            changes=changes.dict(exclude_defaults=True),
+            user=user,
+        )
     return NamespaceResponseV1.from_orm(namespace)
 
 
@@ -92,28 +92,28 @@ async def update_namespace(
 )
 async def delete_namespace(
     namespace_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
-    await namespace_repo.delete(
-        name=namespace_name,
-        user=user,
-    )
+    async with unit_of_work:
+        await unit_of_work.namespace.delete(
+            name=namespace_name,
+            user=user,
+        )
 
 
 @router.get(
     "/{namespace_name}/hwm/",
     description="Paginate HWM",
+    dependencies=[Depends(current_user)],
 )
 async def paginate_hwm(
     namespace_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
     pagination_args: Annotated[HWMPaginateQueryV1, Depends()],
-    hwm_repo: Annotated[HWMRepository, Depends()],
-    _user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> PageResponseV1[HWMResponseV1]:
-    namespace = await namespace_repo.get_by_name(namespace_name)
-    pagination = await hwm_repo.paginate(
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
+    pagination = await unit_of_work.hwm.paginate(
         namespace_id=namespace.id,
         **pagination_args.dict(),
     )
@@ -123,16 +123,15 @@ async def paginate_hwm(
 @router.get(
     "/{namespace_name}/hwm/{hwm_name}",
     description="Get HWM by name",
+    dependencies=[Depends(current_user)],
 )
 async def get_hwm(
     namespace_name: str,
     hwm_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
-    hwm_repo: Annotated[HWMRepository, Depends()],
-    _user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> HWMResponseV1:
-    namespace = await namespace_repo.get_by_name(namespace_name)
-    hwm = await hwm_repo.get_by_name(
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
+    hwm = await unit_of_work.hwm.get_by_name(
         namespace_id=namespace.id,
         name=hwm_name,
     )
@@ -147,22 +146,21 @@ async def write_hwm(
     namespace_name: str,
     hwm_name: str,
     data: HWMWriteRequestV1,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
-    hwm_repo: Annotated[HWMRepository, Depends()],
-    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> HWMResponseV1:
-    namespace = await namespace_repo.get_by_name(namespace_name)
-    hwm = await hwm_repo.write(
-        namespace_id=namespace.id,
-        name=hwm_name,
-        data=data.dict(exclude_unset=True),
-        user=user,
-    )
-    await hwm_history_repo.create(
-        hwm_id=hwm.id,
-        data=hwm.to_dict(exclude={"id"}),
-    )
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
+    async with unit_of_work:
+        hwm = await unit_of_work.hwm.write(
+            namespace_id=namespace.id,
+            name=hwm_name,
+            data=data.dict(exclude_unset=True),
+            user=user,
+        )
+        await unit_of_work.hwm_history.create(
+            hwm_id=hwm.id,
+            data=hwm.to_dict(exclude={"id"}),
+        )
     return HWMResponseV1.from_orm(hwm)
 
 
@@ -174,42 +172,39 @@ async def write_hwm(
 async def delete_hwm(
     namespace_name: str,
     hwm_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
-    hwm_repo: Annotated[HWMRepository, Depends()],
-    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
-    namespace = await namespace_repo.get_by_name(namespace_name)
-    hwm = await hwm_repo.delete(
-        namespace_id=namespace.id,
-        name=hwm_name,
-        user=user,
-    )
-    await hwm_history_repo.create(
-        hwm_id=hwm.id,
-        data=hwm.to_dict(exclude={"id"}),
-    )
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
+    async with unit_of_work:
+        hwm = await unit_of_work.hwm.delete(
+            namespace_id=namespace.id,
+            name=hwm_name,
+            user=user,
+        )
+        await unit_of_work.hwm_history.create(
+            hwm_id=hwm.id,
+            data=hwm.to_dict(exclude={"id"}),
+        )
 
 
 @router.get(
     "/{namespace_name}/hwm/{hwm_name}/history",
     description="Paginate HWM history",
+    dependencies=[Depends(current_user)],
 )
 async def paginate_hwm_history(
     namespace_name: str,
     hwm_name: str,
-    namespace_repo: Annotated[NamespaceRepository, Depends()],
     pagination_args: Annotated[PaginateQueryV1, Depends()],
-    hwm_repo: Annotated[HWMRepository, Depends()],
-    hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
-    _user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> PageResponseV1[HWMHistoryResponseV1]:
-    namespace = await namespace_repo.get_by_name(namespace_name)
-    hwm = await hwm_repo.get_by_name(
+    namespace = await unit_of_work.namespace.get_by_name(namespace_name)
+    hwm = await unit_of_work.hwm.get_by_name(
         namespace_id=namespace.id,
         name=hwm_name,
     )
-    pagination = await hwm_history_repo.paginate(
+    pagination = await unit_of_work.hwm_history.paginate(
         hwm_id=hwm.id,
         page=pagination_args.page,
         page_size=pagination_args.page_size,

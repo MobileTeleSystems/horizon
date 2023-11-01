@@ -11,7 +11,7 @@ from horizon_commons.exceptions.entity import EntityNotFoundError
 from horizon_commons.schemas.v1 import HWMResponseV1
 
 
-def test_sync_client_get_hwm(namespace: Namespace, hwm: HWM, user: User, sync_client: HorizonClientSync):
+def test_sync_client_get_hwm(namespace: Namespace, hwm: HWM, sync_client: HorizonClientSync):
     response = sync_client.get_hwm(namespace.name, hwm.name)
     assert response == HWMResponseV1(
         id=hwm.id,
@@ -22,7 +22,7 @@ def test_sync_client_get_hwm(namespace: Namespace, hwm: HWM, user: User, sync_cl
         expression=hwm.expression,
         description=hwm.description,
         changed_at=hwm.changed_at,
-        changed_by=user.username,
+        changed_by=hwm.changed_by,
     )
 
 

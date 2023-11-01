@@ -6,8 +6,18 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from horizon_commons.schemas.v1.pagination import PaginateQueryV1
 
-class ReadHWMHistorySchemaV1(BaseModel):
+
+class HWMHistoryPaginateQueryV1(PaginateQueryV1):
+    """Query params for HWM pagination request."""
+
+    # more arguments can be added in future
+
+
+class HWMHistoryResponseV1(BaseModel):
+    """HWM history response."""
+
     id: int
     hwm_id: int
     name: str

@@ -4,8 +4,8 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from horizon.api.v1.router.service import UnitOfWork
 from horizon.db.models.user import User
-from horizon.db.repositories.user import UserRepository
 from horizon.dependencies import Stub
 from horizon.providers.auth.base import AuthProvider
 from horizon.settings import Settings
@@ -17,17 +17,17 @@ class DummyAuthProvider(AuthProvider):
     def __init__(
         self,
         settings: Annotated[Settings, Depends(Stub(Settings))],
-        user_repo: Annotated[UserRepository, Depends()],
+        unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._settings = settings
-        self._user_repo = user_repo
+        self._uow = unit_of_work
 
     async def get_current_user(self, access_token: str) -> User:
         if not access_token:
             raise AuthorizationError("Missing auth credentials")
 
         user_id = self._decode_jwt(access_token)
-        user = await self._user_repo.get_by_id(user_id)
+        user = await self._uow.user.get_by_id(user_id)
         if not user.is_active:
             raise AuthorizationError(f"User {user.username!r} is disabled")
         return user
@@ -44,7 +44,8 @@ class DummyAuthProvider(AuthProvider):
         if not username or not password:
             raise AuthorizationError("Missing auth credentials")
 
-        user = await self._user_repo.get_or_create(username=username)
+        async with self._uow:
+            user = await self._uow.user.get_or_create(username=username)
         if not user.is_active:
             raise AuthorizationError(f"User {username!r} is disabled")
 

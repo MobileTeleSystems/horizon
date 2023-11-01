@@ -419,6 +419,36 @@ async def test_write_hwm_replace_existing_partial(
     assert not created_hwm_history.is_deleted
 
 
+async def test_write_hwm_replace_existing_no_data(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace: Namespace,
+    hwm: HWM,
+):
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={},
+    )
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": {
+            "code": "invalid_request",
+            "details": {
+                "body": {},
+                "errors": [
+                    {
+                        "code": "value_error",
+                        "location": ["body", "__root__"],
+                        "message": "At least one field must be set.",
+                    }
+                ],
+            },
+            "message": "Invalid request",
+        }
+    }
+
+
 @pytest.mark.parametrize(
     "value",
     [

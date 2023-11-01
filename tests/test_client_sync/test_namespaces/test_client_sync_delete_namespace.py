@@ -13,6 +13,9 @@ def test_sync_client_delete_namespace(namespace: Namespace, sync_client: Horizon
     response = sync_client.delete_namespace(namespace.name)
     assert response is None
 
+    with pytest.raises(EntityNotFoundError):
+        sync_client.get_namespace(namespace.name)
+
 
 def test_sync_client_delete_namespace_missing(new_namespace: Namespace, sync_client: HorizonClientSync):
     with pytest.raises(EntityNotFoundError, match=f"Namespace with name='{new_namespace.name}' not found") as e:

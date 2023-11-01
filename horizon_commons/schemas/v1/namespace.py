@@ -22,23 +22,23 @@ class NamespaceResponseV1(BaseModel):
         orm_mode = True
 
 
-class PaginateNamespaceQueryV1(PaginateQueryV1):
+class NamespacePaginateQueryV1(PaginateQueryV1):
     """Query params for namespace pagination request."""
 
     # more arguments can be added in future
 
 
-class CreateNamespaceRequestV1(BaseModel):
+class NamespaceCreateRequestV1(BaseModel):
     """Request body for namespace creation request."""
 
     name: str = Field(min_length=1)
     description: str = ""
 
 
-class UpdateNamespaceRequestV1(BaseModel):
+class NamespaceUpdateRequestV1(BaseModel):
     """Request body for namespace update request.
 
-    If field data is not provided, it will not be updated.
+    If some field is not provided, it will not be updated.
     """
 
     name: str | Unset = Field(default=Unset(), min_length=1)

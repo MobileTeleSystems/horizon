@@ -2,16 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-import requests
 
 from horizon.db.models import Namespace, User
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.schemas.v1 import (
+    NamespacePaginateQueryV1,
     NamespaceResponseV1,
     PageMetaResponseV1,
     PageResponseV1,
 )
-from horizon_commons.schemas.v1.namespace import PaginateNamespaceQueryV1
 
 
 def test_sync_client_paginate_namespaces(namespaces: list[Namespace], user: User, sync_client: HorizonClientSync):
@@ -61,7 +60,7 @@ def test_sync_client_paginate_namespaces_with_params(
         for namespace in namespaces
     ]
 
-    page1 = sync_client.paginate_namespaces(query=PaginateNamespaceQueryV1(page=1, page_size=8))
+    page1 = sync_client.paginate_namespaces(query=NamespacePaginateQueryV1(page=1, page_size=8))
     assert page1 == PageResponseV1[NamespaceResponseV1](
         meta=PageMetaResponseV1(
             page=1,
@@ -76,7 +75,7 @@ def test_sync_client_paginate_namespaces_with_params(
         items=items[0:8],
     )
 
-    page2 = sync_client.paginate_namespaces(query=PaginateNamespaceQueryV1(page=2, page_size=8))
+    page2 = sync_client.paginate_namespaces(query=NamespacePaginateQueryV1(page=2, page_size=8))
     assert page2 == PageResponseV1[NamespaceResponseV1](
         meta=PageMetaResponseV1(
             page=2,

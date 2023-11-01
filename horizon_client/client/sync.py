@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from horizon_client.client.base import BaseClient
 from horizon_commons.schemas import PingResponse
 from horizon_commons.schemas.v1 import (
+    HWMHistoryPaginateQueryV1,
+    HWMHistoryResponseV1,
     HWMPaginateQueryV1,
     HWMResponseV1,
     HWMWriteRequestV1,
@@ -129,7 +131,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         Returns
         -------
-        :obj:`PageResponseV1 <horizon_commons.schemas.v1.pagination.PageResponseV1>`
+        :obj:`PageResponseV1 <horizon_commons.schemas.v1.pagination.PageResponseV1>` of :obj:`NamespaceResponseV1 <horizon_commons.schemas.v1.namespace.NamespaceResponseV1>`
             List of namespaces, limited by query parameters.
 
         Examples
@@ -321,7 +323,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         Returns
         -------
-        :obj:`PageResponseV1 <horizon_commons.schemas.v1.pagination.PageResponseV1>`
+        :obj:`PageResponseV1 <horizon_commons.schemas.v1.pagination.PageResponseV1>` of :obj:`HWMResponseV1 <horizon_commons.schemas.v1.hwm.HWMResponseV1>`
             List of HWM, limited by query parameters.
 
         Raises
@@ -481,6 +483,82 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         self._request(
             "DELETE",
             f"{self.base_url}/v1/namespaces/{namespace_name}/hwm/{hwm_name}",
+        )
+
+    def paginate_hwm_history(
+        self,
+        namespace_name: str,
+        hwm_name: str,
+        query: HWMHistoryPaginateQueryV1 | None = None,
+    ) -> PageResponseV1[HWMHistoryResponseV1]:
+        """Get page with HWM changes history.
+
+        Parameters
+        ----------
+        namespace_name : str
+            Namespace name of HWM
+        hwm_name : str
+            HWM name to get history for
+        query : :obj:`HWMHistoryPaginateQueryV1 <horizon_commons.schemas.v1.hwm_history.HWMHistoryPaginateQueryV1>`
+            HWM history query parameters
+
+        Returns
+        -------
+        :obj:`PageResponseV1 <horizon_commons.schemas.v1.pagination.PageResponseV1>` of :obj:`HWMHistoryResponseV1 <horizon_commons.schemas.v1.hwm_history.HWMHistoryResponseV1>`
+            List of HWM history, limited by query parameters.
+
+        Raises
+        ------
+        :obj:`EntityNotFoundError <horizon_commons.exceptions.entity.EntityNotFoundError>`
+            Namespace or HWM not found
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            assert client.paginate_hwm_history("my_namespace", "my_hwm") == PageResponseV1[HWMHistoryResponseV1](
+                meta=PageMetaResponseV1(
+                    page=1,
+                    pages_count=1,
+                    total_count=10,
+                    page_size=20,
+                    has_next=False,
+                    has_previous=False,
+                    next_page=None,
+                    previous_page=None,
+                ),
+                items=[
+                    HWMHistoryResponseV1(...),
+                    ...
+                ],
+            )
+
+            hwm_query = HWMPaginateQueryV1(page_size=10)
+            result = client.paginate_hwm(namespace_name="my_namespace", hwm_name="my_hwm", query=hwm_query)
+            assert result == PageResponseV1[HWMHistoryResponseV1](
+                meta=PageMetaResponseV1(
+                    page=1,
+                    pages_count=2,
+                    total_count=10,
+                    page_size=10,
+                    has_next=True,
+                    has_previous=False,
+                    next_page=2,
+                    previous_page=None,
+                ),
+                items=[
+                    HWMHistoryResponseV1(...),
+                    ...
+                ]
+            )
+        """
+        query = query or HWMHistoryPaginateQueryV1()
+        return self._request(  # type: ignore[return-value]
+            "GET",
+            f"{self.base_url}/v1/namespaces/{namespace_name}/hwm/{hwm_name}/history",
+            response_class=PageResponseV1[HWMHistoryResponseV1],
+            params=query.dict(),
         )
 
     def _request(

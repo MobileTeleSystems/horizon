@@ -6,7 +6,10 @@ from horizon_commons.schemas.v1.hwm import (
     HWMResponseV1,
     HWMWriteRequestV1,
 )
-from horizon_commons.schemas.v1.hwm_history import ReadHWMHistorySchemaV1
+from horizon_commons.schemas.v1.hwm_history import (
+    HWMHistoryPaginateQueryV1,
+    HWMHistoryResponseV1,
+)
 from horizon_commons.schemas.v1.namespace import (
     NamespaceCreateRequestV1,
     NamespacePaginateQueryV1,

@@ -12,6 +12,7 @@ from horizon.db.repositories.namespace import NamespaceRepository
 from horizon.dependencies import current_user
 from horizon_commons.errors import get_error_responses
 from horizon_commons.schemas.v1 import (
+    HWMHistoryResponseV1,
     HWMPaginateQueryV1,
     HWMResponseV1,
     HWMWriteRequestV1,
@@ -21,7 +22,6 @@ from horizon_commons.schemas.v1 import (
     NamespaceUpdateRequestV1,
     PageResponseV1,
     PaginateQueryV1,
-    ReadHWMHistorySchemaV1,
 )
 
 router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error_responses())
@@ -203,7 +203,7 @@ async def paginate_hwm_history(
     hwm_repo: Annotated[HWMRepository, Depends()],
     hwm_history_repo: Annotated[HWMHistoryRepository, Depends()],
     _user: Annotated[User, Depends(current_user)],
-) -> PageResponseV1[ReadHWMHistorySchemaV1]:
+) -> PageResponseV1[HWMHistoryResponseV1]:
     namespace = await namespace_repo.get_by_name(namespace_name)
     hwm = await hwm_repo.get_by_name(
         namespace_id=namespace.id,
@@ -214,4 +214,4 @@ async def paginate_hwm_history(
         page=pagination_args.page,
         page_size=pagination_args.page_size,
     )
-    return PageResponseV1[ReadHWMHistorySchemaV1].from_pagination(pagination)
+    return PageResponseV1[HWMHistoryResponseV1].from_pagination(pagination)

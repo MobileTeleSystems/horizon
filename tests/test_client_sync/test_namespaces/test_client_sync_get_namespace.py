@@ -11,14 +11,14 @@ from horizon_commons.exceptions.entity import EntityNotFoundError
 from horizon_commons.schemas.v1 import NamespaceResponseV1
 
 
-def test_sync_client_get_namespace(namespace: Namespace, user: User, sync_client: HorizonClientSync):
+def test_sync_client_get_namespace(namespace: Namespace, sync_client: HorizonClientSync):
     response = sync_client.get_namespace(namespace.name)
     assert response == NamespaceResponseV1(
         id=namespace.id,
         name=namespace.name,
         description=namespace.description,
         changed_at=namespace.changed_at,
-        changed_by=user.username,
+        changed_by=namespace.changed_by,
     )
 
 

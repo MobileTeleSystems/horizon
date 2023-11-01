@@ -13,7 +13,7 @@ from horizon_commons.schemas.v1 import (
 )
 
 
-def test_sync_client_paginate_namespaces(namespaces: list[Namespace], user: User, sync_client: HorizonClientSync):
+def test_sync_client_paginate_namespaces(namespaces: list[Namespace], sync_client: HorizonClientSync):
     namespaces = sorted(namespaces, key=lambda item: item.name)
     items = [
         NamespaceResponseV1(
@@ -21,7 +21,7 @@ def test_sync_client_paginate_namespaces(namespaces: list[Namespace], user: User
             name=namespace.name,
             description=namespace.description,
             changed_at=namespace.changed_at,
-            changed_by=user.username,
+            changed_by=namespace.changed_by,
         )
         for namespace in namespaces
     ]
@@ -45,7 +45,6 @@ def test_sync_client_paginate_namespaces(namespaces: list[Namespace], user: User
 @pytest.mark.parametrize("namespaces", [(10, {})], indirect=True)
 def test_sync_client_paginate_namespaces_with_params(
     namespaces: list[Namespace],
-    user: User,
     sync_client: HorizonClientSync,
 ):
     namespaces = sorted(namespaces, key=lambda item: item.name)
@@ -55,7 +54,7 @@ def test_sync_client_paginate_namespaces_with_params(
             name=namespace.name,
             description=namespace.description,
             changed_at=namespace.changed_at,
-            changed_by=user.username,
+            changed_by=namespace.changed_by,
         )
         for namespace in namespaces
     ]

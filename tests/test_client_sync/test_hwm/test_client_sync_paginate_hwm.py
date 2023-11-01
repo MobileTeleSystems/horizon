@@ -13,7 +13,7 @@ from horizon_commons.schemas.v1 import (
 )
 
 
-def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], user: User, sync_client: HorizonClientSync):
+def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], sync_client: HorizonClientSync):
     hwms = sorted(hwms, key=lambda item: item.name)
     items = [
         HWMResponseV1(
@@ -25,7 +25,7 @@ def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], user: U
             expression=hwm.expression,
             description=hwm.description,
             changed_at=hwm.changed_at,
-            changed_by=user.username,
+            changed_by=hwm.changed_by,
         )
         for hwm in hwms
     ]
@@ -50,7 +50,6 @@ def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], user: U
 def test_sync_client_paginate_hwm_with_params(
     namespace: Namespace,
     hwms: list[HWM],
-    user: User,
     sync_client: HorizonClientSync,
 ):
     hwms = sorted(hwms, key=lambda item: item.name)
@@ -64,7 +63,7 @@ def test_sync_client_paginate_hwm_with_params(
             expression=hwm.expression,
             description=hwm.description,
             changed_at=hwm.changed_at,
-            changed_by=user.username,
+            changed_by=hwm.changed_by,
         )
         for hwm in hwms
     ]

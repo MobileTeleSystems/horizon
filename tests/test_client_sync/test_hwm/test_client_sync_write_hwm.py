@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 import requests
 
@@ -8,6 +12,9 @@ from horizon.db.models import HWM, Namespace, User
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.exceptions.entity import EntityNotFoundError
 from horizon_commons.schemas.v1 import HWMResponseV1, HWMWriteRequestV1
+
+if TYPE_CHECKING:
+    from horizon.db.models import HWM, Namespace
 
 
 def test_sync_client_write_hwm_create_new_full(

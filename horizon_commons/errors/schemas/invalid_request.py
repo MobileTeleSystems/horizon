@@ -1,16 +1,17 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 import http
-from typing import Any, Literal
+from typing import Any, List
 
 from pydantic import BaseModel, Field, ValidationError
+from typing_extensions import Literal
 
 from horizon_commons.errors.base import BaseErrorSchema
 from horizon_commons.errors.registration import register_error_response
 
 
 class InvalidRequestBaseErrorSchema(BaseModel):
-    loc: list[str] = Field(alias="location")
+    loc: List[str] = Field(alias="location")
     msg: str = Field(alias="message")
     type: str = Field(alias="code")
 
@@ -19,7 +20,7 @@ class InvalidRequestBaseErrorSchema(BaseModel):
 
 
 class InvalidRequestDetailsSchema(BaseModel):
-    errors: list[InvalidRequestBaseErrorSchema]
+    errors: List[InvalidRequestBaseErrorSchema]
     body: Any = Field(
         description="Request body. Returned only if server is running in debug mode",
     )

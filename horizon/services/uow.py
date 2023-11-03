@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Annotated
-
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing_extensions import Annotated
 
 from horizon.db.repositories.hwm import HWMRepository
 from horizon.db.repositories.hwm_history import HWMHistoryRepository

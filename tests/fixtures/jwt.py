@@ -1,12 +1,18 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 from freezegun import freeze_time
 from pytest_lazyfixture import lazy_fixture
 
-from horizon.db.models import User
-from horizon.settings import Settings
 from horizon.utils.jwt import sign_jwt
+
+if TYPE_CHECKING:
+    from horizon.db.models.user import User
+    from horizon.settings import Settings
 
 pytestmark = [pytest.mark.auth]
 

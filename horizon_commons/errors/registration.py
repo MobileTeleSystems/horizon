@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 import http
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Type
 
 from horizon_commons.errors.base import APIErrorSchema, BaseErrorSchema
 
@@ -9,7 +11,7 @@ from horizon_commons.errors.base import APIErrorSchema, BaseErrorSchema
 class APIErrorResponse(NamedTuple):
     status: int
     description: str
-    schema: type[BaseErrorSchema]
+    schema: Type[BaseErrorSchema]
 
 
 _responses_by_exception: dict[type[Exception], APIErrorResponse] = {}

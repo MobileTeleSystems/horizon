@@ -1,13 +1,19 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING
 
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.db.models import User
 from horizon_client.auth import AccessToken, OAuth2Password
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from horizon.db.models import User
 
 
 @pytest.fixture(scope="session")

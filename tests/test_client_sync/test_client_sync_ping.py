@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
 
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.schemas import PingResponse

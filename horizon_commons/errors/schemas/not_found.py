@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import http
-from typing import Any, Literal
+from typing import Any, Optional
 
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 from horizon_commons.errors.base import BaseErrorSchema
 from horizon_commons.errors.registration import register_error_response
@@ -13,8 +14,8 @@ from horizon_commons.exceptions.entity import EntityNotFoundError
 
 class NotFoundDetailsSchema(BaseModel):
     entity_type: str
-    field: str | None = None
-    value: Any | None = None
+    field: Optional[str] = None
+    value: Optional[Any] = None
 
 
 @register_error_response(

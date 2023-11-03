@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+
 from abc import ABC, abstractmethod
+from typing import List, Optional, Tuple
 
 from horizon.db.models.user import User
 
@@ -13,11 +15,11 @@ class AuthProvider(ABC):
     @abstractmethod
     async def get_tokens(
         self,
-        grant_type: str | None = None,
-        username: str | None = None,
-        password: str | None = None,
-        scopes: list[str] | None = None,
-        client_id: str | None = None,
-        client_secret: str | None = None,
-    ) -> tuple[str, str]:
+        grant_type: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        scopes: Optional[List[str]] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+    ) -> Tuple[str, str]:
         ...

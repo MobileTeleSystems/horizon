@@ -42,7 +42,10 @@ def application_factory(settings: Settings) -> FastAPI:
     application.add_exception_handler(HTTPException, http_exception_handler)
     application.add_exception_handler(Exception, unknown_exception_handler)
 
-    engine = create_engine(connection_uri=settings.database.url, **settings.database.engine_args)
+    engine = create_engine(
+        connection_uri=settings.database.url,
+        **settings.database.engine_args,
+    )
     session_factory = create_session_factory(engine)
 
     application.dependency_overrides.update(

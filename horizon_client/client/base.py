@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
 
 import http
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 from urllib.parse import urlparse
 
 from pydantic import AnyHttpUrl, BaseModel, ValidationError, parse_obj_as, validator
@@ -40,7 +41,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
 
     base_url: AnyHttpUrl
     auth: BaseAuth
-    session: SessionClass | None = None
+    session: Optional[SessionClass] = None
 
     class Config:
         arbitrary_types_allowed = True

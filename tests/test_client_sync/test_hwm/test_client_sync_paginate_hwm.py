@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 
-from horizon.db.models import HWM, Namespace, User
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.schemas.v1 import (
     HWMPaginateQueryV1,
@@ -11,6 +14,9 @@ from horizon_commons.schemas.v1 import (
     PageMetaResponseV1,
     PageResponseV1,
 )
+
+if TYPE_CHECKING:
+    from horizon.db.models import HWM, Namespace
 
 
 def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], sync_client: HorizonClientSync):

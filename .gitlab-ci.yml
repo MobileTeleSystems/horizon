@@ -39,7 +39,7 @@ backend_test_image:
   stage: build test image
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.11']
+      - PYTHON_VERSION: ['3.7', '3.11']
   variables:
     CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.test
     CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
@@ -130,7 +130,7 @@ test-backend:
   stage: build backend image
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.11']
+      - PYTHON_VERSION: ['3.7', '3.11']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
@@ -164,7 +164,7 @@ test-client:
   stage: tests
   parallel:
     matrix:
-      - PYTHON_VERSION: ['3.11']
+      - PYTHON_VERSION: ['3.7', '3.11']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
@@ -249,7 +249,7 @@ stop_review_docker:
     - !reference [.base_tools__bricks_send_usage_statistics, script]
     - !reference [.base_docker_cleaner__bricks_debug, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.11
+    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.7,${CI_COMMIT_REF_SLUG}-python3.11
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
     - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}

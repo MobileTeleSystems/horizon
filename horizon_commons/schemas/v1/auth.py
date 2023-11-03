@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-
-from typing import Literal
+from __future__ import annotations
 
 from pydantic import BaseModel
+from typing_extensions import Literal
 
 
 class AuthTokenResponseV1(BaseModel):

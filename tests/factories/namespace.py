@@ -1,32 +1,33 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+
 from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
-from polyfactory import Ignore, Use
-from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.db.models.namespace import Namespace
 from horizon.db.models.user import User
-from tests.factories.user import UserFactory
+from tests.factories.base import random_datetime, random_string
 
 
-class NamespaceFactory(SQLAlchemyFactory[Namespace]):
-    __model__ = Namespace
-
-    id = Ignore()
-    is_deleted = False
-    changed_by_user = Use(UserFactory)
-    changed_at = Ignore()
+def namespace_factory(**kwargs):
+    data = {
+        "name": random_string(),
+        "description": random_string(),
+        "changed_at": random_datetime(),
+        "is_deleted": False,
+    }
+    data.update(kwargs)
+    return Namespace(**data)
 
 
 @pytest_asyncio.fixture(params=[{}])
 async def new_namespace(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[Namespace, None]:
     params = request.param
-    namespace = NamespaceFactory.build(**params)
+    namespace = namespace_factory(**params)
     yield namespace
 
     query = delete(Namespace).where(Namespace.name == namespace.name)
@@ -40,9 +41,10 @@ async def namespace(
     request: pytest.FixtureRequest,
     async_session: AsyncSession,
 ) -> AsyncGenerator[Namespace, None]:
-    NamespaceFactory.__async_session__ = async_session
     params = request.param
-    namespace = await NamespaceFactory.create_async(**params, changed_by_user_id=user.id)
+    namespace = namespace_factory(**params, changed_by_user_id=user.id)
+    async_session.add(namespace)
+    # this is not required for backend tests, but needed by client tests
     await async_session.commit()
 
     # remove current object from async_session. this is required to compare object against new state fetched
@@ -63,9 +65,11 @@ async def namespaces(
     request: pytest.FixtureRequest,
     async_session: AsyncSession,
 ) -> AsyncGenerator[list[Namespace], None]:
-    NamespaceFactory.__async_session__ = async_session
     size, params = request.param
-    result = await NamespaceFactory.create_batch_async(size, **params, changed_by_user_id=user.id)
+    result = [namespace_factory(changed_by_user_id=user.id, **params) for _ in range(size)]
+    for item in result:
+        async_session.add(item)
+
     # this is not required for backend tests, but needed by client tests
     await async_session.commit()
 

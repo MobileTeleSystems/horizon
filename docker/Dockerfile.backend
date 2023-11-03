@@ -1,41 +1,17 @@
-FROM sregistry.mts.ru/bigdata/platform/docker-images/python:3.11-slim as base
-
-RUN pip install poetry \
-    && poetry config virtualenvs.create false
+ARG PYTHON_VERSION=3.11
+FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as prod
 
 WORKDIR /app
 ENV PYTHONPATH=/app
 
+RUN pip install poetry \
+    && poetry config virtualenvs.create false
+
 COPY ./pyproject.toml ./poetry.lock* ./
 
-
-FROM base AS test
-RUN poetry export \
-        --with backend,dev,test,client \
-        --without-hashes \
-        --with-credentials \
-        --without-urls \
-        --output ./requirements.txt \
-    && pip install -r ./requirements.txt
-
-COPY ./docker/entrypoint.sh ./docker/
-RUN chmod +x ./docker/*.sh
-
-COPY ./horizon/ ./horizon/
-COPY ./horizon_commons/ ./horizon_commons/
-CMD ["/app/docker/entrypoint.sh"]
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]
-
-
-FROM base AS prod
-RUN poetry export \
-        -f requirements.txt \
-        --with backend \
-        --without-hashes \
-        --with-credentials \
-        --without-urls \
-        --output ./requirements.txt \
-    && pip install -r ./requirements.txt
+RUN poetry install \
+        --extras backend \
+        --without dev,test
 
 COPY ./docker/entrypoint.sh ./docker/
 RUN chmod +x ./docker/*.sh

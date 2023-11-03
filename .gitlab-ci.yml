@@ -7,6 +7,7 @@ default:
 stages:
   - build test image
   - static analysis
+  - build backend image
   - tests
   - coverage
   - artifacts
@@ -29,27 +30,28 @@ workflow:
     - when: always
 
 variables:
-  DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}
+  DEFAULT_PYTHON: '3.11'
+  DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
 
-.build_test_image:
+### --------------- Build docker images --------------- ###
+backend_test_image:
   extends: .base_docker_build
   stage: build test image
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ['3.11']
   variables:
-    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.test
+    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
+    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python${PYTHON_VERSION}
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+    CICD_DOCKER__BUILD_EXTRA_ARGS: --build-arg PYTHON_VERSION=$PYTHON_VERSION
     CICD_DOCKER__STOP_IF_EXISTS: 'false'
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - when: on_success
   interruptible: true
-
-backend_test_image:
-  extends: .build_test_image
-  variables:
-    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
-    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop
-    CICD_DOCKER__BUILD_EXTRA_ARGS: --target=test
 
 mypy:
   image: ${DEFAULT_IMAGE}
@@ -101,9 +103,68 @@ bandit:
     - when: on_success
   interruptible: true
 
-tests:
-  image: ${DEFAULT_IMAGE}
+build_backend_image:
+  extends: .base_docker_build
+  stage: build backend image
+  variables:
+    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
+    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    CICD_DOCKER__CACHE_FROM: ${DEFAULT_IMAGE}
+    CICD_DOCKER__BUILD_EXTRA_ARGS: --target=prod
+    CICD_DOCKER__STOP_IF_EXISTS: 'false'
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
+      variables:
+        CICD_DOCKER__IMAGE_TAG: develop
+    - if: $CI_COMMIT_TAG
+      variables:
+        CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python3.11
+        CICD_DOCKER__ADDITIONAL_TAGS: latest
+        CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_TAG}
+    - when: on_success
+  interruptible: true
+
+test-backend:
+  image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+  stage: build backend image
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ['3.11']
+  variables:
+    HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+    HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON_SERVER__DEBUG: 'true'
+  services:
+    - name: central-mirror.services.mts.ru/postgres:15-alpine
+      alias: db
+      variables:
+        POSTGRES_DB: horizon
+        POSTGRES_USER: horizon
+        POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
+  script:
+    - ./docker/wait-for-it.sh -h db -p 5432 -t 60
+    - alembic -c ./horizon/alembic.ini upgrade head
+    - python -m coverage run -m pytest -v -s -k "not client" --junitxml=reports/junit-backend.xml
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/reports
+    reports:
+      junit:
+        - ${CI_PROJECT_DIR}/reports/*.xml
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+  interruptible: true
+
+test-client:
+  image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
   stage: tests
+  parallel:
+    matrix:
+      - PYTHON_VERSION: ['3.11']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
@@ -118,20 +179,20 @@ tests:
         POSTGRES_DB: horizon
         POSTGRES_USER: horizon
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
-    - name: ${DEFAULT_IMAGE}
+    - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${CI_COMMIT_REF_SLUG}
       alias: backend
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - alembic -c ./horizon/alembic.ini upgrade head
-    - python -m coverage run -m pytest -v -s --junitxml=reports/junit.xml
+    - python -m coverage run -m pytest -k 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
   artifacts:
     when: always
     paths:
       - ${CI_PROJECT_DIR}/reports
     reports:
       junit:
-        - ${CI_PROJECT_DIR}/reports/junit.xml
+        - ${CI_PROJECT_DIR}/reports/junit*.xml
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -142,7 +203,8 @@ coverage:
   image: ${DEFAULT_IMAGE}
   stage: coverage
   dependencies:
-    - tests
+    - test-backend
+    - test-client
   script:
     - python -m coverage combine
     - python -m coverage xml -o ./reports/coverage.xml -i
@@ -162,31 +224,6 @@ coverage:
       when: never
     - when: on_success
   interruptible: true
-
-build_image_backend:
-  extends: .base_docker_build
-  stage: artifacts
-  variables:
-    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
-    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
-    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-    CICD_DOCKER__CACHE_FROM: ${DEFAULT_IMAGE}
-    CICD_DOCKER__BUILD_EXTRA_ARGS: --target=prod
-    CICD_DOCKER__STOP_IF_EXISTS: 'false'
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
-      variables:
-        CICD_DOCKER__IMAGE_TAG: develop
-    - if: $CI_COMMIT_TAG
-      variables:
-        CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop
-        CICD_DOCKER__ADDITIONAL_TAGS: latest
-        CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_TAG}
-    - when: manual
-      allow_failure: true
-  interruptible: true
-
-## --------------- Remove artifacts after remove feature/bug branch --------------- ###
 
 start_review_docker:
   stage: .post
@@ -211,10 +248,11 @@ stop_review_docker:
   script:
     - !reference [.base_tools__bricks_send_usage_statistics, script]
     - !reference [.base_docker_cleaner__bricks_debug, script]
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}
-    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
-    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
+    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.11
+    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
+    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
   environment:
     name: review/docker/$CI_COMMIT_REF_SLUG

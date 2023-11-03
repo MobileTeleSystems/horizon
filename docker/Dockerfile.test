@@ -1,0 +1,15 @@
+ARG PYTHON_VERSION=3.11
+FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as test
+
+WORKDIR /app
+ENV PYTHONPATH=/app
+
+RUN pip install poetry \
+    && poetry config virtualenvs.create false
+
+COPY ./pyproject.toml ./poetry.lock* ./
+
+RUN poetry install \
+        --extras backend \
+        --extras client-sync \
+        --with dev,test

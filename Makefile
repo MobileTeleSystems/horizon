@@ -29,10 +29,10 @@ venv-init: ##@Env Init venv and install poetry dependencies
 	python3 -m venv .venv
 	.venv/bin/pip install poetry
 	${POETRY} config virtualenvs.create false
-	${POETRY} install --no-root $(ARGS)
+	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
 
 venv-install: ##@Env Install requirements to venv
-	${POETRY} install --no-root $(ARGS)
+	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
 
 venv-add: ##@Env Add requirement to venv
 	${POETRY} add $(ARGS)

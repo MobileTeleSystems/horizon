@@ -4,9 +4,11 @@ import pytest
 from freezegun import freeze_time
 from pytest_lazyfixture import lazy_fixture
 
-from horizon.db.models.user import User
+from horizon.db.models import User
 from horizon.settings import Settings
 from horizon.utils.jwt import sign_jwt
+
+pytestmark = [pytest.mark.auth]
 
 
 @pytest.fixture

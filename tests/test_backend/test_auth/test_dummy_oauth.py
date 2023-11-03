@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from horizon.settings import Settings
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth]
 
 
 async def test_dummy_auth_get_token_creates_user(

@@ -5,9 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from horizon.api.v1.router.service import UnitOfWork
 from horizon.db.models.user import User
-from horizon.dependencies import current_user
+from horizon.services import UnitOfWork, current_user
 from horizon_commons.errors import get_error_responses
 from horizon_commons.schemas.v1 import (
     HWMHistoryResponseV1,

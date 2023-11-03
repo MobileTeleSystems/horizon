@@ -4,10 +4,10 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from horizon.api.v1.router.service import UnitOfWork
 from horizon.db.models.user import User
 from horizon.dependencies import Stub
 from horizon.providers.auth.base import AuthProvider
+from horizon.services import UnitOfWork
 from horizon.settings import Settings
 from horizon.utils.jwt import decode_jwt, sign_jwt
 from horizon_commons.exceptions.auth import AuthorizationError
@@ -34,7 +34,7 @@ class DummyAuthProvider(AuthProvider):
 
     async def get_tokens(
         self,
-        grant_type: str,
+        grant_type: str | None = None,
         username: str | None = None,
         password: str | None = None,
         scopes: list[str] | None = None,

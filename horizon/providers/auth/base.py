@@ -13,7 +13,7 @@ class AuthProvider(ABC):
     @abstractmethod
     async def get_tokens(
         self,
-        grant_type: str,
+        grant_type: str | None = None,
         username: str | None = None,
         password: str | None = None,
         scopes: list[str] | None = None,

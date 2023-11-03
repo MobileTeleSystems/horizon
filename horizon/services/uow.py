@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+
 from typing import Annotated
 
 from fastapi import Depends
@@ -9,7 +10,7 @@ from horizon.db.repositories.hwm import HWMRepository
 from horizon.db.repositories.hwm_history import HWMHistoryRepository
 from horizon.db.repositories.namespace import NamespaceRepository
 from horizon.db.repositories.user import UserRepository
-from horizon.dependencies import Stub
+from horizon.dependencies.stub import Stub
 
 
 class UnitOfWork:

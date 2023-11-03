@@ -1,31 +1,35 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+
 from collections.abc import AsyncGenerator
+from random import randint
 
 import pytest
 import pytest_asyncio
-from polyfactory import Ignore
-from polyfactory.factories.sqlalchemy_factory import SQLAlchemyFactory
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.db.models.user import User
+from tests.factories.base import random_datetime, random_string
 
 
-class UserFactory(SQLAlchemyFactory[User]):
-    __model__ = User
-
-    is_active = True
-    is_deleted = False
-    created_at = Ignore()
-    updated_at = Ignore()
+def user_factory(**kwargs):
+    data = {
+        "id": randint(0, 10000000),
+        "username": random_string(),
+        "created_at": random_datetime(),
+        "updated_at": random_datetime(),
+        "is_active": True,
+        "is_deleted": False,
+    }
+    data.update(kwargs)
+    return User(**data)
 
 
 @pytest_asyncio.fixture(params=[{}])
 async def new_user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
     params = request.param
-    user = UserFactory.build(**params)
-
+    user = user_factory(**params)
     yield user
 
     query = delete(User).where(User.username == user.username)
@@ -35,9 +39,9 @@ async def new_user(request: pytest.FixtureRequest, async_session: AsyncSession) 
 
 @pytest_asyncio.fixture(params=[{}])
 async def user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
-    UserFactory.__async_session__ = async_session
     params = request.param
-    user = await UserFactory.create_async(**params)
+    user = user_factory(**params)
+    async_session.add(user)
     # this is not required for backend tests, but needed by client tests
     await async_session.commit()
 

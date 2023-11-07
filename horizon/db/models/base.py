@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-
+from __future__ import annotations
 
 from sqlalchemy import MetaData, inspect
 from sqlalchemy.orm import DeclarativeBase

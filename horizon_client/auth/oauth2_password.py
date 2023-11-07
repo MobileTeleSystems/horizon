@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 from pydantic import AnyHttpUrl, BaseModel, SecretStr
+from typing_extensions import Literal
 
 from horizon_client.auth.base import BaseAuth
 

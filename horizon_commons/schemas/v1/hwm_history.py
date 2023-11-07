@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -24,10 +25,10 @@ class HWMHistoryResponseV1(BaseModel):
     description: str
     type: str
     value: Any
-    entity: str | None = None
-    expression: str | None = None
+    entity: Optional[str] = None
+    expression: Optional[str] = None
     changed_at: datetime
-    changed_by: str | None = None
+    changed_by: Optional[str] = None
 
     class Config:
         orm_mode = True

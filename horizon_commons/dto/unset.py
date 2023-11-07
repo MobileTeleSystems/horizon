@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 
 @dataclass
 class Unset(str):  # noqa: WPS600
-    _instance: ClassVar[Unset | None] = None
+    _instance: ClassVar[Optional[Unset]] = None
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:

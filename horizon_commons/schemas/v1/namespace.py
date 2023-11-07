@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-
 from datetime import datetime
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field, root_validator
 
@@ -16,7 +16,7 @@ class NamespaceResponseV1(BaseModel):
     name: str
     description: str
     changed_at: datetime
-    changed_by: str | None = None
+    changed_by: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -41,8 +41,8 @@ class NamespaceUpdateRequestV1(BaseModel):
     If some field is not provided, it will not be updated.
     """
 
-    name: str | Unset = Field(default=Unset(), min_length=1)
-    description: str | Unset = Unset()
+    name: Union[str, Unset] = Field(default=Unset(), min_length=1)
+    description: Union[str, Unset] = Unset()
 
     @root_validator
     def _any_field_set(cls, values):

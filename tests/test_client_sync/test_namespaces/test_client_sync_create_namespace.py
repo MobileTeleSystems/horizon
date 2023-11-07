@@ -1,13 +1,19 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pytest
 import requests
 
-from horizon.db.models import Namespace, User
 from horizon_client.client.sync import HorizonClientSync
 from horizon_commons.exceptions import EntityAlreadyExistsError
 from horizon_commons.schemas.v1 import NamespaceCreateRequestV1, NamespaceResponseV1
+
+if TYPE_CHECKING:
+    from horizon.db.models import Namespace, User
 
 
 def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync_client: HorizonClientSync):

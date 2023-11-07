@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-
-from typing import Generic, TypeVar
+from typing import Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 from pydantic.generics import GenericModel
@@ -25,8 +24,8 @@ class PageMetaResponseV1(BaseModel):
     pages_count: int = Field(description="Number of items returned in current page")
     has_next: bool = Field(description="Is there a next page")
     has_previous: bool = Field(description="Is there a next page")
-    next_page: int | None = Field(description="Next page number, if any")
-    previous_page: int | None = Field(description="Previous page number, if any")
+    next_page: Optional[int] = Field(description="Next page number, if any")
+    previous_page: Optional[int] = Field(description="Previous page number, if any")
 
 
 T = TypeVar("T", bound=BaseModel)
@@ -36,7 +35,7 @@ class PageResponseV1(GenericModel, Generic[T]):
     """Page response."""
 
     meta: PageMetaResponseV1 = Field(description="Page metadata")
-    items: list[T] = Field(description="Page content")
+    items: List[T] = Field(description="Page content")
 
     @classmethod
     def from_pagination(cls, pagination: Pagination):

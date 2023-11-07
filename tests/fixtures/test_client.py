@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio

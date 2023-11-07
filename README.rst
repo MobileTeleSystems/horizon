@@ -11,7 +11,7 @@ Requirements
 Backend
 -------
 
-Python: 3.11+
+Python: 3.7+
 
 .. documentation
 

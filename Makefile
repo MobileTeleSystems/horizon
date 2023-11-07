@@ -2,7 +2,8 @@
 
 include .env.local
 
-POETRY = ./.venv/bin/poetry
+PIP = .venv/bin/pip
+POETRY = .venv/bin/poetry
 
 # Fix docker build and docker compose build using different backends
 COMPOSE_DOCKER_CLI_BUILD = 1
@@ -24,14 +25,15 @@ help: ##@Help Show this help
 
 
 
-venv-init: ##@Env Init venv and install poetry dependencies
+venv-init: venv-cleanup  venv-install##@Env Init venv and install poetry dependencies
+
+venv-cleanup: ##@Env Cleanup venv
 	@rm -rf .venv || true
 	python3 -m venv .venv
-	.venv/bin/pip install poetry
-	${POETRY} config virtualenvs.create false
-	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
+	${PIP} install poetry
 
 venv-install: ##@Env Install requirements to venv
+	${POETRY} config virtualenvs.create false
 	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
 
 venv-add: ##@Env Add requirement to venv
@@ -67,7 +69,7 @@ cleanup: ##@Test Cleanup tests dependencies
 
 
 dev: db-start ##@Application Run development server (without docker)
-	${POETRY} run uvicorn --app-dir ./horizon --factory horizon.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
+	${POETRY} run uvicorn --factory horizon.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
 
 build: ##@Application Build docker image
 	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend --target=prod $(ARGS) .

@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+from typing import Optional
+
 from sqlalchemy import JSON, BigInteger, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,5 +29,5 @@ class HWM(Base, ChangedByMixin, DeletableMixin):
     description: Mapped[str] = mapped_column(Text(), nullable=False, default="")
     type: Mapped[str] = mapped_column(String(64), nullable=False)  # noqa: WPS432
     value: Mapped[str] = mapped_column(JSON(), nullable=False)
-    entity: Mapped[str | None] = mapped_column(Text(), nullable=True)
-    expression: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    entity: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    expression: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)

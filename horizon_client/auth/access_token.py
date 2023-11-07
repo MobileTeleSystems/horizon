@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-from typing import Literal
-
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
 from jose import jwt
 from pydantic import AnyHttpUrl, BaseModel
+from typing_extensions import Literal
 
 from horizon_client.auth.base import BaseAuth, Session
 

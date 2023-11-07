@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, Field, root_validator
 
@@ -18,10 +17,10 @@ class HWMResponseV1(BaseModel):
     description: str
     type: str
     value: Any
-    entity: str | None = None
-    expression: str | None = None
+    entity: Optional[str] = None
+    expression: Optional[str] = None
     changed_at: datetime
-    changed_by: str | None = None
+    changed_by: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -41,11 +40,11 @@ class HWMWriteRequestV1(BaseModel):
     If some field is not provided, it will not be updated.
     """
 
-    description: str | Unset = Unset()
-    type: str | Unset = Field(default=Unset(), min_length=1)
-    value: Any | Unset = Unset()
-    entity: str | None | Unset = Unset()
-    expression: str | None | Unset = Unset()
+    description: Union[str, Unset] = Unset()
+    type: Union[str, Unset] = Field(default=Unset(), min_length=1)
+    value: Union[Any, Unset] = Unset()
+    entity: Union[str, None, Unset] = Unset()
+    expression: Union[str, None, Unset] = Unset()
 
     @root_validator
     def _any_field_set(cls, values):

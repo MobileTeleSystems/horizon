@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Annotated
-
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from typing_extensions import Annotated
 
 from horizon.dependencies.stub import Stub
 from horizon.providers.auth import AuthProvider

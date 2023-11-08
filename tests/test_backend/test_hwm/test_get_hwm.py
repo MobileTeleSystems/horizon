@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.db.models import HWM, Namespace
+from horizon.backend.db.models import HWM, Namespace
 
 if TYPE_CHECKING:
     from httpx import AsyncClient

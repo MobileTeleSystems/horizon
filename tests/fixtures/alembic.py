@@ -16,14 +16,14 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy_utils.functions import create_database, database_exists, drop_database
 
-from horizon.db.models import Base
+from horizon.backend.db.models import Base
 
 if TYPE_CHECKING:
     from sqlalchemy import MetaData
 
-    from horizon.settings import Settings
+    from horizon.backend.settings import Settings
 
-PROJECT_PATH = Path(__file__).parent.parent.parent.joinpath("horizon").resolve()
+PROJECT_PATH = Path(__file__).parent.parent.parent.joinpath("horizon/backend").resolve()
 
 
 @pytest.fixture

@@ -9,7 +9,7 @@ import pytest_asyncio
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.db.models import HWM, Namespace, User
+from horizon.backend.db.models import HWM, Namespace, User
 from tests.factories.base import random_datetime, random_string
 
 

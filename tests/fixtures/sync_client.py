@@ -4,8 +4,8 @@ from typing import Generator
 
 import pytest
 
-from horizon_client.auth import AccessToken
-from horizon_client.client.sync import HorizonClientSync
+from horizon.client.auth import AccessToken
+from horizon.client.client.sync import HorizonClientSync
 
 
 @pytest.mark.client

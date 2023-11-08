@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 import pytest
 import pytest_asyncio
 
-from horizon_client.auth import AccessToken, OAuth2Password
+from horizon.client.auth import AccessToken, OAuth2Password
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from horizon.db.models import User
+    from horizon.backend.db.models import User
 
 
 @pytest.fixture(scope="session")

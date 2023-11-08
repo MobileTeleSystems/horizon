@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon_client.client.sync import HorizonClientSync
-from horizon_commons.schemas.v1 import (
+from horizon.client.client.sync import HorizonClientSync
+from horizon.commons.schemas.v1 import (
     HWMHistoryPaginateQueryV1,
     HWMHistoryResponseV1,
     PageMetaResponseV1,
@@ -16,7 +16,7 @@ from horizon_commons.schemas.v1 import (
 )
 
 if TYPE_CHECKING:
-    from horizon.db.models import HWM, HWMHistory, Namespace
+    from horizon.backend.db.models import HWM, HWMHistory, Namespace
 
 
 def test_sync_client_paginate_hwm_history(

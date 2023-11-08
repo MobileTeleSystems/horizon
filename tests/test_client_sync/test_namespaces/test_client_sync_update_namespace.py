@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 import pytest
 import requests
 
-from horizon_client.client.sync import HorizonClientSync
-from horizon_commons.exceptions.entity import EntityNotFoundError
-from horizon_commons.schemas.v1 import NamespaceResponseV1, NamespaceUpdateRequestV1
+from horizon.client.client.sync import HorizonClientSync
+from horizon.commons.exceptions.entity import EntityNotFoundError
+from horizon.commons.schemas.v1 import NamespaceResponseV1, NamespaceUpdateRequestV1
 
 if TYPE_CHECKING:
-    from horizon.db.models import Namespace, User
+    from horizon.backend.db.models import Namespace, User
 
 
 def test_sync_client_update_namespace_name(

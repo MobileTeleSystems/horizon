@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.db.models import Namespace
+from horizon.backend.db.models import Namespace
 
 if TYPE_CHECKING:
     from httpx import AsyncClient

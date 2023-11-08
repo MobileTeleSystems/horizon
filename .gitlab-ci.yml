@@ -7,17 +7,36 @@ default:
 stages:
   - build test image
   - static analysis
-  - build backend image
   - tests
   - coverage
   - artifacts
 
 include:
+  # VAULT
+  - project: DevOps/cicd-store/gitlabci/vault
+    ref: v5
+    file:
+      - .base_vault_get_field.yml
+
+  # DOCKER
   - project: DevOps/cicd-store/gitlabci/docker
     ref: v8
     file:
       - .base_docker_build.yml
       - .base_docker_cleaner.yml
+
+  # ARTIFACTORY
+  - project: DevOps/cicd-store/gitlabci/artifactory
+    ref: v4
+    file:
+      - .base_rt_upload.yml
+      - .base_rt_cli.yml
+
+  # PIP BUILD AND DEPLOY TO JFROG
+  - project: DevOps/cicd-store/gitlabci/python
+    ref: v4
+    file:
+      - .base_pip_poetry_pkg_build_and_deploy_to_jfrog.yml
 
 workflow:
   rules:
@@ -31,7 +50,18 @@ workflow:
 
 variables:
   DEFAULT_PYTHON: '3.11'
-  DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
+
+### --------------- Get Vault secret --------------- ###
+devops_get_techuser_secrets:
+  extends: .base_vault_get_field
+  variables:
+    VAULT_ROLE_ID: $DEVOPS_VAULT_ROLE_ID
+    VAULT_SECRET_ID: $DEVOPS_VAULT_SECRET_ID
+    VAULT_PATH: platform/onetools/$CICD_USER_NAME
+    VAULT_FIELD: password
+    VARIABLE_NAME: CICD_USER_PASSWORD
+  interruptible: true
 
 ### --------------- Build docker images --------------- ###
 backend_test_image:
@@ -53,11 +83,32 @@ backend_test_image:
     - when: on_success
   interruptible: true
 
+build_backend_image:
+  extends: .base_docker_build
+  stage: build test image
+  variables:
+    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
+    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
+    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:develop
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    CICD_DOCKER__BUILD_EXTRA_ARGS: --target=prod
+    CICD_DOCKER__STOP_IF_EXISTS: 'false'
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
+      variables:
+        CICD_DOCKER__IMAGE_TAG: develop
+    - if: $CI_COMMIT_TAG
+      variables:
+        CICD_DOCKER__ADDITIONAL_TAGS: latest
+        CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_TAG}
+    - when: on_success
+  interruptible: true
+
 mypy:
-  image: ${DEFAULT_IMAGE}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
   stage: static analysis
   script:
-    - python -m mypy ./horizon ./horizon_commons ./horizon_client --config-file ./pyproject.toml
+    - python -m mypy ./horizon --config-file ./pyproject.toml
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -65,10 +116,10 @@ mypy:
   interruptible: true
 
 flake8:
-  image: ${DEFAULT_IMAGE}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
   stage: static analysis
   script:
-    - python -m flake8 --max-line-length 120 --format=default ./horizon ./horizon_commons ./horizon_client 2>&1 | tee flake8.txt
+    - python -m flake8 --max-line-length 120 --format=default ./horizon 2>&1 | tee flake8.txt
   artifacts:
     when: always
     paths: [flake8.txt]
@@ -79,10 +130,10 @@ flake8:
   interruptible: true
 
 black:
-  image: ${DEFAULT_IMAGE}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
   stage: static analysis
   script:
-    - python -m black ./horizon ./horizon_commons ./horizon_client --check
+    - python -m black ./horizon --check
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -90,10 +141,10 @@ black:
   interruptible: true
 
 bandit:
-  image: ${DEFAULT_IMAGE}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
   stage: static analysis
   script:
-    - python -m bandit -ll -iii -r ./horizon ./horizon_commons ./horizon_client -f json -o ./bandit.json
+    - python -m bandit -ll -iii -r ./horizon -f json -o ./bandit.json
   artifacts:
     when: always
     paths: [./bandit.json]
@@ -103,31 +154,9 @@ bandit:
     - when: on_success
   interruptible: true
 
-build_backend_image:
-  extends: .base_docker_build
-  stage: build backend image
-  variables:
-    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
-    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
-    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-    CICD_DOCKER__CACHE_FROM: ${DEFAULT_IMAGE}
-    CICD_DOCKER__BUILD_EXTRA_ARGS: --target=prod
-    CICD_DOCKER__STOP_IF_EXISTS: 'false'
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
-      variables:
-        CICD_DOCKER__IMAGE_TAG: develop
-    - if: $CI_COMMIT_TAG
-      variables:
-        CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python3.11
-        CICD_DOCKER__ADDITIONAL_TAGS: latest
-        CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_TAG}
-    - when: on_success
-  interruptible: true
-
 test-backend:
-  image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
-  stage: build backend image
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+  stage: tests
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
@@ -144,7 +173,7 @@ test-backend:
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
-    - alembic -c ./horizon/alembic.ini upgrade head
+    - alembic -c ./horizon/backend/alembic.ini upgrade head
     - python -m coverage run -m pytest -v -s -k "not client" --junitxml=reports/junit-backend.xml
   artifacts:
     when: always
@@ -160,7 +189,7 @@ test-backend:
   interruptible: true
 
 test-client:
-  image: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
   stage: tests
   parallel:
     matrix:
@@ -184,7 +213,7 @@ test-client:
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
-    - alembic -c ./horizon/alembic.ini upgrade head
+    - alembic -c ./horizon/backend/alembic.ini upgrade head
     - python -m coverage run -m pytest -k 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
   artifacts:
     when: always
@@ -200,7 +229,7 @@ test-client:
   interruptible: true
 
 coverage:
-  image: ${DEFAULT_IMAGE}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
   stage: coverage
   dependencies:
     - test-backend
@@ -224,6 +253,112 @@ coverage:
       when: never
     - when: on_success
   interruptible: true
+
+## --------------- DEPLOY --------------- ###
+pip:
+  extends: .base_pip_poetry_pkg_build_and_deploy_to_jfrog
+  stage: artifacts
+  image: ${DEFAULT_IMAGE}:${DOCKER_IMAGE_TAG}
+  variables:
+    IS_DEV_VERSION: 'true'
+    ADD_BRANCH_TO_VERSION: 'true'
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+    CICD_PYTHON__REPO_URL: https://artifactory.mts.ru/artifactory/api/pypi/own-onetl-pypi-local/
+    CICD_PYTHON__REPO_USER: $CICD_USER_NAME
+    CICD_PYTHON__REPO_PASSWORD: $CICD_USER_PASSWORD
+  dependencies:
+    - devops_get_techuser_secrets
+  before_script:
+    - >
+      if $IS_DEV_VERSION; then
+        if $ADD_BRANCH_TO_VERSION; then
+          # feature/bugfix branch - version format is 1.2.3.dev456+feature-789
+          poetry version "$(poetry version -s).dev${CI_PIPELINE_IID}+${CI_COMMIT_REF_SLUG}";
+        else
+          # dev/develop branch - version format is 1.2.3.dev456
+          poetry version "$(poetry version -s).dev${CI_PIPELINE_IID}";
+        fi
+        # release - version format is 1.2.3
+        poetry version "$(poetry version -s)"
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(develop|dev)$/
+      variables:
+        ADD_BRANCH_TO_VERSION: 'false'
+      when: on_success
+    - if: $CI_COMMIT_TAG
+      variables:
+        IS_DEV_VERSION: 'false'
+        DOCKER_IMAGE_TAG: develop-python${DEFAULT_PYTHON}
+      when: on_success
+    - when: on_success
+  interruptible: true
+
+remove_dev_versions:
+  extends: .base_rt_cli
+  stage: artifacts
+  dependencies:
+    - devops_get_techuser_secrets
+  variables:
+    CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
+    CICD_ARTIFACTORY__USER: $CICD_USER_NAME
+    CICD_ARTIFACTORY__PASSWORD: $CICD_USER_PASSWORD
+  script:
+  # Remove artifacts for feature/bug branch
+    - export CI_COMMIT_REF_SLUG=$(echo $CI_COMMIT_REF_SLUG | tr '-' '.')
+    - jf rt delete docs-onetl-generic-local/${CI_PROJECT_NAME}/docs/html-${CI_COMMIT_TAG}.dev*
+    - jf rt delete own-onetl-pypi-local/${CI_PROJECT_NAME}/${CI_COMMIT_TAG}.dev*
+  rules:
+  # run only if release
+    - if: $CI_COMMIT_TAG
+      when: on_success
+    - when: never
+  allow_failure: true
+
+## --------------- Remove artifacts after remove feature/bug branch --------------- ###
+start_review_pip:
+  stage: .post
+  environment:
+    name: review/pip/$CI_COMMIT_REF_SLUG
+    url: ${CI_PAGES_URL}/${VERSION}/
+    on_stop: stop_review_pip
+  script:
+    - echo "Start review"
+  rules:
+  # environment is used to remove artifacts build in feature/ and bugfix/ branches only
+  # dev and release packages are left intact
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+
+stop_review_pip:
+  extends: .base_rt_cli
+  stage: .post
+  dependencies:
+    - devops_get_techuser_secrets
+  variables:
+    CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
+    CICD_ARTIFACTORY__USER: $CICD_USER_NAME
+    CICD_ARTIFACTORY__PASSWORD: $CICD_USER_PASSWORD
+  script:
+  # Remove artifacts for feature/bug branch
+    - export CI_COMMIT_REF_SLUG=$(echo $CI_COMMIT_REF_SLUG | tr '-' '.')
+    - jf rt delete docs-onetl-generic-local/${CI_PROJECT_NAME}/docs/*+${CI_COMMIT_REF_SLUG}*
+    - jf rt delete own-onetl-pypi-local/${CI_PROJECT_NAME}/*+${CI_COMMIT_REF_SLUG}
+  environment:
+    name: review/pip/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+  # environment is used to remove artifacts build in feature/ and bugfix/ branches only
+  # dev and release packages are left intact
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
+      when: never
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: manual
+      allow_failure: true
 
 start_review_docker:
   stage: .post

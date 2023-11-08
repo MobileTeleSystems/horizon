@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.db.models import Namespace, User
+from horizon.backend.db.models import Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient

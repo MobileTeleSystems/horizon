@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING
 import pytest
 import requests
 
-from horizon_client.client.sync import HorizonClientSync
-from horizon_commons.exceptions import EntityAlreadyExistsError
-from horizon_commons.schemas.v1 import NamespaceCreateRequestV1, NamespaceResponseV1
+from horizon.client.client.sync import HorizonClientSync
+from horizon.commons.exceptions import EntityAlreadyExistsError
+from horizon.commons.schemas.v1 import NamespaceCreateRequestV1, NamespaceResponseV1
 
 if TYPE_CHECKING:
-    from horizon.db.models import Namespace, User
+    from horizon.backend.db.models import Namespace, User
 
 
 def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync_client: HorizonClientSync):

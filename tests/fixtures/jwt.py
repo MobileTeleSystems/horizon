@@ -8,11 +8,11 @@ import pytest
 from freezegun import freeze_time
 from pytest_lazyfixture import lazy_fixture
 
-from horizon.utils.jwt import sign_jwt
+from horizon.backend.utils.jwt import sign_jwt
 
 if TYPE_CHECKING:
-    from horizon.db.models.user import User
-    from horizon.settings import Settings
+    from horizon.backend.db.models import User
+    from horizon.backend.settings import Settings
 
 pytestmark = [pytest.mark.auth]
 

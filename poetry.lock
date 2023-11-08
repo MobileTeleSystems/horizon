@@ -1852,6 +1852,25 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "prometheus-client"
+version = "0.17.1"
+description = "Python client for the Prometheus monitoring system."
+optional = true
+python-versions = ">=3.6"
+files = [
+    {file = "prometheus_client-0.17.1-py3-none-any.whl", hash = "sha256:e537f37160f6807b8202a6fc4764cdd19bac5480ddd3e0d463c3002b34462101"},
+    {file = "prometheus_client-0.17.1.tar.gz", hash = "sha256:21e674f39831ae3f8acde238afd9a27a37d0d2fb5a28ea094f0ce25d2cbf2091"},
+]
+
+[package.extras]
+twisted = ["twisted"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "psycopg2-binary"
 version = "2.9.9"
 description = "psycopg2 - Python-PostgreSQL Database Adapter"
@@ -2657,6 +2676,26 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "starlette-exporter"
+version = "0.16.0"
+description = "Prometheus metrics exporter for Starlette applications."
+optional = true
+python-versions = "*"
+files = [
+    {file = "starlette_exporter-0.16.0-py3-none-any.whl", hash = "sha256:9dbe8dc647acbeb8680d53cedbbb8042ca75ca1b6987f609c5601ea96ddb7422"},
+    {file = "starlette_exporter-0.16.0.tar.gz", hash = "sha256:728cccf975c85d3cf2844b0110b51e1fa2dce628ef68bc38da58ad691f9b5d68"},
+]
+
+[package.dependencies]
+prometheus-client = ">=0.12"
+starlette = "*"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "stevedore"
 version = "5.1.0"
 description = "Manage dynamic plugins for Python applications"
@@ -2955,8 +2994,9 @@ reference = "nexus"
 [extras]
 backend = ["alembic", "asyncpg", "fastapi", "python-jose", "python-multipart", "sqlalchemy", "sqlalchemy-utils", "uvicorn"]
 client-sync = ["authlib", "requests"]
+prometheus = ["starlette-exporter"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "ceccff21822fd0d9cda23b4d25313ddc5824eb971c67a2883446e9fb614ac426"
+content-hash = "e05dd43d2ff871a33626d6df2f6b52631164de7f3afbcf8fad4874447f0203c3"

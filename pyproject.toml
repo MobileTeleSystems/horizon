@@ -48,6 +48,7 @@ asyncpg = {version = "*", optional = true}
 python-jose = {version = "*", optional = true}
 python-multipart = {version = "*", optional = true}
 sqlalchemy-utils = {version = "*", optional = true}
+starlette-exporter = {version = "*", optional = true}
 authlib = {version = "*", optional = true}
 requests = {version = "*", optional = true}
 
@@ -61,6 +62,9 @@ backend = [
   "python-jose",
   "python-multipart",
   "sqlalchemy-utils",
+]
+prometheus = [
+  "starlette-exporter",
 ]
 client-sync = [
   "authlib",
@@ -122,7 +126,7 @@ profile = "black"
 known_first_party = ["app", "tests"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.7"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 
 [[tool.mypy.overrides]]
@@ -131,6 +135,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "authlib.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "starlette_exporter"
 ignore_missing_imports = true
 
 [tool.autoflake]

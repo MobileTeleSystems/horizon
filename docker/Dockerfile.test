@@ -10,6 +10,5 @@ RUN pip install poetry \
 COPY ./pyproject.toml ./poetry.lock* ./
 
 RUN poetry install \
-        --extras backend \
-        --extras client-sync \
+        --all-extras \
         --with dev,test

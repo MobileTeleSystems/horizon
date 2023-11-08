@@ -4,7 +4,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.middleware.cors import CORSMiddleware
 
 from horizon.api.handlers import (
     application_exception_handler,
@@ -14,6 +13,8 @@ from horizon.api.handlers import (
 )
 from horizon.api.router import api_router
 from horizon.db.factory import create_engine, create_session_factory
+from horizon.middlewares.cors import add_cors_middleware
+from horizon.middlewares.prometheus import add_prometheus_middleware
 from horizon.providers.auth.base import AuthProvider
 from horizon.settings import Settings
 from horizon_commons.exceptions.base import ApplicationError
@@ -25,15 +26,8 @@ def application_factory(settings: Settings) -> FastAPI:
         version="0.1.0",
         debug=settings.server.debug,
     )
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
     application.include_router(api_router)
+
     application.add_exception_handler(ApplicationError, application_exception_handler)
     application.add_exception_handler(
         RequestValidationError,
@@ -56,6 +50,12 @@ def application_factory(settings: Settings) -> FastAPI:
         },
     )
     application.state.settings = settings
+
+    if settings.server.cors.enabled:
+        add_cors_middleware(application, settings.server.cors)
+
+    if settings.server.prometheus.enabled:
+        add_prometheus_middleware(application, settings.server.prometheus)
 
     return application
 

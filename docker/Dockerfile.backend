@@ -11,6 +11,7 @@ COPY ./pyproject.toml ./poetry.lock* ./
 
 RUN poetry install \
         --extras backend \
+        --extras prometheus \
         --without dev,test
 
 COPY ./docker/entrypoint.sh ./docker/

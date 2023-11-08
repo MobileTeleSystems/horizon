@@ -30,6 +30,7 @@ venv-init: venv-cleanup  venv-install##@Env Init venv and install poetry depende
 venv-cleanup: ##@Env Cleanup venv
 	@rm -rf .venv || true
 	python3 -m venv .venv
+	${PIP} install -U setuptools wheel pip
 	${PIP} install poetry
 
 venv-install: ##@Env Install requirements to venv
@@ -45,7 +46,7 @@ venv-add: ##@Env Add requirement to venv
 db: db-start db-upgrade ##@DB Prepare database (in docker)
 
 db-start: ##@DB Start database
-	docker compose up -d db $(DOCKER_COMPOSE_ARGS)
+	docker compose -f docker-compose.test.yml up -d db $(DOCKER_COMPOSE_ARGS)
 
 db-revision: ##@DB Generate migration file
 	${POETRY} run alembic -c ./horizon/backend/alembic.ini revision --autogenerate
@@ -57,23 +58,32 @@ db-downgrade: ##@DB Downgrade head migration
 	${POETRY} run alembic -c ./horizon/backend/alembic.ini downgrade head-1
 
 
+ldap-build: ##@LDAP Start LDAP container
+	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/test/ldap:develop -f ./docker/Dockerfile.ldap $(ARGS) .
 
-test: db-start ##@Test Run tests
+ldap-start: ##@LDAP Start LDAP container
+	docker compose -f docker-compose.test.yml up -d ldap $(DOCKER_COMPOSE_ARGS)
+
+
+test: db-start ldap-start ##@Test Run tests
 	${POETRY} run pytest $(PYTEST_ARGS)
+
+test-build: ##@Application Build docker image
+	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/test/backend:develop -f ./docker/Dockerfile.ldap $(ARGS) .
 
 check-fixtures: ##@Test Check declared fixtures
 	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
 
 cleanup: ##@Test Cleanup tests dependencies
-	docker compose down $(ARGS)
+	docker compose -f docker-compose.test.yml down $(ARGS)
 
 
 
 dev: db-start ##@Application Run development server (without docker)
 	${POETRY} run uvicorn --factory horizon.backend.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
 
-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend --target=prod $(ARGS) .
+prod-build: ##@Application Build docker image
+	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
 	docker compose up -d

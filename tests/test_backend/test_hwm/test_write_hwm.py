@@ -435,7 +435,6 @@ async def test_write_hwm_replace_existing_no_data(
         "error": {
             "code": "invalid_request",
             "details": {
-                "body": {},
                 "errors": [
                     {
                         "code": "value_error",

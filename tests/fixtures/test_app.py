@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 
-from horizon.main import application_factory
-from horizon.settings import Settings
+from horizon.backend.main import application_factory
+from horizon.backend.settings import Settings
 
 
 @pytest.mark.backend

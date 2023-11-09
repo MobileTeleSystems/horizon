@@ -10,14 +10,14 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.db.models.user import User
-from horizon.utils.jwt import decode_jwt
+from horizon.backend.db.models import User
+from horizon.backend.utils.jwt import decode_jwt
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from horizon.settings import Settings
+    from horizon.backend.settings import Settings
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth]
 

@@ -34,6 +34,7 @@ venv-cleanup: ##@Env Cleanup venv
 
 venv-install: ##@Env Install requirements to venv
 	${POETRY} config virtualenvs.create false
+	${POETRY} self add poetry-bumpversion
 	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
 
 venv-add: ##@Env Add requirement to venv
@@ -47,13 +48,13 @@ db-start: ##@DB Start database
 	docker compose up -d db $(DOCKER_COMPOSE_ARGS)
 
 db-revision: ##@DB Generate migration file
-	${POETRY} run alembic -c ./horizon/alembic.ini revision --autogenerate
+	${POETRY} run alembic -c ./horizon/backend/alembic.ini revision --autogenerate
 
 db-upgrade: ##@DB Run migrations to head
-	${POETRY} run alembic -c ./horizon/alembic.ini upgrade head
+	${POETRY} run alembic -c ./horizon/backend/alembic.ini upgrade head
 
 db-downgrade: ##@DB Downgrade head migration
-	${POETRY} run alembic -c ./horizon/alembic.ini downgrade head-1
+	${POETRY} run alembic -c ./horizon/backend/alembic.ini downgrade head-1
 
 
 
@@ -69,7 +70,7 @@ cleanup: ##@Test Cleanup tests dependencies
 
 
 dev: db-start ##@Application Run development server (without docker)
-	${POETRY} run uvicorn --factory horizon.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
+	${POETRY} run uvicorn --factory horizon.backend.main:get_application --host 0.0.0.0 --port 8000 $(ARGS)
 
 build: ##@Application Build docker image
 	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend --target=prod $(ARGS) .

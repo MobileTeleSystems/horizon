@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from sqlalchemy import select
 
-from horizon.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient

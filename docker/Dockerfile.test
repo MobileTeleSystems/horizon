@@ -4,11 +4,19 @@ FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-sl
 WORKDIR /app
 ENV PYTHONPATH=/app
 
-RUN pip install poetry \
-    && poetry config virtualenvs.create false
+RUN set +x\
+    && pip install poetry \
+    && poetry config virtualenvs.create false \
+    # https://github.com/python-poetry/poetry/issues/6705
+    && export POETRY_CONFIG=$(python -c 'from poetry.locations import CONFIG_DIR; print(CONFIG_DIR)') \
+    && cd $POETRY_CONFIG \
+    && poetry init --name poetry-instance \
+    && poetry source add --priority=default nexus https://nexus.services.mts.ru/repository/pip/simple \
+    && poetry self add poetry-bumpversion
 
 COPY ./pyproject.toml ./poetry.lock* ./
 
 RUN poetry install \
+        --no-root \
         --all-extras \
         --with dev,test

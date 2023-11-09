@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
-    from horizon.settings import Settings
+    from horizon.backend.settings import Settings
 
 
 @contextlib.asynccontextmanager

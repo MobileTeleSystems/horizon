@@ -6,8 +6,8 @@ import pytest
 from authlib.integrations.base_client.errors import UnsupportedTokenTypeError
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
 
-from horizon_client.auth import AccessToken, OAuth2Password
-from horizon_client.client.sync import HorizonClientSync
+from horizon.client.auth import AccessToken, OAuth2Password
+from horizon.client.client.sync import HorizonClientSync
 
 
 def test_sync_client_auth_oauth2_password(external_app_url: str, app_oauth2_password: OAuth2Password):

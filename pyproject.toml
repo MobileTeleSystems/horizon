@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "horizon"
-version = "0.1.0"
+version = "0.0.1"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
@@ -27,7 +27,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
-keywords = ["Horizon", "REST", "HWM"]
+keywords = ["Horizon", "REST", "API", "HWM"]
+include = [
+    {path = "py.typed"},
+]
 
 [tool.poetry.urls]  # Optional
 "Homepage" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon"
@@ -58,10 +61,12 @@ backend = [
   "uvicorn",
   "alembic",
   "sqlalchemy",
-  "asyncpg",
   "python-jose",
   "python-multipart",
   "sqlalchemy-utils",
+]
+postgres = [
+  "asyncpg",
 ]
 prometheus = [
   "starlette-exporter",
@@ -106,6 +111,11 @@ name = "artifactory"
 url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
 priority = "primary"
 
+[[tool.poetry_bumpversion.replacements]]
+files = ["horizon/__init__.py"]
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
 [tool.pytest.ini_options]
 markers = [
     "backend: tests for backend (require running database)",
@@ -123,7 +133,7 @@ exclude = "(\\.eggs|\\.git|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|di
 
 [tool.isort]
 profile = "black"
-known_first_party = ["app", "tests"]
+known_first_party = ["horizon", "tests"]
 
 [tool.mypy]
 python_version = "3.7"

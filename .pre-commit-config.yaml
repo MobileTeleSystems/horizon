@@ -46,7 +46,7 @@ repos:
         types: [shell]
       - id: insert-license
         files: .*\.py$
-        exclude: ^(horizon/dependencies/stub.py|tests/.*\.py)$
+        exclude: ^(horizon/backend/dependencies/stub.py|tests/.*\.py)$
         args:
           - --license-filepath
           - .spdx-license-header.txt
@@ -122,12 +122,12 @@ repos:
         entry: flake8
         language: python
         types: [python]
-        files: ^(horizon|horizon_commons|horizon_client)/.*$
+        files: ^horizon/.*$
         pass_filenames: true
 
       - id: mypy
         name: mypy
-        entry: mypy ./horizon ./horizon_commons ./horizon_client --config-file ./pyproject.toml
+        entry: mypy ./horizon --config-file ./pyproject.toml
         language: python
         types: [python]
         require_serial: true

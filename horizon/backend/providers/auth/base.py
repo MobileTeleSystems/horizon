@@ -4,10 +4,17 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
+from fastapi import FastAPI
+
 from horizon.backend.db.models import User
 
 
 class AuthProvider(ABC):
+    @classmethod
+    @abstractmethod
+    def setup(cls, app: FastAPI) -> FastAPI:
+        ...
+
     @abstractmethod
     async def get_current_user(self, access_token: str) -> User:
         ...

@@ -4,14 +4,14 @@
 from time import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import Depends
+from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.dependencies import Stub
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.services import UnitOfWork
-from horizon.backend.settings import Settings
+from horizon.backend.settings.auth.dummy import DummyAuthProviderSettings
 from horizon.backend.utils.jwt import decode_jwt, sign_jwt
 from horizon.commons.exceptions import AuthorizationError
 
@@ -19,11 +19,18 @@ from horizon.commons.exceptions import AuthorizationError
 class DummyAuthProvider(AuthProvider):
     def __init__(
         self,
-        settings: Annotated[Settings, Depends(Stub(Settings))],
+        settings: Annotated[DummyAuthProviderSettings, Depends(Stub(DummyAuthProviderSettings))],
         unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._settings = settings
         self._uow = unit_of_work
+
+    @classmethod
+    def setup(cls, app: FastAPI) -> FastAPI:
+        settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth)
+        app.dependency_overrides[AuthProvider] = cls
+        app.dependency_overrides[DummyAuthProviderSettings] = lambda: settings
+        return app
 
     async def get_current_user(self, access_token: str) -> User:
         if not access_token:
@@ -60,15 +67,15 @@ class DummyAuthProvider(AuthProvider):
         }
 
     def _generate_access_token(self, user_id: int) -> Tuple[str, float]:
-        expires_at = time() + self._settings.auth.access_token.expire_seconds
+        expires_at = time() + self._settings.access_token.expire_seconds
         payload = {
             "user_id": user_id,
             "exp": expires_at,
         }
         access_token = sign_jwt(
             payload,
-            self._settings.auth.access_token.secret_key,
-            self._settings.auth.access_token.security_algorithm,
+            self._settings.access_token.secret_key,
+            self._settings.access_token.security_algorithm,
         )
         return access_token, expires_at
 
@@ -76,8 +83,8 @@ class DummyAuthProvider(AuthProvider):
         try:
             payload = decode_jwt(
                 token,
-                self._settings.auth.access_token.secret_key,
-                self._settings.auth.access_token.security_algorithm,
+                self._settings.access_token.secret_key,
+                self._settings.access_token.security_algorithm,
             )
             return int(payload["user_id"])
         except (KeyError, TypeError, ValueError) as e:

@@ -3,7 +3,7 @@
 
 from pydantic import BaseSettings, Field
 
-from horizon.backend.settings.auth import AuthSettings
+from horizon.backend.settings.auth import AuthProviderSettings
 from horizon.backend.settings.database import DatabaseSettings
 from horizon.backend.settings.server import ServerSettings
 
@@ -11,7 +11,7 @@ from horizon.backend.settings.server import ServerSettings
 class Settings(BaseSettings):
     database: DatabaseSettings
     server: ServerSettings = Field(default_factory=ServerSettings)
-    auth: AuthSettings
+    auth: AuthProviderSettings = Field(default_factory=AuthProviderSettings)
 
     class Config:
         env_prefix = "HORIZON_"

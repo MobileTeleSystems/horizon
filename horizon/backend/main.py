@@ -1,9 +1,12 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+
+from typing import Type
+
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_engine_from_config
 
 from horizon.backend.api.handlers import (
     application_exception_handler,
@@ -12,7 +15,7 @@ from horizon.backend.api.handlers import (
     validation_exception_handler,
 )
 from horizon.backend.api.router import api_router
-from horizon.backend.db.factory import create_engine, create_session_factory
+from horizon.backend.db.factory import create_session_factory
 from horizon.backend.middlewares.cors import add_cors_middleware
 from horizon.backend.middlewares.prometheus import add_prometheus_middleware
 from horizon.backend.providers.auth.base import AuthProvider
@@ -26,6 +29,7 @@ def application_factory(settings: Settings) -> FastAPI:
         version="0.1.0",
         debug=settings.server.debug,
     )
+    application.state.settings = settings
     application.include_router(api_router)
 
     application.add_exception_handler(ApplicationError, application_exception_handler)
@@ -36,20 +40,19 @@ def application_factory(settings: Settings) -> FastAPI:
     application.add_exception_handler(HTTPException, http_exception_handler)
     application.add_exception_handler(Exception, unknown_exception_handler)
 
-    engine = create_engine(
-        connection_uri=settings.database.url,
-        **settings.database.engine_args,
-    )
+    engine = async_engine_from_config(settings.database.dict(), prefix="")
     session_factory = create_session_factory(engine)
 
     application.dependency_overrides.update(
         {
             Settings: lambda: settings,
             AsyncSession: session_factory,  # type: ignore[dict-item]
-            AuthProvider: settings.auth.provider_class,
         },
     )
-    application.state.settings = settings
+
+    # get AuthProvider class from settings, and perform setup
+    auth_class: Type[AuthProvider] = settings.auth.klass  # type: ignore[assignment]
+    auth_class.setup(application)
 
     if settings.server.cors.enabled:
         add_cors_middleware(application, settings.server.cors)

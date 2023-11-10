@@ -3,9 +3,9 @@
 
 from pydantic import BaseModel, Field, PyObject
 
-from horizon.backend.settings.auth.jwt import JWTSettings
 
+class AuthProviderSettings(BaseModel):
+    klass: PyObject = Field(default="horizon.backend.providers.auth.dummy.DummyAuthProvider", alias="class")  # type: ignore[assignment]
 
-class AuthSettings(BaseModel):
-    provider_class: PyObject = "horizon.backend.providers.auth.dummy.DummyAuthProvider"  # type: ignore[assignment]
-    access_token: JWTSettings
+    class Config:
+        extra = "allow"

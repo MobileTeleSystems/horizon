@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
+from time import time
 from typing import TYPE_CHECKING
 
 import pytest
@@ -11,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import User
+from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
 if TYPE_CHECKING:
@@ -22,10 +24,17 @@ if TYPE_CHECKING:
 pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth]
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_get_token_creates_user(
     test_client: AsyncClient,
     new_user: User,
-    settings: Settings,
+    access_token_settings: JWTSettings,
     async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
@@ -41,10 +50,14 @@ async def test_dummy_auth_get_token_creates_user(
 
     content = response.json()
     assert content["access_token"]
-    assert content["refresh_token"] == "refresh_token"
     assert content["token_type"] == "bearer"
+    assert time() < content["expires_at"] <= time() + access_token_settings.expire_seconds
 
-    jwt = decode_jwt(content["access_token"], settings.jwt)
+    jwt = decode_jwt(
+        content["access_token"],
+        access_token_settings.secret_key,
+        access_token_settings.security_algorithm,
+    )
     user_id = jwt["user_id"]
     assert user_id
 
@@ -59,10 +72,17 @@ async def test_dummy_auth_get_token_creates_user(
     assert not created_user.is_deleted
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_get_token_for_existing_user(
     test_client: AsyncClient,
     user: User,
-    settings: Settings,
+    access_token_settings: JWTSettings,
     async_session: AsyncSession,
 ):
     response = await test_client.post(
@@ -76,10 +96,14 @@ async def test_dummy_auth_get_token_for_existing_user(
 
     content = response.json()
     assert content["access_token"]
-    assert content["refresh_token"] == "refresh_token"
     assert content["token_type"] == "bearer"
+    assert time() < content["expires_at"] <= time() + access_token_settings.expire_seconds
 
-    jwt = decode_jwt(content["access_token"], settings.jwt)
+    jwt = decode_jwt(
+        content["access_token"],
+        access_token_settings.secret_key,
+        access_token_settings.security_algorithm,
+    )
     user_id = jwt["user_id"]
     assert user_id == user.id
 
@@ -92,6 +116,13 @@ async def test_dummy_auth_get_token_for_existing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_get_token_for_inactive_user(
     test_client: AsyncClient,
     user: User,
@@ -113,6 +144,13 @@ async def test_dummy_auth_get_token_for_inactive_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_get_token_for_deleted_user(
     test_client: AsyncClient,
     user: User,
@@ -141,43 +179,8 @@ async def test_dummy_auth_get_token_for_deleted_user(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"jwt": {"secret_key": None}, "server": {"debug": True}},
-        {"jwt": {"secret_key": None}, "server": {"debug": False}},
-    ],
-    indirect=True,
-)
-async def test_dummy_auth_get_token_with_missing_jwt_secret(
-    test_client: AsyncClient,
-    new_user: User,
-    settings: Settings,
-):
-    response = await test_client.post(
-        "v1/auth/token",
-        data={
-            "username": new_user.username,
-            "password": secrets.token_hex(16),
-        },
-    )
-    expected = {
-        "error": {
-            "code": "unknown",
-            "message": "Got unhandled exception. Please contact support",
-        },
-    }
-
-    if settings.server.debug:
-        # don't print error details in production
-        expected["error"]["details"] = ["Expected settings.jwt.secret_key to be set, got None"]
-
-    assert response.status_code == 500
-    assert response.json() == expected
-
-
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"server": {"debug": True}},
-        {"server": {"debug": False}},
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}, "server": {"debug": True}},
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}, "server": {"debug": False}},
     ],
     indirect=True,
 )
@@ -222,6 +225,13 @@ async def test_dummy_auth_get_token_with_malformed_input(
 
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_check_inactive_user(
     test_client: AsyncClient,
     access_token: str,
@@ -240,6 +250,13 @@ async def test_dummy_auth_check_inactive_user(
     }
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_check_missing_user(
     test_client: AsyncClient,
     fake_access_token: str,
@@ -264,6 +281,13 @@ async def test_dummy_auth_check_missing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_check_disabled_user(
     test_client: AsyncClient,
     access_token: str,
@@ -287,6 +311,13 @@ async def test_dummy_auth_check_disabled_user(
     }
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
+    ],
+    indirect=True,
+)
 async def test_dummy_auth_check_invalid_token(
     test_client: AsyncClient,
     invalid_access_token: str,
@@ -302,34 +333,3 @@ async def test_dummy_auth_check_invalid_token(
             "message": "Invalid token",
         },
     }
-
-
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"jwt": {"secret_key": None}, "server": {"debug": True}},
-        {"jwt": {"secret_key": None}, "server": {"debug": False}},
-    ],
-    indirect=True,
-)
-async def test_dummy_auth_check_token_with_missing_jwt_secret(
-    test_client: AsyncClient,
-    settings: Settings,
-):
-    response = await test_client.get(
-        "v1/namespaces/",
-        headers={"Authorization": "Bearer some"},
-    )
-    expected = {
-        "error": {
-            "code": "unknown",
-            "message": "Got unhandled exception. Please contact support",
-        },
-    }
-
-    if settings.server.debug:
-        # don't print error details in production
-        expected["error"]["details"] = ["Expected settings.jwt.secret_key to be set, got None"]
-
-    assert response.status_code == 500
-    assert response.json() == expected

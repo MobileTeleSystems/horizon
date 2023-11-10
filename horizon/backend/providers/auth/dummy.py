@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Optional, Tuple
+from time import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import Depends
 from typing_extensions import Annotated
@@ -28,13 +29,13 @@ class DummyAuthProvider(AuthProvider):
         if not access_token:
             raise AuthorizationError("Missing auth credentials")
 
-        user_id = self._decode_jwt(access_token)
+        user_id = self._get_user_id_from_token(access_token)
         user = await self._uow.user.get_by_id(user_id)
         if not user.is_active:
             raise AuthorizationError(f"User {user.username!r} is disabled")
         return user
 
-    async def get_tokens(
+    async def get_token(
         self,
         grant_type: Optional[str] = None,
         username: Optional[str] = None,
@@ -42,7 +43,7 @@ class DummyAuthProvider(AuthProvider):
         scopes: Optional[List[str]] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
-    ) -> Tuple[str, str]:
+    ) -> Dict[str, Any]:
         if not username or not password:
             raise AuthorizationError("Missing auth credentials")
 
@@ -51,15 +52,33 @@ class DummyAuthProvider(AuthProvider):
         if not user.is_active:
             raise AuthorizationError(f"User {username!r} is disabled")
 
-        access_token = self._sign_jwt(user_id=user.id)
-        return access_token, "refresh_token"
+        access_token, expires_at = self._generate_access_token(user_id=user.id)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_at": expires_at,
+        }
 
-    def _sign_jwt(self, user_id: int) -> str:
-        return sign_jwt({"user_id": user_id}, self._settings.jwt)
+    def _generate_access_token(self, user_id: int) -> Tuple[str, float]:
+        expires_at = time() + self._settings.auth.access_token.expire_seconds
+        payload = {
+            "user_id": user_id,
+            "exp": expires_at,
+        }
+        access_token = sign_jwt(
+            payload,
+            self._settings.auth.access_token.secret_key,
+            self._settings.auth.access_token.security_algorithm,
+        )
+        return access_token, expires_at
 
-    def _decode_jwt(self, token: str) -> int:
+    def _get_user_id_from_token(self, token: str) -> int:
         try:
-            payload = decode_jwt(token, self._settings.jwt)
+            payload = decode_jwt(
+                token,
+                self._settings.auth.access_token.secret_key,
+                self._settings.auth.access_token.security_algorithm,
+            )
             return int(payload["user_id"])
         except (KeyError, TypeError, ValueError) as e:
             raise AuthorizationError("Invalid token") from e

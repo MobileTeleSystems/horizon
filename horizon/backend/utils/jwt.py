@@ -1,38 +1,25 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-import time
 
 from jose import JWTError, jwt
 
-from horizon.backend.settings.jwt import JWTSettings
-from horizon.commons.exceptions.auth import AuthorizationError
-from horizon.commons.exceptions.setup import SetupError
+from horizon.commons.exceptions import AuthorizationError
 
 
-def sign_jwt(payload: dict, settings: JWTSettings) -> str:
-    if not settings.secret_key:
-        raise SetupError("Expected settings.jwt.secret_key to be set, got None")
-
-    real_payload = {
-        "exp": time.time() + settings.token_expired_seconds,
-        **payload,
-    }
+def sign_jwt(payload: dict, secret_key: str, security_algorithm: str) -> str:
     return jwt.encode(
-        real_payload,
-        settings.secret_key,
-        algorithm=settings.security_algorithm,
+        payload,
+        secret_key,
+        algorithm=security_algorithm,
     )
 
 
-def decode_jwt(token: str, settings: JWTSettings) -> dict:
-    if not settings.secret_key:
-        raise SetupError("Expected settings.jwt.secret_key to be set, got None")
-
+def decode_jwt(token: str, secret_key: str, security_algorithm: str) -> dict:
     try:
         return jwt.decode(
             token,
-            settings.secret_key,
-            algorithms=[settings.security_algorithm],
+            secret_key,
+            algorithms=[security_algorithm],
         )
     except JWTError as e:
         raise AuthorizationError("Invalid token") from e

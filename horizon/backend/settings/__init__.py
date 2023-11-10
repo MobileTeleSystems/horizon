@@ -5,15 +5,13 @@ from pydantic import BaseSettings, Field
 
 from horizon.backend.settings.auth import AuthSettings
 from horizon.backend.settings.database import DatabaseSettings
-from horizon.backend.settings.jwt import JWTSettings
 from horizon.backend.settings.server import ServerSettings
 
 
 class Settings(BaseSettings):
     database: DatabaseSettings
     server: ServerSettings = Field(default_factory=ServerSettings)
-    auth: AuthSettings = Field(default_factory=AuthSettings)
-    jwt: JWTSettings = Field(default_factory=JWTSettings)
+    auth: AuthSettings
 
     class Config:
         env_prefix = "HORIZON_"

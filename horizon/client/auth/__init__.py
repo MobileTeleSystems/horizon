@@ -3,4 +3,4 @@
 
 from horizon.client.auth.access_token import AccessToken
 from horizon.client.auth.base import BaseAuth
-from horizon.client.auth.oauth2_password import OAuth2Password
+from horizon.client.auth.login_password import LoginPassword

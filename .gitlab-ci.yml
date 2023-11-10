@@ -162,7 +162,7 @@ test-backend:
       - PYTHON_VERSION: ['3.7', '3.11']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
-    HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
     HORIZON_SERVER__DEBUG: 'true'
   services:
     - name: central-mirror.services.mts.ru/postgres:15-alpine
@@ -196,7 +196,7 @@ test-client:
       - PYTHON_VERSION: ['3.7', '3.11']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
-    HORIZON_JWT__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
     HORIZON_SERVER__DEBUG: 'true'
     HORIZON_TEST_SERVER_URL: http://backend:8000
     # Enables creation of a Docker network per build with the docker executor

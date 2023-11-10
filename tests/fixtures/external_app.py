@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 import pytest_asyncio
 
-from horizon.client.auth import AccessToken, OAuth2Password
+from horizon.client.auth import AccessToken, LoginPassword
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,8 +22,8 @@ def external_app_url() -> str:
 
 
 @pytest.fixture
-def app_oauth2_password(new_user: User) -> OAuth2Password:
-    return OAuth2Password(username=new_user.username, password="test")
+def app_login_password(new_user: User) -> LoginPassword:
+    return LoginPassword(username=new_user.username, password="test")
 
 
 @pytest_asyncio.fixture

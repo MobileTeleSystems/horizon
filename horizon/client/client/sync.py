@@ -46,10 +46,10 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
     .. code-block:: python
 
-        from horizon.client.auth import OAuth2Password
+        from horizon.client.auth import LoginPassword
         from horizon.client.client.sync import HorizonClientSync
 
-        auth = OAuth2Password(username="me", password="12345")
+        auth = LoginPassword(username="me", password="12345")
         client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
     """
 
@@ -573,7 +573,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         """Send request to backend and return ``response_class``, ``None`` or raise an exception."""
 
         session: OAuth2Session = self.session  # type: ignore[assignment]
-        if not session.token:
+        if not session.token or session.token.is_expired():
             self.authorize()
 
         response = session.request(method, url, json=json, params=params)

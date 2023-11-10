@@ -1,17 +1,31 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-import json
+import textwrap
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 
 class DatabaseSettings(BaseModel):
-    url: str
-    engine_args: dict = Field(default_factory=dict)
+    """Database connection settings.
 
-    @validator("engine_args", pre=True)
-    def _validate_engine_args(cls, value) -> dict:
-        if isinstance(value, str):
-            return json.loads(value)
-        return value
+    You can pass here any option supported by
+    `SQLAlchemy Engine class <https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine>`_.
+    """
+
+    url: str = Field(
+        description=textwrap.dedent(  # noqa: WPS462
+            """
+            Database connection URL.
+
+            See `SQLAlchemy documentation <https://docs.sqlalchemy.org/en/20/core/engines.html#backend-specific-urls>`_
+
+            .. warning:
+
+                Only async drivers are supported, e.g. ``asyncpg``
+            """,
+        ),
+    )
+
+    class Config:
+        extra = "allow"

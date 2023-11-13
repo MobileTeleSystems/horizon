@@ -1,6 +1,22 @@
 ARG PYTHON_VERSION=3.11
 FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as test
 
+RUN microdnf -y install \
+        krb5-libs \
+        krb5-workstation \
+        krb5-devel \
+        cyrus-sasl \
+        cyrus-sasl-devel \
+        cyrus-sasl-gssapi \
+        cyrus-sasl-ldap \
+        cyrus-sasl-plain \
+        openldap-devel \
+        openssl-devel \
+        autoconf \
+        gcc \
+        gcc-c++ \
+        make
+
 WORKDIR /app
 ENV PYTHONPATH=/app
 

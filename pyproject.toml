@@ -54,7 +54,7 @@ sqlalchemy-utils = {version = "*", optional = true}
 starlette-exporter = {version = "*", optional = true}
 authlib = {version = "*", optional = true}
 requests = {version = "*", optional = true}
-ldap3 = {version = "*", optional = true}
+bonsai = {version = "*", optional = true}
 
 [tool.poetry.extras]
 backend = [
@@ -73,7 +73,7 @@ prometheus = [
   "starlette-exporter",
 ]
 ldap = [
-  "ldap3",
+  "bonsai",
 ]
 client-sync = [
   "authlib",
@@ -103,7 +103,6 @@ sqlalchemy = {extras = ["mypy"], version = "^2.0.21", python = "^3.11"}
 wemake-python-styleguide = {version = "^0.18.0", python = "^3.11"}
 flake8-pyproject = {version = "^1.2.3", python = "^3.11"}
 types-python-jose = {version = "^3.3.4.8", python = "^3.11"}
-types-ldap3 = {version = "^2.9.13.15", python = "^3.11"}
 
 [[tool.poetry.source]]
 name = "nexus"

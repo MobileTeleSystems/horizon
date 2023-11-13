@@ -4,21 +4,21 @@
 """
 AuthProvider using LDAP for checking user existence and credentials.
 
-Based on `ldap3 <https://ldap3.readthedocs.io>`_
+Based on `bonsai <https://github.com/noirello/bonsai>`_
 
 Similar to:
 * `JupyterHub LDAPAuthenticator <https://github.com/jupyterhub/ldapauthenticator>`_
 * `Flask-AppBuilder LDAP integration <https://github.com/dpgaspar/Flask-AppBuilder/blob/master/docs/config.rst>`_, used in Apache Airflow
 """
 
-import asyncio
 import logging
 from time import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from bonsai import InvalidDN, LDAPClient
+from bonsai.asyncio import AIOConnectionPool
+from bonsai.errors import AuthenticationError, LDAPError
 from fastapi import Depends, FastAPI
-from ldap3 import ALL_ATTRIBUTES, Connection, ServerPool
-from ldap3.core.exceptions import LDAPExceptionError
 from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
@@ -43,7 +43,7 @@ class LDAPAuthProvider(AuthProvider):
         self,
         settings: Annotated[Settings, Depends(Stub(Settings))],
         auth_settings: Annotated[LDAPAuthProviderSettings, Depends(Stub(LDAPAuthProviderSettings))],
-        pool: Annotated[ServerPool, Depends(Stub(ServerPool))],
+        pool: Annotated[Optional[AIOConnectionPool], Depends(Stub(AIOConnectionPool))],
         unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._pool = pool
@@ -54,17 +54,27 @@ class LDAPAuthProvider(AuthProvider):
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
         settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth)
-        server_settings = settings.ldap.server
-        pool = ServerPool(
-            [str(url) for url in server_settings.urls],
-            pool_strategy=server_settings.strategy,
-            active=server_settings.retries,  # type: ignore[arg-type]
-            exhaust=server_settings.lost_timeout,  # type: ignore[arg-type]
-        )
-
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[LDAPAuthProviderSettings] = lambda: settings
-        app.dependency_overrides[ServerPool] = lambda: pool
+        app.dependency_overrides[AIOConnectionPool] = lambda: None
+
+        if settings.ldap.lookup:
+            # lookup uses the same connection pool for all users
+            client = LDAPClient(settings.ldap.url)
+            if settings.ldap.lookup.credentials:
+                client.set_credentials(
+                    settings.ldap.auth_mechanism,
+                    settings.ldap.lookup.credentials.user,
+                    settings.ldap.lookup.credentials.password.get_secret_value(),
+                )
+            client.connect()  # test connection during start
+
+            pool = AIOConnectionPool(
+                client,
+                minconn=settings.ldap.pool.initial,
+                maxconn=settings.ldap.pool.max,
+            )
+            app.dependency_overrides[AIOConnectionPool] = lambda: pool
         return app
 
     async def get_current_user(self, access_token: str) -> User:
@@ -90,11 +100,10 @@ class LDAPAuthProvider(AuthProvider):
             raise AuthorizationError("Missing auth credentials")
 
         # firstly check if user exists in LDAP and credentials are valid
-        loop = asyncio.get_running_loop()
         lookup = self._auth_settings.ldap.lookup
         if lookup:
             log.debug("Looking up user %r in LDAP", username)
-            dn, real_username = await loop.run_in_executor(None, self._lookup_user, username, lookup)
+            dn, real_username = await self._lookup_user(username, lookup)
         else:
             dn = self._auth_settings.ldap.bind_dn_template.format(
                 username=username,
@@ -103,7 +112,7 @@ class LDAPAuthProvider(AuthProvider):
             )
             real_username = username
         log.debug("Check user credentials %r in LDAP", dn)
-        await loop.run_in_executor(None, self._login, dn, password)
+        await self._login(dn, password)
 
         log.debug("Get/create user %r in database", real_username)
         async with self._uow:
@@ -124,71 +133,41 @@ class LDAPAuthProvider(AuthProvider):
             "expires_at": expires_at,
         }
 
-    def _get_connection(self, **kwargs) -> Connection:
-        # TODO: use some kind of connection pool, probably with REUSABLE strategy
-        return Connection(
-            self._pool,
-            read_only=True,
-            **kwargs,
-        )
-
-    def _lookup_user(self, username: str, options: LDAPLookupSettings) -> Tuple[str, str]:
+    async def _lookup_user(self, username: str, options: LDAPLookupSettings) -> Tuple[str, str]:
         # Reference implementations:
         # https://github.com/dpgaspar/Flask-AppBuilder/blob/2c5763371b81cd679d88b9971ba5d1fc4d71d54b/flask_appbuilder/security/manager.py#L902
         # https://github.com/jupyterhub/ldapauthenticator/blob/main/ldapauthenticator/ldapauthenticator.py
-        if options.credentials:
-            connection = self._get_connection(
-                user=options.credentials.user,
-                password=options.credentials.password.get_secret_value(),
-                pool_name="lookup",
-            )
-        else:
-            connection = self._get_connection(pool_name="lookup")
-
         query = options.query.format(username=username, uid_attribute=self._auth_settings.ldap.uid_attribute)
 
+        pool: AIOConnectionPool = self._pool  # type: ignore[assignment]
         try:
-            if not connection.bind():
-                log.debug("Error from LDAP: %s", connection.last_error)
-                raise SetupError("Wrong LDAP credentials")
-
-            if connection.search(
-                search_base=self._auth_settings.ldap.base_dn,
-                search_filter=query,
-                search_scope=options.scope,
-                attributes=[ALL_ATTRIBUTES],
-                size_limit=1,
-            ):
-                entry = connection.entries[0]
-                log.debug("Found entry:\n%s", entry)
-                uid = entry.entry_attributes_as_dict[self._auth_settings.ldap.uid_attribute][0]
-                return entry.entry_dn, uid
-        finally:
-            connection.unbind()
+            async with pool.spawn() as connection:
+                results = await connection.search(
+                    base=self._auth_settings.ldap.base_dn,
+                    scope=options.scope,
+                    filter_exp=query,
+                    attrlist=["*"],
+                    sizelimit=1,
+                )
+                if results:
+                    entry = results[0]
+                    log.debug("Found entry:\n%s", entry)
+                    dn = str(entry["dn"])
+                    uid = entry[self._auth_settings.ldap.uid_attribute][0]
+                    return dn, uid
+        except LDAPError as e:
+            raise SetupError("Wrong LDAP settings") from e
 
         raise EntityNotFoundError("User", "username", username)
 
-    def _login(self, username: str, password: str):
-        connection = self._get_connection(
-            user=username,
-            password=password,
-        )
+    async def _login(self, username: str, password: str):
+        client = LDAPClient(self._auth_settings.ldap.url)
+        client.set_credentials(self._auth_settings.ldap.auth_mechanism, username, password)
         try:
-            if not connection.bind():
-                log.debug("Error from LDAP: %s", connection.last_error)
-                details = None
-                if self._settings.server.debug:
-                    # don't print error details in production
-                    details = connection.last_error
-                raise AuthorizationError("Wrong credentials", details=details)
-        except LDAPExceptionError as e:
-            details = None
-            if self._settings.server.debug:
-                # don't print error details in production
-                details = connection.last_error
-            raise AuthorizationError("Wrong credentials", details=details) from e
-        finally:
-            connection.unbind()
+            async with client.connect(is_async=True) as connection:
+                await connection.whoami()
+        except (AuthenticationError, InvalidDN) as e:
+            raise AuthorizationError("Wrong credentials") from e
 
     def _generate_access_token(self, user_id: int) -> Tuple[str, float]:
         expires_at = time() + self._auth_settings.access_token.expire_seconds

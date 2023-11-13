@@ -34,8 +34,8 @@ class UserRepository(Repository[User]):
         username: str,
     ) -> User:
         result = await self._get(User.username == username)
-        if result is None:
-            result = await self.create(username=username)
+        if not result:
+            result = await self.create(username)
         elif result.is_deleted:
             raise EntityNotFoundError("User", "username", username)
         return result

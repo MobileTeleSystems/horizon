@@ -158,7 +158,6 @@ async def test_update_namespace_no_data(
         "error": {
             "code": "invalid_request",
             "details": {
-                "body": {},
                 "errors": [
                     {
                         "code": "value_error",

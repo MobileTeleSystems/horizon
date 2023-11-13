@@ -33,5 +33,14 @@ services:
     ports:
       - 8000:8000
 
+  ldap:
+    image: central-mirror.services.mts.ru/thoteam/slapd-server-mock
+    restart: unless-stopped
+    ports:
+      - 389:389
+      - 636:636
+    volumes:
+      - ./docker/mocks/ldap/bootstrap:/bootstrap
+
 volumes:
   postgres_data:

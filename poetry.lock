@@ -1455,6 +1455,25 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "ldap3"
+version = "2.9.1"
+description = "A strictly RFC 4510 conforming LDAP V3 pure Python client library"
+optional = true
+python-versions = "*"
+files = [
+    {file = "ldap3-2.9.1-py2.py3-none-any.whl", hash = "sha256:5869596fc4948797020d3f03b7939da938778a0f9e2009f7a072ccf92b8e8d70"},
+    {file = "ldap3-2.9.1.tar.gz", hash = "sha256:f3e7fc4718e3f09dda568b57100095e0ce58633bcabbed8667ce3f8fbaa4229f"},
+]
+
+[package.dependencies]
+pyasn1 = ">=0.4.6"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "mako"
 version = "1.2.4"
 description = "A super-fast templating language that borrows the best ideas from the existing templating languages."
@@ -2694,6 +2713,25 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "types-ldap3"
+version = "2.9.13.15"
+description = "Typing stubs for ldap3"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-ldap3-2.9.13.15.tar.gz", hash = "sha256:e6af9ad2be2bb826867e0524c2a9ff7230e83316a0f64941118f6d626ecf5604"},
+    {file = "types_ldap3-2.9.13.15-py3-none-any.whl", hash = "sha256:5f4fe29f5a84c629a6631a18d1b34e5f7b0bf75463f7ccdccfed0071bdfdc577"},
+]
+
+[package.dependencies]
+types-pyasn1 = "*"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "types-pyasn1"
 version = "0.5.0.0"
 description = "Typing stubs for pyasn1"
@@ -2957,10 +2995,11 @@ reference = "nexus"
 [extras]
 backend = ["alembic", "fastapi", "python-jose", "python-multipart", "sqlalchemy", "sqlalchemy-utils", "uvicorn"]
 client-sync = ["authlib", "requests"]
+ldap = ["ldap3"]
 postgres = ["asyncpg"]
 prometheus = ["starlette-exporter"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "a05a0bfe0a9081bae1bc969b9c359ce193b55b8d883bc25cefc4685cabd18e76"
+content-hash = "d7fa1274c11c45b0cc34abea388b0d98840700a2611c1333d6017434a291636e"

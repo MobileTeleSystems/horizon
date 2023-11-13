@@ -83,6 +83,21 @@ backend_test_image:
     - when: on_success
   interruptible: true
 
+backend_ldap_test_image:
+  extends: .base_docker_build
+  stage: build test image
+  variables:
+    CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.ldap
+    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap
+    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap:develop
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    CICD_DOCKER__STOP_IF_EXISTS: 'false'
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+  interruptible: true
+
 build_backend_image:
   extends: .base_docker_build
   stage: build test image
@@ -163,7 +178,8 @@ test-backend:
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
-    HORIZON_SERVER__DEBUG: 'true'
+    HORIZON_AUTH__LDAP__SERVER__URLS: ldap://ldap:389
+    HORIZON_AUTH__LDAP__BASE_DN: ou=people,dc=ldapmock,dc=local
   services:
     - name: central-mirror.services.mts.ru/postgres:15-alpine
       alias: db
@@ -171,6 +187,8 @@ test-backend:
         POSTGRES_DB: horizon
         POSTGRES_USER: horizon
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
+    - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap:${CI_COMMIT_REF_SLUG}
+      alias: ldap
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - alembic -c ./horizon/backend/alembic.ini upgrade head
@@ -385,6 +403,9 @@ stop_review_docker:
     - !reference [.base_docker_cleaner__bricks_debug, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
     - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.7,${CI_COMMIT_REF_SLUG}-python3.11
+    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap
+    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
     - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}

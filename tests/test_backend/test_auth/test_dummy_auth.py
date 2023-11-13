@@ -21,16 +21,11 @@ if TYPE_CHECKING:
 
     from horizon.backend.settings import Settings
 
+DUMMY = "horizon.backend.providers.auth.dummy.DummyAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth]
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_creates_user(
     test_client: AsyncClient,
     new_user: User,
@@ -72,13 +67,7 @@ async def test_dummy_auth_get_token_creates_user(
     assert not created_user.is_deleted
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_for_existing_user(
     test_client: AsyncClient,
     user: User,
@@ -116,13 +105,7 @@ async def test_dummy_auth_get_token_for_existing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_for_inactive_user(
     test_client: AsyncClient,
     user: User,
@@ -144,13 +127,7 @@ async def test_dummy_auth_get_token_for_inactive_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_for_deleted_user(
     test_client: AsyncClient,
     user: User,
@@ -179,8 +156,8 @@ async def test_dummy_auth_get_token_for_deleted_user(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}, "server": {"debug": True}},
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}, "server": {"debug": False}},
+        {"auth": {"class": DUMMY}, "server": {"debug": True}},
+        {"auth": {"class": DUMMY}, "server": {"debug": False}},
     ],
     indirect=True,
 )
@@ -224,14 +201,20 @@ async def test_dummy_auth_get_token_with_malformed_input(
     assert response.json() == expected
 
 
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
+async def test_dummy_auth_check(
+    test_client: AsyncClient,
+    access_token: str,
+):
+    response = await test_client.get(
+        "v1/namespaces/",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+
+
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_check_inactive_user(
     test_client: AsyncClient,
     access_token: str,
@@ -250,13 +233,7 @@ async def test_dummy_auth_check_inactive_user(
     }
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_check_missing_user(
     test_client: AsyncClient,
     fake_access_token: str,
@@ -281,13 +258,7 @@ async def test_dummy_auth_check_missing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_check_disabled_user(
     test_client: AsyncClient,
     access_token: str,
@@ -311,13 +282,7 @@ async def test_dummy_auth_check_disabled_user(
     }
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"class": "horizon.backend.providers.auth.dummy.DummyAuthProvider"}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"class": DUMMY}}], indirect=True)
 async def test_dummy_auth_check_invalid_token(
     test_client: AsyncClient,
     invalid_access_token: str,

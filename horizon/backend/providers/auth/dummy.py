@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
 from time import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -13,7 +14,9 @@ from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.services import UnitOfWork
 from horizon.backend.settings.auth.dummy import DummyAuthProviderSettings
 from horizon.backend.utils.jwt import decode_jwt, sign_jwt
-from horizon.commons.exceptions import AuthorizationError
+from horizon.commons.exceptions.auth import AuthorizationError
+
+log = logging.getLogger(__name__)
 
 
 class DummyAuthProvider(AuthProvider):
@@ -54,11 +57,15 @@ class DummyAuthProvider(AuthProvider):
         if not username or not password:
             raise AuthorizationError("Missing auth credentials")
 
+        log.debug("Get/create user %r in database", username)
         async with self._uow:
             user = await self._uow.user.get_or_create(username=username)
+
+        log.debug("Used with id %r found", user.id)
         if not user.is_active:
             raise AuthorizationError(f"User {username!r} is disabled")
 
+        log.debug("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user_id=user.id)
         return {
             "access_token": access_token,

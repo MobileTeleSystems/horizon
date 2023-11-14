@@ -129,6 +129,35 @@ markers = [
     "ldap_auth: tests for LDAPAuthProvider",
 ]
 
+[tool.coverage.paths]
+source = ["horizon"]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+relative_files = true
+concurrency = ["gevent"]
+omit = [
+  "tests/*",
+  "horizon/db/migrations/*",
+]
+data_file = "reports/.coverage"
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "if .*debug:",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "if log.isEnabledFor(logging.DEBUG):",
+  "if sys.version_info",
+  "@(abc\\.)?abstractmethod",
+  "\\.\\.\\.",
+]
+
 [tool.black]
 line-length = 120
 target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]

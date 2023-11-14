@@ -6,5 +6,5 @@ from horizon.client.client.sync import HorizonClientSync
 from horizon.commons.schemas import PingResponse
 
 
-def test_sync_client_ping_route(sync_client: HorizonClientSync):
+def test_sync_client_ping(sync_client: HorizonClientSync):
     assert sync_client.ping() == PingResponse(status="ok")

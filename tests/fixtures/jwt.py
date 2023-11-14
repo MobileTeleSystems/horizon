@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import secrets
 from time import time
 from typing import TYPE_CHECKING
 
@@ -33,6 +34,11 @@ def fake_access_token(new_user: User, access_token_settings: JWTSettings):
 
 
 @pytest.fixture
+def access_token_malformed():
+    return secrets.token_hex()
+
+
+@pytest.fixture
 def access_token_wrong_secret_key(user: User, access_token_settings: JWTSettings):
     return sign_jwt({"user_id": user.id, "exp": time() + 1000}, "wrong", access_token_settings.security_algorithm)
 
@@ -52,7 +58,7 @@ def access_token_without_user_id(user: User, access_token_settings: JWTSettings)
 
 
 @pytest.fixture
-def access_token_with_wrong_user_id_type(user: User, access_token_settings: JWTSettings):
+def access_token_with_wrong_user_id_type(access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": "abc", "exp": time() + 1000},
         access_token_settings.secret_key,
@@ -63,7 +69,16 @@ def access_token_with_wrong_user_id_type(user: User, access_token_settings: JWTS
 @pytest.fixture
 def access_token_expired(user: User, access_token_settings: JWTSettings):
     return sign_jwt(
-        {"user_id": user.id, "exp": time() - 1000},
+        {"user_id": user.id, "exp": 0},
+        access_token_settings.secret_key,
+        access_token_settings.security_algorithm,
+    )
+
+
+@pytest.fixture
+def access_token_no_expiration_time(user: User, access_token_settings: JWTSettings):
+    return sign_jwt(
+        {"user_id": user.id},
         access_token_settings.secret_key,
         access_token_settings.security_algorithm,
     )
@@ -76,6 +91,8 @@ def access_token_expired(user: User, access_token_settings: JWTSettings):
         lazy_fixture("access_token_without_user_id"),
         lazy_fixture("access_token_with_wrong_user_id_type"),
         lazy_fixture("access_token_expired"),
+        lazy_fixture("access_token_no_expiration_time"),
+        lazy_fixture("access_token_malformed"),
     ],
 )
 def invalid_access_token(request: pytest.FixtureRequest):

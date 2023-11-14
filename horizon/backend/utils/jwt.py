@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from jose import JWTError, jwt
+from jose import ExpiredSignatureError, JWTError, jwt
 
 from horizon.commons.exceptions import AuthorizationError
 
@@ -16,10 +16,14 @@ def sign_jwt(payload: dict, secret_key: str, security_algorithm: str) -> str:
 
 def decode_jwt(token: str, secret_key: str, security_algorithm: str) -> dict:
     try:
-        return jwt.decode(
+        result = jwt.decode(
             token,
             secret_key,
             algorithms=[security_algorithm],
         )
+        if "exp" not in result:
+            raise ExpiredSignatureError("Missing expiration time in token")
+
+        return result
     except JWTError as e:
         raise AuthorizationError("Invalid token") from e

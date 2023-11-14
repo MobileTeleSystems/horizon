@@ -19,13 +19,3 @@ if TYPE_CHECKING:
 @pytest.fixture(scope="session")
 def external_app_url() -> str:
     return os.environ["HORIZON_TEST_SERVER_URL"]
-
-
-@pytest.fixture
-def app_login_password(new_user: User) -> LoginPassword:
-    return LoginPassword(username=new_user.username, password="test")
-
-
-@pytest_asyncio.fixture
-async def app_access_token(async_session: AsyncSession, access_token: str) -> AccessToken:
-    return AccessToken(token=access_token)

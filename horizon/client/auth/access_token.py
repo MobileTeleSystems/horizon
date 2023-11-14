@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
-from jose import jwt
-from pydantic import AnyHttpUrl, BaseModel
+from jose import ExpiredSignatureError, jwt
+from pydantic import AnyHttpUrl, BaseModel, validator
 from typing_extensions import Literal
 
 from horizon.client.auth.base import BaseAuth, Session
@@ -52,3 +52,10 @@ class AccessToken(BaseAuth, BaseModel):
 
     def fetch_token_kwargs(self, base_url: AnyHttpUrl) -> dict[str, str]:
         return {}
+
+    @validator("token")
+    def _validate_token(cls, value):
+        token_decoded = jwt.decode(value, key="NONE", options={"verify_signature": False})
+        if "exp" not in token_decoded:
+            raise ExpiredSignatureError("Missing expiration time in token")
+        return value

@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import Namespace, User
+from horizon.backend.settings import Settings
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -143,10 +144,19 @@ async def test_update_namespace_description(
     assert not namespace_after.is_deleted
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"server": {"debug": True}},
+        {"server": {"debug": False}},
+    ],
+    indirect=True,
+)
 async def test_update_namespace_no_data(
     test_client: AsyncClient,
     access_token: str,
     namespace: Namespace,
+    settings: Settings,
 ):
     response = await test_client.patch(
         f"v1/namespaces/{namespace.name}",
@@ -154,19 +164,23 @@ async def test_update_namespace_no_data(
         json={},
     )
     assert response.status_code == 422
+    details: dict[str, Any] = {
+        "errors": [
+            {
+                "code": "value_error",
+                "location": ["body", "__root__"],
+                "message": "At least one field must be set.",
+            }
+        ],
+    }
+    if settings.server.debug:
+        details["body"] = {}
+
     assert response.json() == {
         "error": {
             "code": "invalid_request",
-            "details": {
-                "errors": [
-                    {
-                        "code": "value_error",
-                        "location": ["body", "__root__"],
-                        "message": "At least one field must be set.",
-                    }
-                ],
-            },
             "message": "Invalid request",
+            "details": details,
         }
     }
 

@@ -5,6 +5,8 @@ from typing import List, Set
 
 from pydantic import BaseModel, Field
 
+from horizon.backend.settings.log import LoggingSettings
+
 
 class CorsSettings(BaseModel):
     enabled: bool = True
@@ -27,7 +29,10 @@ class PrometheusSettings(BaseModel):
 
 
 class ServerSettings(BaseModel):
-    debug: bool = False
-
+    debug: bool = Field(
+        default=False,
+        description="Enable debug output in responses. Do not use this on production!",
+    )
+    logging: LoggingSettings = Field(default_factory=LoggingSettings)
     cors: CorsSettings = Field(default_factory=CorsSettings)
     prometheus: PrometheusSettings = Field(default_factory=PrometheusSettings)

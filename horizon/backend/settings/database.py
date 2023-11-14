@@ -14,7 +14,7 @@ class DatabaseSettings(BaseModel):
     """
 
     url: str = Field(
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Database connection URL.
 

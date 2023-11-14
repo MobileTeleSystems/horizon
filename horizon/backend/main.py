@@ -18,6 +18,7 @@ from horizon.backend.api.handlers import (
 from horizon.backend.api.router import api_router
 from horizon.backend.db.factory import create_session_factory
 from horizon.backend.middlewares.cors import add_cors_middleware
+from horizon.backend.middlewares.logging import setup_logging
 from horizon.backend.middlewares.prometheus import add_prometheus_middleware
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.settings import Settings
@@ -54,6 +55,9 @@ def application_factory(settings: Settings) -> FastAPI:
     # get AuthProvider class from settings, and perform setup
     auth_class: Type[AuthProvider] = settings.auth.klass  # type: ignore[assignment]
     auth_class.setup(application)
+
+    if settings.server.logging.setup:
+        setup_logging(settings.server.logging.get_log_config_path())
 
     if settings.server.cors.enabled:
         add_cors_middleware(application, settings.server.cors)

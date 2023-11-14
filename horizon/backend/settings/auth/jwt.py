@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class JWTSettings(BaseModel):
     secret_key: str = Field(
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Secret key for signing JWT tokens.
 
@@ -18,7 +18,7 @@ class JWTSettings(BaseModel):
     )
     security_algorithm: str = Field(
         default="HS256",
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Algorithm used for signing JWT tokens.
 

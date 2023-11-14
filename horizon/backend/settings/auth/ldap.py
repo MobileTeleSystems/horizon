@@ -47,7 +47,7 @@ class LDAPLookupSettings(BaseModel):
     )
     query: str = Field(
         default="({uid_attribute}={username})",
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             LDAP query send in lookup request.
 
@@ -63,7 +63,7 @@ class LDAPLookupSettings(BaseModel):
     )
     scope: LDAPSearchScope = Field(
         default=LDAPSearchScope.ONELEVEL,
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Lookup scope. Use ``SUBTREE`` for ActiveDirectory.
 
@@ -86,7 +86,7 @@ class LDAPSettings(BaseModel):
     )
     uid_attribute: str = Field(
         default="uid",
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Attribute containing username.
 
@@ -96,7 +96,7 @@ class LDAPSettings(BaseModel):
     )
     bind_dn_template: str = Field(
         default="{uid_attribute}={username},{base_dn}",
-        description=textwrap.dedent(  # noqa: WPS462
+        description=textwrap.dedent(
             """
             Template for building DN string, used for checking credentials in LDAP. You can pass any DN value supported by LDAP.
 

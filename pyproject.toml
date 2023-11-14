@@ -30,6 +30,7 @@ classifiers = [
 keywords = ["Horizon", "REST", "API", "HWM"]
 include = [
     {path = "py.typed"},
+    {path = "**/*.yml"},
 ]
 
 [tool.poetry.urls]  # Optional
@@ -55,6 +56,9 @@ starlette-exporter = {version = "*", optional = true}
 authlib = {version = "*", optional = true}
 requests = {version = "*", optional = true}
 bonsai = {version = "*", optional = true}
+python-json-logger = {version = "*", optional = true}
+coloredlogs = {version = "*", optional = true}
+pyyaml = {version = "*", optional = true}
 
 [tool.poetry.extras]
 backend = [
@@ -65,9 +69,16 @@ backend = [
   "python-jose",
   "python-multipart",
   "sqlalchemy-utils",
+  "pyyaml",
 ]
 postgres = [
   "asyncpg",
+]
+log-json = [
+  "python-json-logger",
+]
+log-colored = [
+  "coloredlogs",
 ]
 prometheus = [
   "starlette-exporter",
@@ -90,7 +101,6 @@ coverage = ">=7.2"
 pytest-lazy-fixture = "^0.6.3"
 psycopg2-binary = "^2.9.9"
 gevent = ">=22.10"
-requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = {version = "^3.5.0", python = "^3.11"}
@@ -103,6 +113,7 @@ sqlalchemy = {extras = ["mypy"], version = "^2.0.21", python = "^3.11"}
 wemake-python-styleguide = {version = "^0.18.0", python = "^3.11"}
 flake8-pyproject = {version = "^1.2.3", python = "^3.11"}
 types-python-jose = {version = "^3.3.4.8", python = "^3.11"}
+types-pyyaml = {version = "^6.0.12.12", python = "^3.11"}
 
 [[tool.poetry.source]]
 name = "nexus"
@@ -332,6 +343,8 @@ ignore = [
   "N805",
 # Found `finally` in `try` block without `except`
   "WPS501",
+# Wrong multiline string usage: textwrap.dedent + multiline comment
+  "WPS462",
 ]
 
 per-file-ignores = [

@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.ext.asyncio import AsyncSession, async_engine_from_config
 
+import horizon
 from horizon.backend.api.handlers import (
     application_exception_handler,
     http_exception_handler,
@@ -26,7 +27,7 @@ from horizon.commons.exceptions.base import ApplicationError
 def application_factory(settings: Settings) -> FastAPI:
     application = FastAPI(
         title="horizon",
-        version="0.1.0",
+        version=horizon.__version__,
         debug=settings.server.debug,
     )
     application.state.settings = settings

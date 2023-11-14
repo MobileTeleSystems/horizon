@@ -8,10 +8,10 @@ Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com
 """
 
 import textwrap
-from typing import List, Optional, Union
+from typing import Optional
 
-from ldap3.operation.search import parse_filter
-from pydantic import AnyUrl, BaseModel, Field, SecretStr, validator
+from bonsai import LDAPSearchScope
+from pydantic import AnyUrl, BaseModel, Field, SecretStr
 from typing_extensions import Literal
 
 from horizon.backend.settings.auth.jwt import JWTSettings
@@ -29,48 +29,15 @@ class LDAPCredentials(BaseModel):
     password: SecretStr
 
 
-class LDAPServerPoolSettings(BaseModel):
-    urls: List[LDAPUrl] = Field(
-        description="""
-        LDAP URls to connect to.
-
-        This is used for creating server pool with :obj:`~strategy`.
-        """,
+class LDAPConnectionPoolSettings(BaseModel):
+    initial: int = Field(
+        default=1,
+        description="Initial size of connection pool",
     )
-
-    strategy: Literal["FIRST", "ROUND_ROBIN", "RANDOM"] = Field(
-        default="ROUND_ROBIN",
-        description="Strategy used for selecting server from server pool.",
-    )
-
-    retries: Union[bool, int] = Field(
-        default=5,
-        description=textwrap.dedent(  # noqa: WPS462
-            """
-            Number of retries for server availability check.
-
-            ``False`` means disable checks.
-            ``True`` means check infinitely.
-            """,
-        ),
-    )
-    lost_timeout: Union[bool, int] = Field(
+    max: int = Field(
         default=10,
-        description=textwrap.dedent(  # noqa: WPS462
-            """
-            Timeout for server to be marked as unavailable, and exclude from pool.
-
-            ``False`` means do not exclude servers from pool.
-            ``True`` means exclude immediately.
-            """,
-        ),
+        description="Maximum size of connection pool",
     )
-
-    @validator("urls", pre=True)
-    def _parse_urls(cls, urls):
-        if isinstance(urls, str):
-            return urls.split(",")
-        return urls
 
 
 class LDAPLookupSettings(BaseModel):
@@ -86,7 +53,7 @@ class LDAPLookupSettings(BaseModel):
 
             Usually lookup is performed against attributes ``uid`` (LDAP) or ``sAMAccountName`` (ActiveDirectory).
             You can also pass any query string supported by LDAP.
-            See `LDAP3 documentation <https://ldap3.readthedocs.io/en/latest/searches.html#the-ldap-filter>`_.
+            See `Bonsai documentation <https://bonsai.readthedocs.io/en/latest/tutorial.html#searching>`_.
 
             Supported substitution values (see :obj:`horizon.backend.settings.auth.ldap.LDAPSettings`.):
             * ``{uid_attribute}``
@@ -94,33 +61,26 @@ class LDAPLookupSettings(BaseModel):
             """,
         ),
     )
-    scope: Literal["BASE", "LEVEL", "SUBTREE"] = Field(
-        default="LEVEL",
+    scope: LDAPSearchScope = Field(
+        default=LDAPSearchScope.ONELEVEL,
         description=textwrap.dedent(  # noqa: WPS462
             """
             Lookup scope. Use ``SUBTREE`` for ActiveDirectory.
 
-            See `LDAP3 documentation <https://ldap3.readthedocs.io/en/latest/searches.html#search-scope-and-aliases>`_.
+            See `Bonsai documentation <https://bonsai.readthedocs.io/en/latest/tutorial.html#searching>`_.
             """,
         ),
     )
 
-    @validator("query")
-    def _validate_query(cls, query):
-        parse_filter(
-            query.format(username="someuser", uid_attribute="uid"),
-            schema=None,
-            auto_escape=None,
-            auto_encode=None,
-            validator=None,
-            check_names=None,
-        )
-        return query
-
 
 class LDAPSettings(BaseModel):
-    server: LDAPServerPoolSettings
-
+    url: LDAPUrl = Field(
+        description="LDAP URL to connect to",
+    )
+    auth_mechanism: Literal["SIMPLE", "DIGEST-MD5"] = Field(
+        default="SIMPLE",
+        description="LDAP auth mechanism, used for ``bind`` request",
+    )
     base_dn: str = Field(
         description="Organization DN, e.g. ``ou=users,dc=example,dc=com``",
     )
@@ -146,6 +106,11 @@ class LDAPSettings(BaseModel):
             * ``{base_dn}`` (see :obj:`~base_dn`)
             """,
         ),
+    )
+
+    pool: LDAPConnectionPoolSettings = Field(
+        default_factory=LDAPConnectionPoolSettings,
+        description="LDAP connection pool settings",
     )
     lookup: Optional[LDAPLookupSettings] = Field(
         default_factory=LDAPLookupSettings,

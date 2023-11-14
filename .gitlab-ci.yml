@@ -178,7 +178,7 @@ test-backend:
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
-    HORIZON_AUTH__LDAP__SERVER__URLS: ldap://ldap:389
+    HORIZON_AUTH__LDAP__URL: ldap://ldap:389
     HORIZON_AUTH__LDAP__BASE_DN: ou=people,dc=ldapmock,dc=local
   services:
     - name: central-mirror.services.mts.ru/postgres:15-alpine

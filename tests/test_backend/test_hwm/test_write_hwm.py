@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import select
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.settings import Settings
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -419,11 +420,20 @@ async def test_write_hwm_replace_existing_partial(
     assert not created_hwm_history.is_deleted
 
 
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {"server": {"debug": True}},
+        {"server": {"debug": False}},
+    ],
+    indirect=True,
+)
 async def test_write_hwm_replace_existing_no_data(
     test_client: AsyncClient,
     access_token: str,
     namespace: Namespace,
     hwm: HWM,
+    settings: Settings,
 ):
     response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
@@ -431,19 +441,23 @@ async def test_write_hwm_replace_existing_no_data(
         json={},
     )
     assert response.status_code == 422
+    details: dict[str, Any] = {
+        "errors": [
+            {
+                "code": "value_error",
+                "location": ["body", "__root__"],
+                "message": "At least one field must be set.",
+            }
+        ],
+    }
+    if settings.server.debug:
+        details["body"] = {}
+
     assert response.json() == {
         "error": {
             "code": "invalid_request",
-            "details": {
-                "errors": [
-                    {
-                        "code": "value_error",
-                        "location": ["body", "__root__"],
-                        "message": "At least one field must be set.",
-                    }
-                ],
-            },
             "message": "Invalid request",
+            "details": details,
         }
     }
 

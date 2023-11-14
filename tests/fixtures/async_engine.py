@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 async def get_async_engine(settings: Settings) -> AsyncGenerator[AsyncEngine, None]:
     """Create test engine"""
     connection_url = settings.database.url
-    engine = create_async_engine(connection_url, echo=True)
+    engine = create_async_engine(connection_url)
     yield engine
     await engine.dispose()
 

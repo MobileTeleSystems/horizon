@@ -1,0 +1,22 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  json:
+    (): pythonjsonlogger.jsonlogger.JsonFormatter
+    fmt: '%(name)s:%(lineno)d %(levelname)s %(message)s'
+    timestamp: true
+
+handlers:
+  main:
+    class: logging.StreamHandler
+    formatter: json
+    stream: ext://sys.stdout
+
+loggers:
+  '':
+    handlers: [main]
+    propagate: false
+  uvicorn:
+    handlers: [main]
+    propagate: false

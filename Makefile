@@ -46,7 +46,7 @@ venv-add: ##@Env Add requirement to venv
 db: db-start db-upgrade ##@DB Prepare database (in docker)
 
 db-start: ##@DB Start database
-	docker compose -f docker-compose.test.yml up -d db $(DOCKER_COMPOSE_ARGS)
+	docker compose -f docker-compose.test.yml up -d --wait db $(DOCKER_COMPOSE_ARGS)
 
 db-revision: ##@DB Generate migration file
 	${POETRY} run alembic -c ./horizon/backend/alembic.ini revision --autogenerate
@@ -62,7 +62,7 @@ ldap-build: ##@LDAP Start LDAP container
 	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/test/ldap:develop -f ./docker/Dockerfile.ldap $(ARGS) .
 
 ldap-start: ##@LDAP Start LDAP container
-	docker compose -f docker-compose.test.yml up -d ldap $(DOCKER_COMPOSE_ARGS)
+	docker compose -f docker-compose.test.yml up -d --wait ldap $(DOCKER_COMPOSE_ARGS)
 
 
 test: db-start ldap-start ##@Test Run tests

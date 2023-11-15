@@ -7,7 +7,9 @@ import logging
 from typing import Any, Generic, Optional, TypeVar
 from urllib.parse import urlparse
 
-from pydantic import AnyHttpUrl, BaseModel, ValidationError, parse_obj_as, validator
+from pydantic import AnyHttpUrl, BaseModel, ValidationError
+from pydantic import __version__ as pydantic_version
+from pydantic import parse_obj_as, validator
 from pydantic.generics import GenericModel
 from typing_extensions import Protocol
 
@@ -56,13 +58,15 @@ class BaseClient(GenericModel, Generic[SessionClass]):
     @classmethod
     def session_class(cls) -> type[SessionClass]:
         # Get `Session` from `SyncClient(BaseClient[Session])`
-        return cls.__bases__[0].__annotations__["session"].__args__[0]
+        if pydantic_version < "2":
+            return cls.__bases__[0].__annotations__["session"].__args__[0]
+        return cls.model_fields["session"].annotation.__args__[0]
 
     @validator("base_url")
     def _validate_url(cls, value: AnyHttpUrl, values: dict):
         """``http://localhost:8000/`` -> ``http://localhost:8000``"""
         if value.path:
-            return urlparse(value)._replace(path=value.path.rstrip("/")).geturl()  # noqa: WPS437
+            return urlparse(str(value))._replace(path=value.path.rstrip("/")).geturl()  # noqa: WPS437
         return value
 
     @validator("session", always=True)

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -25,6 +26,7 @@ async def test_paginate_hwm_history_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -110,38 +112,42 @@ async def test_paginate_hwm_history(
     access_token: str,
     hwm_history_items: list[HWMHistory],
 ):
+    hwm_history_items = sorted(hwm_history_items, key=lambda ns: ns.changed_at, reverse=True)
+
     response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
 
-    items = [
-        {
-            "id": item.id,
-            "hwm_id": item.hwm_id,
-            "name": item.name,
-            "description": item.description,
-            "type": item.type,
-            "value": item.value,
-            "entity": item.entity,
-            "expression": item.expression,
-            "changed_at": item.changed_at.isoformat(),
-            "changed_by": item.changed_by,
-        }
-        for item in sorted(hwm_history_items, key=lambda ns: ns.changed_at, reverse=True)
-    ]
-
-    assert response.json() == {
-        "meta": {
-            "page": 1,
-            "pages_count": 1,
-            "page_size": 20,
-            "total_count": len(items),
-            "has_next": False,
-            "has_previous": False,
-            "next_page": None,
-            "previous_page": None,
-        },
-        "items": items,
+    response_dict = response.json()
+    assert response_dict.keys() == {"meta", "items"}
+    assert response_dict["meta"] == {
+        "page": 1,
+        "pages_count": 1,
+        "page_size": 20,
+        "total_count": len(hwm_history_items),
+        "has_next": False,
+        "has_previous": False,
+        "next_page": None,
+        "previous_page": None,
     }
+
+    response_items = response_dict["items"]
+
+    for i, hwm_history_item in enumerate(hwm_history_items):
+        response_item = response_items[i]
+        response_item["changed_at"] = datetime.fromisoformat(response_item["changed_at"].replace("Z", "+00:00"))
+
+        assert response_item == {
+            "id": hwm_history_item.id,
+            "hwm_id": hwm_history_item.hwm_id,
+            "name": hwm_history_item.name,
+            "description": hwm_history_item.description,
+            "type": hwm_history_item.type,
+            "value": hwm_history_item.value,
+            "entity": hwm_history_item.entity,
+            "expression": hwm_history_item.expression,
+            "changed_at": hwm_history_item.changed_at,
+            "changed_by": hwm_history_item.changed_by,
+        }

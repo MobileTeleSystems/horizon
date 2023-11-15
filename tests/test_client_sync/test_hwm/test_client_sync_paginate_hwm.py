@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.client.client.sync import HorizonClientSync
+from horizon.client.sync import HorizonClientSync
 from horizon.commons.schemas.v1 import (
     HWMPaginateQueryV1,
     HWMResponseV1,

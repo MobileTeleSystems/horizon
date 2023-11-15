@@ -13,7 +13,11 @@ async def test_whoami_anonymous_user(test_client: AsyncClient):
     response = await test_client.get("v1/users/me")
     assert response.status_code == 401
     assert response.json() == {
-        "error": {"code": "unauthorized", "message": "Not authenticated"},
+        "error": {
+            "code": "unauthorized",
+            "message": "Not authenticated",
+            "details": None,
+        },
     }
 
 

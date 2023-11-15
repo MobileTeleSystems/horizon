@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 import requests
 
-from horizon.client.client.sync import HorizonClientSync
+from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions import EntityAlreadyExistsError
 from horizon.commons.schemas.v1 import NamespaceCreateRequestV1, NamespaceResponseV1
 

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
@@ -38,6 +39,7 @@ async def test_write_hwm_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -107,7 +109,7 @@ async def test_write_hwm_create_new(
     assert content["expression"] == new_hwm.expression
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt
 
     query = select(HWM).where(HWM.id == hmw_id)
@@ -172,7 +174,7 @@ async def test_write_hwm_create_new_minimal(
     assert content["expression"] is None
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt
 
     query = select(HWM).where(HWM.id == hmw_id)
@@ -304,7 +306,7 @@ async def test_write_hwm_replace_existing(
     assert content["expression"] == new_hwm.expression
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt >= hwm.changed_at
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -386,7 +388,7 @@ async def test_write_hwm_replace_existing_partial(
             # if attribute was not passed, it is left intact
             assert attr_value == getattr(hwm, attribute)
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt >= hwm.changed_at
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -433,25 +435,34 @@ async def test_write_hwm_replace_existing_no_data(
     access_token: str,
     namespace: Namespace,
     hwm: HWM,
-    settings: Settings,
 ):
     response = await test_client.patch(
         f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
         headers={"Authorization": f"Bearer {access_token}"},
-        json={},
+        json={"unexpected": "value"},
     )
     assert response.status_code == 422
-    details: dict[str, Any] = {
-        "errors": [
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        details = [
             {
-                "code": "value_error",
                 "location": ["body", "__root__"],
+                "code": "value_error",
                 "message": "At least one field must be set.",
             }
-        ],
-    }
-    if settings.server.debug:
-        details["body"] = {}
+        ]
+    else:
+        details = [
+            {
+                "code": "value_error",
+                "location": ["body"],
+                "message": "Value error, At least one field must be set.",
+                "context": {},
+                "input": {"unexpected": "value"},
+                "url": "https://errors.pydantic.dev/2.5/v/value_error",
+            }
+        ]
 
     assert response.json() == {
         "error": {

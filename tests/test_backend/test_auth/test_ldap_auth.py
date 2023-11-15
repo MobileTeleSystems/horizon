@@ -5,9 +5,10 @@ from __future__ import annotations
 import secrets
 from datetime import datetime, timezone
 from time import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
@@ -18,8 +19,6 @@ from horizon.backend.utils.jwt import decode_jwt
 if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
-
-    from horizon.backend.settings import Settings
 
 LDAP = "horizon.backend.providers.auth.ldap.LDAPAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
@@ -124,6 +123,7 @@ async def test_ldap_auth_get_token_with_wrong_password(
         "error": {
             "code": "unauthorized",
             "message": "Wrong credentials",
+            "details": None,
         },
     }
 
@@ -300,6 +300,7 @@ async def test_ldap_auth_get_token_without_lookup_wrong_settings(
         "error": {
             "code": "unauthorized",
             "message": "Wrong credentials",
+            "details": None,
         },
     }
 
@@ -381,6 +382,7 @@ async def test_ldap_auth_get_token_for_inactive_user(
         "error": {
             "code": "unauthorized",
             "message": f"User '{user.username}' is disabled",
+            "details": None,
         },
     }
 
@@ -423,7 +425,6 @@ async def test_ldap_auth_get_token_for_deleted_user(
 async def test_ldap_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
     new_user: User,
-    settings: Settings,
 ):
     username = new_user.username
     password = secrets.token_hex(16)
@@ -436,25 +437,34 @@ async def test_ldap_auth_get_token_with_malformed_input(
         },
     )
 
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        details = [
+            {
+                "location": ["body", "password"],
+                "message": "field required",
+                "code": "value_error.missing",
+            }
+        ]
+    else:
+        details = [
+            {
+                "location": ["body", "password"],
+                "message": "Field required",
+                "code": "missing",
+                "context": {},
+                "input": None,
+                "url": "https://errors.pydantic.dev/2.5/v/missing",
+            }
+        ]
+
     expected = {
         "error": {
             "code": "invalid_request",
             "message": "Invalid request",
-            "details": {
-                "errors": [
-                    {
-                        "location": ["body", "password"],
-                        "code": "value_error.missing",
-                        "message": "field required",
-                    },
-                ],
-            },
+            "details": details,
         },
     }
-
-    if settings.server.debug:
-        # don't print error details in production
-        expected["error"]["details"]["body"] = {"username": username, "passwor": password}
 
     assert response.status_code == 422
     assert response.json() == expected
@@ -476,6 +486,7 @@ async def test_ldap_auth_check_inactive_user(
         "error": {
             "code": "unauthorized",
             "message": f"User '{user.username}' is disabled",
+            "details": None,
         },
     }
 
@@ -558,5 +569,6 @@ async def test_ldap_auth_check_invalid_token(
         "error": {
             "code": "unauthorized",
             "message": "Invalid token",
+            "details": None,
         },
     }

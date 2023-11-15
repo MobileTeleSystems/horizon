@@ -53,14 +53,14 @@ class LDAPAuthProvider(AuthProvider):
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth)
+        settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"klass"}))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[LDAPAuthProviderSettings] = lambda: settings
         app.dependency_overrides[AIOConnectionPool] = lambda: None
 
         if settings.ldap.lookup:
             # lookup uses the same connection pool for all users
-            client = LDAPClient(settings.ldap.url)
+            client = LDAPClient(str(settings.ldap.url))
             if settings.ldap.lookup.credentials:
                 client.set_credentials(
                     settings.ldap.auth_mechanism,
@@ -161,7 +161,7 @@ class LDAPAuthProvider(AuthProvider):
         raise EntityNotFoundError("User", "username", username)
 
     async def _login(self, username: str, password: str):
-        client = LDAPClient(self._auth_settings.ldap.url)
+        client = LDAPClient(str(self._auth_settings.ldap.url))
         client.set_credentials(self._auth_settings.ldap.auth_mechanism, username, password)
         try:
             async with client.connect(is_async=True) as connection:

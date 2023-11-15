@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from horizon.backend.db.models import User
-from horizon.client.client.sync import HorizonClientSync
+from horizon.client.sync import HorizonClientSync
 from horizon.commons.schemas.v1 import UserResponseV1
 
 

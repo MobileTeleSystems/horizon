@@ -10,4 +10,7 @@ class UserResponseV1(BaseModel):
     username: str
 
     class Config:
+        # pydantic v1
         orm_mode = True
+        # pydantic v2
+        from_attributes = True

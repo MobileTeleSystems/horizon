@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -23,6 +24,7 @@ async def test_paginate_namespaces_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -56,36 +58,40 @@ async def test_paginate_namespaces(
     access_token: str,
     namespaces: list[Namespace],
 ):
+    namespaces = sorted(namespaces, key=lambda ns: ns.name)
+
     response = await test_client.get(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
 
-    items = [
-        {
+    response_dict = response.json()
+    assert response_dict.keys() == {"meta", "items"}
+    assert response_dict["meta"] == {
+        "page": 1,
+        "pages_count": 1,
+        "page_size": 20,
+        "total_count": len(namespaces),
+        "has_next": False,
+        "has_previous": False,
+        "next_page": None,
+        "previous_page": None,
+    }
+
+    response_items = response_dict["items"]
+
+    for i, namespace in enumerate(namespaces):
+        response_item = response_items[i]
+        response_item["changed_at"] = datetime.fromisoformat(response_item["changed_at"].replace("Z", "+00:00"))
+
+        assert response_item == {
             "id": namespace.id,
             "name": namespace.name,
             "description": namespace.description,
-            "changed_at": namespace.changed_at.isoformat(),
+            "changed_at": namespace.changed_at,
             "changed_by": namespace.changed_by,
         }
-        for namespace in sorted(namespaces, key=lambda ns: ns.name)
-    ]
-
-    assert response.json() == {
-        "meta": {
-            "page": 1,
-            "pages_count": 1,
-            "page_size": 20,
-            "total_count": len(items),
-            "has_next": False,
-            "has_previous": False,
-            "next_page": None,
-            "previous_page": None,
-        },
-        "items": items,
-    }
 
 
 @pytest.mark.parametrize("namespace", [{"is_deleted": True}], indirect=True)

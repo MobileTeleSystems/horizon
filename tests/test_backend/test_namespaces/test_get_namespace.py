@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -28,6 +29,7 @@ async def test_get_namespace_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -70,10 +72,13 @@ async def test_get_namespace(
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
-    assert response.json() == {
+
+    response_dict = response.json()
+    response_dict["changed_at"] = datetime.fromisoformat(response_dict["changed_at"].replace("Z", "+00:00"))
+    assert response_dict == {
         "id": real_namespace.id,
         "name": real_namespace.name,
         "description": real_namespace.description,
-        "changed_at": real_namespace.changed_at.isoformat(),
+        "changed_at": real_namespace.changed_at,
         "changed_by": real_namespace.changed_by_user.username,
     }

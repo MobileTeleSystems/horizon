@@ -52,7 +52,7 @@ class RequestIDSettings(BaseModel):
 
     enabled: bool = True
     header_name: str = "X-Request-ID"
-    update_request_header = False
+    update_request_header: bool = False
 
 
 class ServerSettings(BaseModel):

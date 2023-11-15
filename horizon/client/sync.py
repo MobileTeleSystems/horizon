@@ -7,7 +7,7 @@ from typing import TypeVar
 from authlib.integrations.requests_client import OAuth2Session
 from pydantic import BaseModel
 
-from horizon.client.client.base import BaseClient
+from horizon.client.base import BaseClient
 from horizon.commons.schemas import PingResponse
 from horizon.commons.schemas.v1 import (
     HWMHistoryPaginateQueryV1,
@@ -48,7 +48,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     .. code-block:: python
 
         from horizon.client.auth import LoginPassword
-        from horizon.client.client.sync import HorizonClientSync
+        from horizon.client.sync import HorizonClientSync
 
         auth = LoginPassword(username="me", password="12345")
         client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
@@ -301,7 +301,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         return self._request(  # type: ignore[return-value]
             "PATCH",
             f"{self.base_url}/v1/namespaces/{namespace_name}",
-            json=changes.dict(),
+            json=changes.dict(exclude_unset=True),
             response_class=NamespaceResponseV1,
         )
 

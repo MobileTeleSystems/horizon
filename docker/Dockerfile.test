@@ -36,3 +36,10 @@ RUN poetry install \
         --no-root \
         --all-extras \
         --with dev,test
+
+ARG PYDANTIC_VERSION=2
+RUN if [[ "x${PYDANTIC_VERSION}" == "x1" ]]; then \
+        # pydantic-settings depends in pydantic>2.3, so delete it
+        pip uninstall "pydantic-settings"; \
+        pip install "pydantic<2"; \
+    fi

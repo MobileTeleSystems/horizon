@@ -468,7 +468,7 @@ async def test_ldap_auth_check_inactive_user(
     user: User,
 ):
     response = await test_client.get(
-        "v1/namespaces/",
+        "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 401
@@ -488,7 +488,7 @@ async def test_ldap_auth_check(
     access_token: str,
 ):
     response = await test_client.get(
-        "v1/namespaces/",
+        "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
@@ -502,7 +502,7 @@ async def test_ldap_auth_check_missing_user(
     new_user: User,
 ):
     response = await test_client.get(
-        "v1/namespaces/",
+        "v1/users/me",
         headers={"Authorization": f"Bearer {fake_access_token}"},
     )
     assert response.status_code == 404
@@ -527,7 +527,7 @@ async def test_ldap_auth_check_disabled_user(
     user: User,
 ):
     response = await test_client.get(
-        "v1/namespaces/",
+        "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 404
@@ -550,7 +550,7 @@ async def test_ldap_auth_check_invalid_token(
     invalid_access_token: str,
 ):
     response = await test_client.get(
-        "v1/namespaces/",
+        "v1/users/me",
         headers={"Authorization": f"Bearer {invalid_access_token}"},
     )
     assert response.status_code == 401

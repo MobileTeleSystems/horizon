@@ -21,6 +21,7 @@ from horizon.commons.schemas.v1 import (
     NamespaceUpdateRequestV1,
     PageResponseV1,
 )
+from horizon.commons.schemas.v1.user import UserResponseV1
 
 ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
 
@@ -66,11 +67,13 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         session: OAuth2Session = self.session  # type: ignore[assignment]
         token_kwargs = self.auth.fetch_token_kwargs(self.base_url)
-        if not token_kwargs:
-            return
-        session.token = session.fetch_token(**token_kwargs)
+        if token_kwargs:
+            session.token = session.fetch_token(**token_kwargs)
+
         # token will not be verified until we call any endpoint
-        self.ping()
+        # do not call ``self.whoami`` here to avoid recursion
+        response = session.request("GET", f"{self.base_url}/v1/users/me")
+        self._handle_response(response, UserResponseV1)
 
     def close(self) -> None:
         """Close session.
@@ -117,6 +120,25 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             "GET",
             f"{self.base_url}/monitoring/ping",
             response_class=PingResponse,
+        )
+
+    def whoami(self) -> UserResponseV1:
+        """Get current user info.
+
+        Examples
+        --------
+
+        .. code-block:: python
+
+            assert client.whoami() == UserResponseV1(
+                id=1,
+                username="me",
+            )
+        """
+        return self._request(  # type: ignore[return-value]
+            "GET",
+            f"{self.base_url}/v1/users/me",
+            response_class=UserResponseV1,
         )
 
     def paginate_namespaces(

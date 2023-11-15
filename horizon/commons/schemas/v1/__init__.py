@@ -21,3 +21,4 @@ from horizon.commons.schemas.v1.pagination import (
     PageResponseV1,
     PaginateQueryV1,
 )
+from horizon.commons.schemas.v1.user import UserResponseV1

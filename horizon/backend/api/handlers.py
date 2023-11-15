@@ -5,10 +5,12 @@ from __future__ import annotations
 import http
 import logging
 
+from asgi_correlation_id import correlation_id
 from fastapi import HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
+from horizon.backend.settings.server import ServerSettings
 from horizon.commons.errors.base import APIErrorSchema, BaseErrorSchema
 from horizon.commons.errors.registration import get_response_for_exception
 from horizon.commons.exceptions import ApplicationError
@@ -32,8 +34,10 @@ async def http_exception_handler(_request: Request, exc: HTTPException):
 async def unknown_exception_handler(request: Request, exc: Exception):
     logger.exception("Got unhandled error")
 
+    server: ServerSettings = request.app.state.settings.server
+
     details = None
-    if request.app.state.settings.server.debug:
+    if server.debug:
         details = exc.args
 
     content = BaseErrorSchema(
@@ -44,6 +48,8 @@ async def unknown_exception_handler(request: Request, exc: Exception):
     return exception_json_response(
         status=http.HTTPStatus.INTERNAL_SERVER_ERROR.value,
         content=content,
+        # https://github.com/snok/asgi-correlation-id#exception-handling
+        headers={server.request_id.header_name: correlation_id.get() or ""},
     )
 
 

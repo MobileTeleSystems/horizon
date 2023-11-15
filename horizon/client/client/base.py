@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import http
+import logging
 from typing import Any, Generic, Optional, TypeVar
 from urllib.parse import urlparse
 
@@ -13,6 +14,8 @@ from typing_extensions import Protocol
 from horizon.client.auth.base import BaseAuth
 from horizon.commons.errors import get_response_for_status_code
 from horizon.commons.errors.base import APIErrorSchema
+
+logger = logging.getLogger(__name__)
 
 SessionClass = TypeVar("SessionClass")
 ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
@@ -33,6 +36,10 @@ class BaseResponse(Protocol):
         ...
 
     def raise_for_status(self) -> None:
+        ...
+
+    @property
+    def headers(self) -> dict[str, str]:
         ...
 
 
@@ -87,6 +94,10 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         response_class: type[ResponseSchema] | None,
     ) -> ResponseSchema | None:
         """Convert Response object to expected response class, or raise an exception matching the status code"""
+        request_id: str | None = response.headers.get("X-Request-ID", None)
+        if request_id:
+            logger.debug("Request ID: %r", request_id)
+
         if response.status_code == http.HTTPStatus.NO_CONTENT.value:
             return None
 
@@ -100,6 +111,10 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             response.raise_for_status()
         except Exception as e:
             http_exception = e
+
+        if request_id and hasattr(http_exception, "add_note"):
+            # Python 3.11+ https://docs.python.org/3/library/exceptions.html#BaseException.add_note
+            http_exception.add_note(f"Request ID: {request_id!r}")
 
         error_response = get_response_for_status_code(response.status_code)
         if not error_response:

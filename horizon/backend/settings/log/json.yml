@@ -1,16 +1,24 @@
 version: 1
 disable_existing_loggers: false
 
+filters:
+  # https://github.com/snok/asgi-correlation-id#configure-logging
+  correlation_id:
+    (): asgi_correlation_id.CorrelationIdFilter
+    uuid_length: 32
+    default_value: '-'
+
 formatters:
   json:
     (): pythonjsonlogger.jsonlogger.JsonFormatter
-    fmt: '%(name)s:%(lineno)d %(levelname)s %(message)s'
+    fmt: '%(name)s %(lineno)d %(levelname)s %(message)s %(correlation_id)s'
     timestamp: true
 
 handlers:
   main:
     class: logging.StreamHandler
     formatter: json
+    filters: [correlation_id]
     stream: ext://sys.stdout
 
 loggers:

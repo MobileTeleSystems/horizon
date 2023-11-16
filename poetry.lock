@@ -54,6 +54,28 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "asgi-correlation-id"
+version = "4.2.0"
+description = "Middleware correlating project logs to individual requests"
+optional = true
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "asgi_correlation_id-4.2.0-py3-none-any.whl", hash = "sha256:bd3321a4022f38179db775d27c40cb45130ac9429d569cd59b5474cb2f65fb1b"},
+    {file = "asgi_correlation_id-4.2.0.tar.gz", hash = "sha256:9d7dcfc2ed016f6e594fffd553788ac70129db7f92bb4dc268ab0b1a3284de5a"},
+]
+
+[package.dependencies]
+starlette = ">=0.18"
+
+[package.extras]
+celery = ["celery"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "astor"
 version = "0.8.1"
 description = "Read/rewrite/write Python ASTs"
@@ -2488,13 +2510,13 @@ reference = "nexus"
 
 [[package]]
 name = "rich"
-version = "13.6.0"
+version = "13.7.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "rich-13.6.0-py3-none-any.whl", hash = "sha256:2b38e2fe9ca72c9a00170a1a2d20c63c790d0e10ef1fe35eba76e1e7b1d7d245"},
-    {file = "rich-13.6.0.tar.gz", hash = "sha256:5c14d22737e6d5084ef4771b62d5d4363165b403455a30a1c8ca39dc7b644bef"},
+    {file = "rich-13.7.0-py3-none-any.whl", hash = "sha256:6da14c108c4866ee9520bbffa71f6fe3962e193b7da68720583850cd4548e235"},
+    {file = "rich-13.7.0.tar.gz", hash = "sha256:5cb5123b5cf9ee70584244246816e9114227e0b98ad9176eede6ad54bf5403fa"},
 ]
 
 [package.dependencies]
@@ -2909,6 +2931,22 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "uuid6"
+version = "2022.10.25"
+description = "New time-based UUID formats which are suited for use as a database key"
+optional = true
+python-versions = ">=3.7"
+files = [
+    {file = "uuid6-2022.10.25-py3-none-any.whl", hash = "sha256:bd9b874081968c5f24af7ec7a3f48175197806224cc6f4833914f671854c6266"},
+    {file = "uuid6-2022.10.25.tar.gz", hash = "sha256:0a56935de9c1ce8dd8559225b845549d94917d9e24ad4b1cc2328eea5be0010c"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "uvicorn"
 version = "0.22.0"
 description = "The lightning-fast ASGI server."
@@ -3097,15 +3135,12 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [extras]
-backend = ["alembic", "fastapi", "python-jose", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "uvicorn"]
+backend = ["alembic", "asgi-correlation-id", "coloredlogs", "fastapi", "python-jose", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette-exporter", "uuid6", "uvicorn"]
 client-sync = ["authlib", "requests"]
 ldap = ["bonsai"]
-log-colored = ["coloredlogs"]
-log-json = ["python-json-logger"]
 postgres = ["asyncpg"]
-prometheus = ["starlette-exporter"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "ba3d3c79c32f351c1a976962b590b4d5d1a1a28d7ba93bc6674a7d26486fef79"
+content-hash = "9f7666690d54c6945a37399e27c1d995d7f01485fdedfa35d592b53a99510b92"

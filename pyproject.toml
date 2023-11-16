@@ -59,6 +59,8 @@ bonsai = {version = "*", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
 pyyaml = {version = "*", optional = true}
+asgi-correlation-id = {version = "*", optional = true}
+uuid6 = {version = "*", optional = true}
 
 [tool.poetry.extras]
 backend = [
@@ -70,18 +72,14 @@ backend = [
   "python-multipart",
   "sqlalchemy-utils",
   "pyyaml",
+  "python-json-logger",
+  "coloredlogs",
+  "starlette-exporter",
+  "asgi-correlation-id",
+  "uuid6",
 ]
 postgres = [
   "asyncpg",
-]
-log-json = [
-  "python-json-logger",
-]
-log-colored = [
-  "coloredlogs",
-]
-prometheus = [
-  "starlette-exporter",
 ]
 ldap = [
   "bonsai",

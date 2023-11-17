@@ -30,7 +30,7 @@ class DummyAuthProvider(AuthProvider):
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth)
+        settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"klass"}))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[DummyAuthProviderSettings] = lambda: settings
         return app

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -24,6 +25,7 @@ async def test_paginate_hwm_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -82,14 +84,34 @@ async def test_paginate_hwm(
     access_token: str,
     hwms: list[HWM],
 ):
+    hwms = sorted(hwms, key=lambda ns: ns.name)
+
     response = await test_client.get(
         f"v1/namespaces/{namespace.name}/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
 
-    items = [
-        {
+    response_dict = response.json()
+    assert response_dict.keys() == {"meta", "items"}
+    assert response_dict["meta"] == {
+        "page": 1,
+        "pages_count": 1,
+        "page_size": 20,
+        "total_count": len(hwms),
+        "has_next": False,
+        "has_previous": False,
+        "next_page": None,
+        "previous_page": None,
+    }
+
+    response_items = response_dict["items"]
+
+    for i, hwm in enumerate(hwms):
+        response_item = response_items[i]
+        response_item["changed_at"] = datetime.fromisoformat(response_item["changed_at"].replace("Z", "+00:00"))
+
+        assert response_item == {
             "id": hwm.id,
             "name": hwm.name,
             "description": hwm.description,
@@ -97,25 +119,9 @@ async def test_paginate_hwm(
             "value": hwm.value,
             "entity": hwm.entity,
             "expression": hwm.expression,
-            "changed_at": hwm.changed_at.isoformat(),
+            "changed_at": hwm.changed_at,
             "changed_by": hwm.changed_by,
         }
-        for hwm in sorted(hwms, key=lambda ns: ns.name)
-    ]
-
-    assert response.json() == {
-        "meta": {
-            "page": 1,
-            "pages_count": 1,
-            "page_size": 20,
-            "total_count": len(items),
-            "has_next": False,
-            "has_previous": False,
-            "next_page": None,
-            "previous_page": None,
-        },
-        "items": items,
-    }
 
 
 @pytest.mark.parametrize("hwm", [{"is_deleted": True}], indirect=True)

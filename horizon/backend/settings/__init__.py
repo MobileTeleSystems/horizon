@@ -1,7 +1,13 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from pydantic import BaseSettings, Field
+from pydantic import Field
+
+BaseSettings: type
+try:
+    from pydantic import BaseSettings  # type: ignore[no-redef] # noqa: WPS440
+except ImportError:
+    from pydantic_settings import BaseSettings  # type: ignore[no-redef] # noqa: WPS440
 
 from horizon.backend.settings.auth import AuthProviderSettings
 from horizon.backend.settings.database import DatabaseSettings

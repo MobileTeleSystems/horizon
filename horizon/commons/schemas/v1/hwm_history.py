@@ -31,4 +31,7 @@ class HWMHistoryResponseV1(BaseModel):
     changed_by: Optional[str] = None
 
     class Config:
+        # pydantic v1
         orm_mode = True
+        # pydantic v2
+        from_attributes = True

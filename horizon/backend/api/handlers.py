@@ -58,20 +58,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     if not response:
         return await unknown_exception_handler(request, exc)
 
-    body = None
-    if request.app.state.settings.server.debug:
-        try:
-            # FormData cannot be serialized to JSON as-is, try to convert it to dict()
-            body = dict(exc.body)
-        except Exception:
-            body = exc.body
-
     # code and message is set within class implementation
+    errors = []
+    for error in exc.errors():
+        # pydantic Error classes are not serializable, drop it
+        error.get("ctx", {}).pop("error", None)
+        errors.append(error)
+
     content = response.schema(  # type: ignore[call-arg]
-        details={
-            "errors": exc.errors(),
-            "body": body,
-        },
+        details=errors,
     )
     return exception_json_response(
         status=response.status,
@@ -101,9 +96,11 @@ def exception_json_response(
     headers: dict[str, str] | None = None,
 ) -> Response:
     # Using Response + `model.json()` because JSONResponse + `model.dict()` does not convert Unset() to JSON value "<unset>"
+    content_type = type(content)
+    error_schema = APIErrorSchema[content_type]  # type: ignore[valid-type]
     return Response(
         status_code=status,
-        content=APIErrorSchema(error=content).json(exclude_none=True, by_alias=True),
+        content=error_schema(error=content).json(by_alias=True),
         media_type="application/json",
         headers=headers,
     )

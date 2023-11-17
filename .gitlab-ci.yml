@@ -50,6 +50,7 @@ workflow:
 
 variables:
   DEFAULT_PYTHON: '3.11'
+  DEFAULT_PYDANTIC: '2'
   DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
 
 ### --------------- Get Vault secret --------------- ###
@@ -70,12 +71,13 @@ backend_test_image:
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
+        PYDANTIC_VERSION: ['1', '2']
   variables:
     CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.test
     CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python${PYTHON_VERSION}
-    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
-    CICD_DOCKER__BUILD_EXTRA_ARGS: --build-arg PYTHON_VERSION=$PYTHON_VERSION
+    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
+    CICD_DOCKER__BUILD_EXTRA_ARGS: --build-arg PYTHON_VERSION=$PYTHON_VERSION --build-arg PYDANTIC_VERSION=${PYDANTIC_VERSION}
     CICD_DOCKER__STOP_IF_EXISTS: 'false'
   rules:
     - if: $CI_COMMIT_TAG
@@ -120,7 +122,7 @@ build_backend_image:
   interruptible: true
 
 mypy:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
   stage: static analysis
   script:
     - python -m mypy ./horizon --config-file ./pyproject.toml
@@ -131,7 +133,7 @@ mypy:
   interruptible: true
 
 flake8:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
   stage: static analysis
   script:
     - python -m flake8 --max-line-length 120 --format=default ./horizon 2>&1 | tee flake8.txt
@@ -145,7 +147,7 @@ flake8:
   interruptible: true
 
 black:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
   stage: static analysis
   script:
     - python -m black ./horizon --check
@@ -156,7 +158,7 @@ black:
   interruptible: true
 
 bandit:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
   stage: static analysis
   script:
     - python -m bandit -ll -iii -r ./horizon -f json -o ./bandit.json
@@ -170,11 +172,12 @@ bandit:
   interruptible: true
 
 test-backend:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
   stage: tests
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
+        PYDANTIC_VERSION: ['1', '2']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
@@ -209,11 +212,12 @@ test-backend:
   interruptible: true
 
 test-client:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
   stage: tests
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
+        PYDANTIC_VERSION: ['1', '2']
   variables:
     HORIZON_DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
     HORIZON_AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
@@ -250,7 +254,7 @@ test-client:
   interruptible: true
 
 coverage:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
   stage: coverage
   dependencies:
     - test-backend
@@ -283,7 +287,7 @@ pip:
   variables:
     IS_DEV_VERSION: 'true'
     ADD_BRANCH_TO_VERSION: 'true'
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
     CICD_PYTHON__REPO_URL: https://artifactory.mts.ru/artifactory/api/pypi/own-onetl-pypi-local/
     CICD_PYTHON__REPO_USER: $CICD_USER_NAME
     CICD_PYTHON__REPO_PASSWORD: $CICD_USER_PASSWORD
@@ -310,7 +314,7 @@ pip:
     - if: $CI_COMMIT_TAG
       variables:
         IS_DEV_VERSION: 'false'
-        DOCKER_IMAGE_TAG: develop-python${DEFAULT_PYTHON}
+        DOCKER_IMAGE_TAG: develop-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
       when: on_success
     - when: on_success
   interruptible: true
@@ -405,7 +409,7 @@ stop_review_docker:
     - !reference [.base_tools__bricks_send_usage_statistics, script]
     - !reference [.base_docker_cleaner__bricks_debug, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.7,${CI_COMMIT_REF_SLUG}-python3.11
+    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.7-pydantic1,${CI_COMMIT_REF_SLUG}-python3.11-pydantic1,${CI_COMMIT_REF_SLUG}-python3.7-pydantic2,${CI_COMMIT_REF_SLUG}-python3.11-pydantic2
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap
     - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}

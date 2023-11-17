@@ -8,20 +8,32 @@ Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com
 """
 
 import textwrap
-from typing import Optional
+from typing import TYPE_CHECKING, Optional, Type
 
 from bonsai import LDAPSearchScope
 from pydantic import AnyUrl, BaseModel, Field, SecretStr
-from typing_extensions import Literal
+from pydantic import __version__ as pydantic_version
+from typing_extensions import Annotated, Literal
 
 from horizon.backend.settings.auth.jwt import JWTSettings
 
+if TYPE_CHECKING:
+    LDAPUrl = AnyUrl
+elif pydantic_version < "2":
 
-class LDAPUrl(AnyUrl):
-    """LDAP connection url, like ``ldap://127.0.0.1:389`` or ``ldaps://127.0.0.1:636``"""
+    class LDAPUrl(AnyUrl):  # noqa: WPS440
+        """LDAP connection url, like ``ldap://127.0.0.1:389`` or ``ldaps://127.0.0.1:636``"""
 
-    allowed_schemes = ["ldap", "ldaps"]
-    host_required = True
+        allowed_schemes = ["ldap", "ldaps"]
+        host_required = True
+
+else:
+    from pydantic import UrlConstraints
+
+    LDAPUrl: Type[AnyUrl] = Annotated[  # noqa: WPS440
+        AnyUrl,
+        UrlConstraints(allowed_schemes=["ldap", "ldaps"], host_required=True),
+    ]
 
 
 class LDAPCredentials(BaseModel):

@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
@@ -35,6 +36,7 @@ async def test_update_namespace_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -90,7 +92,7 @@ async def test_update_namespace_name(
     assert content["description"] == namespace.description
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt >= namespace.changed_at
 
     query = select(Namespace).where(Namespace.id == namespace.id)
@@ -129,7 +131,7 @@ async def test_update_namespace_description(
     assert content["description"] == new_namespace.description
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt >= namespace.changed_at
 
     query = select(Namespace).where(Namespace.id == namespace.id)
@@ -156,25 +158,34 @@ async def test_update_namespace_no_data(
     test_client: AsyncClient,
     access_token: str,
     namespace: Namespace,
-    settings: Settings,
 ):
     response = await test_client.patch(
         f"v1/namespaces/{namespace.name}",
         headers={"Authorization": f"Bearer {access_token}"},
-        json={},
+        json={"unexpected": "value"},
     )
     assert response.status_code == 422
-    details: dict[str, Any] = {
-        "errors": [
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        details = [
             {
-                "code": "value_error",
                 "location": ["body", "__root__"],
+                "code": "value_error",
                 "message": "At least one field must be set.",
             }
-        ],
-    }
-    if settings.server.debug:
-        details["body"] = {}
+        ]
+    else:
+        details = [
+            {
+                "location": ["body"],
+                "code": "value_error",
+                "message": "Value error, At least one field must be set.",
+                "context": {},
+                "input": {"unexpected": "value"},
+                "url": "https://errors.pydantic.dev/2.5/v/value_error",
+            }
+        ]
 
     assert response.json() == {
         "error": {

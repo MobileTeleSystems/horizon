@@ -60,7 +60,7 @@ class EntityInvalidError(ApplicationError):
 
     @property
     def message(self) -> str:
-        return f"{self.entity_type} has wrong {self.field!r} value {self.value!r}"
+        return f"{self.entity_type} has wrong {self.field!r} value {self.value}"
 
     @property
     def details(self) -> dict[str, Any]:

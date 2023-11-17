@@ -8,7 +8,7 @@ from pytest_lazyfixture import lazy_fixture
 
 from horizon.backend.db.models import User
 from horizon.client.auth import AccessToken, LoginPassword
-from horizon.client.client.sync import HorizonClientSync
+from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions.auth import AuthorizationError
 
 

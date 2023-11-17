@@ -45,7 +45,7 @@ class LoginPassword(BaseAuth, BaseModel):
 
     def fetch_token_kwargs(self, base_url: AnyHttpUrl) -> dict[str, str]:
         # default path for token
-        parsed_url = urlparse(base_url)
+        parsed_url = urlparse(str(base_url))
         token_url = parsed_url._replace(path=parsed_url.path + "/v1/auth/token")  # noqa: WPS437, WPS336
         url = token_url.geturl()
 

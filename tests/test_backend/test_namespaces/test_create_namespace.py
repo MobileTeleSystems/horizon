@@ -33,6 +33,7 @@ async def test_create_namespace_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 
@@ -63,7 +64,7 @@ async def test_create_namespace(
     assert content["description"] == new_namespace.description
     assert content["changed_by"] == user.username
 
-    changed_at = datetime.fromisoformat(content["changed_at"])
+    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
     assert changed_at >= current_dt
 
     query = select(Namespace).where(Namespace.id == namespace_id)

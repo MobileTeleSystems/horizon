@@ -19,7 +19,10 @@ class NamespaceResponseV1(BaseModel):
     changed_by: Optional[str] = None
 
     class Config:
+        # pydantic v1
         orm_mode = True
+        # pydantic v2
+        from_attributes = True
 
 
 class NamespacePaginateQueryV1(PaginateQueryV1):
@@ -44,7 +47,10 @@ class NamespaceUpdateRequestV1(BaseModel):
     name: Union[str, Unset] = Field(default=Unset(), min_length=1)
     description: Union[str, Unset] = Unset()
 
-    @root_validator
+    class Config:
+        arbitrary_types_allowed = True
+
+    @root_validator(skip_on_failure=True)
     def _any_field_set(cls, values):
         """Validate that at least one field is set."""
         values_set = {k for k, v in values.items() if not isinstance(v, Unset)}

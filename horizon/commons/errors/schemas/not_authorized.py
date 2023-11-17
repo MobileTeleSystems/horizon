@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 import http
+from typing import Any
 
 from typing_extensions import Literal
 
@@ -15,6 +16,7 @@ from horizon.commons.exceptions.auth import AuthorizationError
 )
 class NotAuthorizedSchema(BaseErrorSchema):
     code: Literal["unauthorized"] = "unauthorized"
+    details: Any = None
 
     def to_exception(self) -> AuthorizationError:
         return AuthorizationError(

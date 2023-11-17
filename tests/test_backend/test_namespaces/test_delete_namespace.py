@@ -29,6 +29,7 @@ async def test_delete_namespace_anonymous_user(
         "error": {
             "code": "unauthorized",
             "message": "Not authenticated",
+            "details": None,
         },
     }
 

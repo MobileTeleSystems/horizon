@@ -8,6 +8,7 @@ from horizon.backend.db.models import User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
+    HWMHistoryPaginateQueryV1,
     HWMHistoryResponseV1,
     HWMPaginateQueryV1,
     HWMResponseV1,
@@ -17,7 +18,6 @@ from horizon.commons.schemas.v1 import (
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
     PageResponseV1,
-    PaginateQueryV1,
 )
 
 router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error_responses())
@@ -194,7 +194,7 @@ async def delete_hwm(
 async def paginate_hwm_history(
     namespace_name: str,
     hwm_name: str,
-    pagination_args: Annotated[PaginateQueryV1, Depends()],
+    pagination_args: Annotated[HWMHistoryPaginateQueryV1, Depends()],
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> PageResponseV1[HWMHistoryResponseV1]:
     namespace = await unit_of_work.namespace.get_by_name(namespace_name)

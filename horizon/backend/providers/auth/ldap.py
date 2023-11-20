@@ -53,7 +53,7 @@ class LDAPAuthProvider(AuthProvider):
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"klass"}))
+        settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[LDAPAuthProviderSettings] = lambda: settings
         app.dependency_overrides[AIOConnectionPool] = lambda: None
@@ -177,7 +177,7 @@ class LDAPAuthProvider(AuthProvider):
         }
         access_token = sign_jwt(
             payload,
-            self._auth_settings.access_token.secret_key,
+            self._auth_settings.access_token.secret_key.get_secret_value(),
             self._auth_settings.access_token.security_algorithm,
         )
         return access_token, expires_at
@@ -186,7 +186,7 @@ class LDAPAuthProvider(AuthProvider):
         try:
             payload = decode_jwt(
                 token,
-                self._auth_settings.access_token.secret_key,
+                self._auth_settings.access_token.secret_key.get_secret_value(),
                 self._auth_settings.access_token.security_algorithm,
             )
             return int(payload["user_id"])

@@ -37,6 +37,9 @@ class Settings(BaseSettings):
 
         # same as settings.server.debug = True
         HORIZON__SERVER__DEBUG=True
+
+        # same as settings.auth.provider = horizon.backend.providers.auth.dummy.DummyAuthProvider
+        HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.dummy.DummyAuthProvider
     """
 
     database: DatabaseSettings

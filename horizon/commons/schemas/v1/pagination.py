@@ -16,7 +16,7 @@ class PaginateQueryV1(BaseModel):
 
 
 class PageMetaResponseV1(BaseModel):
-    """Page metadata."""
+    """Page metadata response."""
 
     page: int = Field(description="Page number")
     page_size: int = Field(description="Number of items per page")

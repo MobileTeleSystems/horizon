@@ -28,7 +28,7 @@ COPY ./pyproject.toml ./poetry.lock* ./
 RUN poetry install \
         --no-root \
         --all-extras \
-        --without dev,test
+        --without dev,test,docs
 
 COPY ./docker/entrypoint.sh ./docker/
 RUN chmod +x ./docker/*.sh

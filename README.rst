@@ -1,92 +1,52 @@
-.. title
+.. _readme:
 
 Horizon
 =======
 
-Simple HWM store, based on FastAPI & Postgres.
+|Build Status| |Coverage| |Documentation| |Docker image| |PyPI|
 
-Requirements
-============
+.. |Build Status| image:: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/badges/develop/pipeline.svg
+    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/pipelines
+.. |Coverage| image:: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/badges/develop/coverage.svg
+    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/graphs/develop/charts
+.. |Documentation| image:: https://img.shields.io/badge/docs-latest-success
+    :target: https://bigdata.pages.mts.ru/platform/onetools/horizon/
+.. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
+    :target: https://sregistry.mts.ru/harbor/projects/14/repositories/bigdata%2Fplatform%2Fonetools%2Fhorizon%2Fbackend/artifacts-tab
+.. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
+    :target: https://artifactory.mts.ru/artifactory/own-onetl-pypi-local/horizon/
 
-Backend
--------
+What is Horizon?
+----------------
 
-Python: 3.7+
+Horizon is an application that implements simple HWM Store. Right now it includes:
+
+* REST API
+* Python client
+
+Goals
+-----
+
+* Allow users to save and fetch *HWM* (High Water Mark) items. These are ``name+type+value`` triples with few optional fields (``description``, ``entity``, ``expression``).
+* Avoid confusion between different user's data by separating HWMs to different *namespaces*. HWMs is created within namespace, each ``namespace name`` + ``HWM name`` is unique.
+* Allow users to get HWM change history, to determine who and when changed a specific HWM value and other fields.
+
+Non-goals
+---------
+
+* This is not a data storage, it is not designed to store raw table rows. It is designed to store only HWM values, e.g. *max value* of a specific table column, list of handled files and so on.
+* Attaching machine-readable metadata for HWMs (like ``table``, ``process``, ``origin``) is not supported. This should be stored somewhere else.
+
+Limitations
+-----------
+
+* Currently Horizon does not implement any kind of access control, so **anyone can change anything**.
+* HWM types and values are not checked, and can contain anything. It is up to user how to parse fetched values and perform validation.
+* HWMs cannot be renamed or moved between namespaces. These operations could be performed only by creating new HWM in desired namespace, and deleting the old one.
 
 .. documentation
 
 Documentation
-=============
+-------------
 
-.. wiki
-
-Wiki page
-=========
-
-.. install
-
-Installation
-============
-
-.. developing
-
-Develop
-=======
-
-Clone repo
-----------
-
-.. code:: bash
-
-    git clone git@gitlab.services.mts.ru:bigdata/platform/onetools/horizon.git -b develop
-
-    cd horizon
-
-Setup environment
------------------
-
-.. code:: bash
-
-    make venv-init
-
-
-Enable pre-commit hooks
------------------------
-
-Install pre-commit hooks:
-
-.. code:: bash
-
-    pre-commit install --install-hooks
-
-Test pre-commit hooks run:
-
-.. code:: bash
-
-    pre-commit run
-
-Run pre-commit hooks on whole repo:
-
-.. code:: bash
-
-    pre-commit run --all-files
-
-.. tests
-
-Unit tests
-----------
-
-.. code:: bash
-
-    make db
-    make dev  # in separate terminal tab
-    make test
-
-.. Makefile
-
-Makefile
---------
-
-Most commands have their own aliases in the makefile for more convenient use.
-
-User ``make help`` for show all available commands.
+See https://bigdata.pages.mts.ru/platform/onetools/horizon/

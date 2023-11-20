@@ -3,7 +3,8 @@ Security
 
 Supported Python versions
 -------------------------
-Backend: 3.11 or above
+* Client: 3.7 or above
+* Backend: 3.11 or above
 
 Product development security recommendations
 --------------------------------------------

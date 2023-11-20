@@ -37,11 +37,37 @@ else:
 
 
 class LDAPCredentials(BaseModel):
-    user: str
-    password: SecretStr
+    """LDAP lookup query is executed using this credentials
+    (instead of username and password provided by user).
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
+    """
+
+    user: str = Field(
+        description="DN of user which is used for calling ``lookup`` query in LDAP",
+    )
+    password: SecretStr = Field(
+        description="This user password",
+    )
 
 
 class LDAPConnectionPoolSettings(BaseModel):
+    """Settings related to LDAP connection pool.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__LDAP__POOL__MAX=10
+    """
+
     initial: int = Field(
         default=1,
         description="Initial size of connection pool",
@@ -53,6 +79,18 @@ class LDAPConnectionPoolSettings(BaseModel):
 
 
 class LDAPLookupSettings(BaseModel):
+    """Settings related to LDAP lookup.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
+        HORIZON__AUTH__LDAP__LOOKUP__QUERY=(uid={username})
+    """
+
     credentials: Optional[LDAPCredentials] = Field(
         default=None,
         description="Credentials used for connecting to LDAP while performing user lookup",
@@ -68,8 +106,8 @@ class LDAPLookupSettings(BaseModel):
             See `Bonsai documentation <https://bonsai.readthedocs.io/en/latest/tutorial.html#searching>`_.
 
             Supported substitution values (see :obj:`horizon.backend.settings.auth.ldap.LDAPSettings`.):
-            * ``{uid_attribute}``
-            * ``{username}``
+              * ``{uid_attribute}``
+              * ``{username}``
             """,
         ),
     )
@@ -86,6 +124,17 @@ class LDAPLookupSettings(BaseModel):
 
 
 class LDAPSettings(BaseModel):
+    """Settings related to LDAP interaction.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
+        HORIZON__AUTH__LDAP__UID_ATTRIBUTE=sAMAccountName
+    """
+
     url: LDAPUrl = Field(
         description="LDAP URL to connect to",
     )
@@ -113,9 +162,9 @@ class LDAPSettings(BaseModel):
             Template for building DN string, used for checking credentials in LDAP. You can pass any DN value supported by LDAP.
 
             Supported substitution values:
-            * ``{username}``
-            * ``{uid_attribute}`` (see :obj:`~uid_attribute`)
-            * ``{base_dn}`` (see :obj:`~base_dn`)
+              * ``{username}``
+              * ``{uid_attribute}`` (see :obj:`~uid_attribute`)
+              * ``{base_dn}`` (see :obj:`~base_dn`)
             """,
         ),
     )
@@ -131,5 +180,19 @@ class LDAPSettings(BaseModel):
 
 
 class LDAPAuthProviderSettings(BaseModel):
-    access_token: JWTSettings
-    ldap: LDAPSettings
+    """Settings for LDAPAuthProvider.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.ldap.LDAPAuthProvider
+        HORIZON__AUTH__ACCESS_KEY__SECRET_KEY=secret
+        HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
+    """
+
+    access_token: JWTSettings = Field(description="Access-token related settings")
+    ldap: LDAPSettings = Field(description="LDAP related settings")

@@ -47,8 +47,12 @@ class InvalidValueSchema(BaseErrorSchema):
     details: InvalidValueDetailsSchema
 
     def to_exception(self) -> EntityInvalidError:
+        value = self.details.value
+        if self.details.value == "<unset>":
+            value = Unset()
+
         return EntityInvalidError(
             entity_type=self.details.entity_type,
             field=self.details.field,
-            value=self.details.value,
+            value=value,
         )

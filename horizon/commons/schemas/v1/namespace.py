@@ -12,11 +12,11 @@ from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 class NamespaceResponseV1(BaseModel):
     """Namespace response."""
 
-    id: int
-    name: str
-    description: str
-    changed_at: datetime
-    changed_by: Optional[str] = None
+    id: int = Field(description="Internal namespace id, not for external usage")
+    name: str = Field(description="Namespace name, unique in the entire database")
+    description: str = Field(description="Namespace description")
+    changed_at: datetime = Field(description="Timestamp of last change of the namespace data")
+    changed_by: Optional[str] = Field(default=None, description="Latest user who changed the namespace data")
 
     class Config:
         # pydantic v1
@@ -41,7 +41,7 @@ class NamespaceCreateRequestV1(BaseModel):
 class NamespaceUpdateRequestV1(BaseModel):
     """Request body for namespace update request.
 
-    If some field is not provided, it will not be updated.
+    If field value is not set, it will not be updated.
     """
 
     name: Union[str, Unset] = Field(default=Unset(), min_length=1)

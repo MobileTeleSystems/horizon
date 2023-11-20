@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 
@@ -19,16 +19,19 @@ class HWMHistoryPaginateQueryV1(PaginateQueryV1):
 class HWMHistoryResponseV1(BaseModel):
     """HWM history response."""
 
-    id: int
-    hwm_id: int
-    name: str
-    description: str
-    type: str
-    value: Any
-    entity: Optional[str] = None
-    expression: Optional[str] = None
-    changed_at: datetime
-    changed_by: Optional[str] = None
+    id: int = Field(description="Internal HWM history item id, not for external usage")
+    hwm_id: int = Field(description="Internal HWM id, not for external usage")
+    name: str = Field(description="HWM name, unique in the namespace")
+    description: str = Field(description="HWM description")
+    type: str = Field(description="HWM type, any non-empty string")
+    value: Any = Field(description="HWM value, any JSON serializable value")
+    entity: Optional[str] = Field(default=None, description="Name of entity associated with the HWM. Can be any string")
+    expression: Optional[str] = Field(
+        default=None,
+        description="Expression used to calculate HWM value. Can be any string",
+    )
+    changed_at: datetime = Field(description="Timestamp of a change of the HWM data")
+    changed_by: Optional[str] = Field(default=None, description="User who changed the HWM data")
 
     class Config:
         # pydantic v1

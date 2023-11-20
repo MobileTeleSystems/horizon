@@ -30,7 +30,7 @@ class DummyAuthProvider(AuthProvider):
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"klass"}))
+        settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[DummyAuthProviderSettings] = lambda: settings
         return app
@@ -81,7 +81,7 @@ class DummyAuthProvider(AuthProvider):
         }
         access_token = sign_jwt(
             payload,
-            self._settings.access_token.secret_key,
+            self._settings.access_token.secret_key.get_secret_value(),
             self._settings.access_token.security_algorithm,
         )
         return access_token, expires_at
@@ -90,7 +90,7 @@ class DummyAuthProvider(AuthProvider):
         try:
             payload = decode_jwt(
                 token,
-                self._settings.access_token.secret_key,
+                self._settings.access_token.secret_key.get_secret_value(),
                 self._settings.access_token.security_algorithm,
             )
             return int(payload["user_id"])

@@ -53,7 +53,7 @@ def application_factory(settings: Settings) -> FastAPI:
     )
 
     # get AuthProvider class from settings, and perform setup
-    auth_class: Type[AuthProvider] = settings.auth.klass  # type: ignore[assignment]
+    auth_class: Type[AuthProvider] = settings.auth.provider  # type: ignore[assignment]
     auth_class.setup(application)
 
     if settings.server.logging.setup:

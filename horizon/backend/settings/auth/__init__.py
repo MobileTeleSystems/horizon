@@ -11,8 +11,11 @@ except ImportError:
 from horizon.backend.providers.auth.dummy import DummyAuthProvider
 
 
-class AuthProviderSettings(BaseModel):
-    klass: ImportString = Field(default=DummyAuthProvider, alias="class")  # type: ignore[assignment]
+class AuthSettings(BaseModel):
+    provider: ImportString = Field(  # type: ignore[assignment]
+        default=DummyAuthProvider,
+        description="Full name of auth provider class",
+    )
 
     class Config:
         extra = "allow"

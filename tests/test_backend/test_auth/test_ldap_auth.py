@@ -25,7 +25,7 @@ pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_creates_user(
     test_client: AsyncClient,
     new_user: User,
@@ -50,7 +50,7 @@ async def test_ldap_auth_get_token_creates_user(
 
     jwt = decode_jwt(
         content["access_token"],
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
     user_id = jwt["user_id"]
@@ -68,7 +68,7 @@ async def test_ldap_auth_get_token_creates_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_for_existing_user(
     test_client: AsyncClient,
     user: User,
@@ -91,7 +91,7 @@ async def test_ldap_auth_get_token_for_existing_user(
 
     jwt = decode_jwt(
         content["access_token"],
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
     user_id = jwt["user_id"]
@@ -106,7 +106,7 @@ async def test_ldap_auth_get_token_for_existing_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_with_wrong_password(
     test_client: AsyncClient,
     user: User,
@@ -134,7 +134,7 @@ async def test_ldap_auth_get_token_with_wrong_password(
     [
         {
             "auth": {
-                "class": LDAP,
+                "provider": LDAP,
                 "ldap": {"lookup": {"query": "(mail={username})"}},
             }
         },
@@ -166,7 +166,7 @@ async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
 
     jwt = decode_jwt(
         content["access_token"],
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
     user_id = jwt["user_id"]
@@ -190,19 +190,19 @@ async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
     [
         {
             "auth": {
-                "class": LDAP,
+                "provider": LDAP,
                 "ldap": {"lookup": {"query": "(mail={username})"}},
             }
         },
         {
             "auth": {
-                "class": LDAP,
+                "provider": LDAP,
                 "ldap": {"uid_attribute": "mail"},
             }
         },
         {
             "auth": {
-                "class": LDAP,
+                "provider": LDAP,
                 "ldap": {"base_dn": "dc=unknown,dc=company"},
             }
         },
@@ -235,7 +235,7 @@ async def test_ldap_auth_get_token_with_wrong_lookup_settings(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP, "ldap": {"lookup": None}}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP, "ldap": {"lookup": None}}}], indirect=True)
 async def test_ldap_auth_get_token_without_lookup(
     test_client: AsyncClient,
     user: User,
@@ -258,7 +258,7 @@ async def test_ldap_auth_get_token_without_lookup(
 
     jwt = decode_jwt(
         content["access_token"],
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
     user_id = jwt["user_id"]
@@ -277,9 +277,9 @@ async def test_ldap_auth_get_token_without_lookup(
     "settings",
     [
         {
-            "auth": {"class": LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}},
-            "auth": {"class": LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}},
-            "auth": {"class": LDAP, "ldap": {"lookup": None, "bind_dn_template": "{username}"}},
+            "auth": {"provider": LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}},
+            "auth": {"provider": LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}},
+            "auth": {"provider": LDAP, "ldap": {"lookup": None, "bind_dn_template": "{username}"}},
         },
     ],
     indirect=True,
@@ -305,7 +305,7 @@ async def test_ldap_auth_get_token_without_lookup_wrong_settings(
     }
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_database(
     test_client: AsyncClient,
     new_user: User,
@@ -338,7 +338,7 @@ async def test_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_
     assert not created_user
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_for_missing_user_from_ldap(
     test_client: AsyncClient,
     user: User,
@@ -365,7 +365,7 @@ async def test_ldap_auth_get_token_for_missing_user_from_ldap(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_for_inactive_user(
     test_client: AsyncClient,
     user: User,
@@ -388,7 +388,7 @@ async def test_ldap_auth_get_token_for_inactive_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_deleted": True}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_for_deleted_user(
     test_client: AsyncClient,
     user: User,
@@ -417,8 +417,8 @@ async def test_ldap_auth_get_token_for_deleted_user(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"class": LDAP}, "server": {"debug": True}},
-        {"auth": {"class": LDAP}, "server": {"debug": False}},
+        {"auth": {"provider": LDAP}, "server": {"debug": True}},
+        {"auth": {"provider": LDAP}, "server": {"debug": False}},
     ],
     indirect=True,
 )
@@ -471,7 +471,7 @@ async def test_ldap_auth_get_token_with_malformed_input(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check_inactive_user(
     test_client: AsyncClient,
     access_token: str,
@@ -493,7 +493,7 @@ async def test_ldap_auth_check_inactive_user(
 
 # LDAP is not accessed while checking access token to avoid calling it on each incoming request
 @pytest.mark.parametrize("user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check(
     test_client: AsyncClient,
     access_token: str,
@@ -506,7 +506,7 @@ async def test_ldap_auth_check(
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check_missing_user(
     test_client: AsyncClient,
     fake_access_token: str,
@@ -531,7 +531,7 @@ async def test_ldap_auth_check_missing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check_disabled_user(
     test_client: AsyncClient,
     access_token: str,
@@ -555,7 +555,7 @@ async def test_ldap_auth_check_disabled_user(
     }
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"class": LDAP}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check_invalid_token(
     test_client: AsyncClient,
     invalid_access_token: str,

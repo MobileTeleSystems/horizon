@@ -28,7 +28,7 @@ def access_token_settings(settings: Settings) -> JWTSettings:
 def fake_access_token(new_user: User, access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": new_user.id, "exp": time() + 1000},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
 
@@ -45,14 +45,18 @@ def access_token_wrong_secret_key(user: User, access_token_settings: JWTSettings
 
 @pytest.fixture
 def access_token_wrong_algorithm(user: User, access_token_settings: JWTSettings):
-    return sign_jwt({"user_id": user.id, "exp": time() + 1000}, access_token_settings.secret_key, "HS512")
+    return sign_jwt(
+        {"user_id": user.id, "exp": time() + 1000},
+        access_token_settings.secret_key.get_secret_value(),
+        "HS512",
+    )
 
 
 @pytest.fixture
 def access_token_without_user_id(user: User, access_token_settings: JWTSettings):
     return sign_jwt(
         {"userid": user.id, "exp": time() + 1000},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
 
@@ -61,7 +65,7 @@ def access_token_without_user_id(user: User, access_token_settings: JWTSettings)
 def access_token_with_wrong_user_id_type(access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": "abc", "exp": time() + 1000},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
 
@@ -70,7 +74,7 @@ def access_token_with_wrong_user_id_type(access_token_settings: JWTSettings):
 def access_token_expired(user: User, access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": user.id, "exp": 0},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
 
@@ -79,7 +83,7 @@ def access_token_expired(user: User, access_token_settings: JWTSettings):
 def access_token_no_expiration_time(user: User, access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": user.id},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )
 
@@ -103,6 +107,6 @@ def invalid_access_token(request: pytest.FixtureRequest):
 def access_token(user: User, access_token_settings: JWTSettings):
     return sign_jwt(
         {"user_id": user.id, "exp": time() + 1000},
-        access_token_settings.secret_key,
+        access_token_settings.secret_key.get_secret_value(),
         access_token_settings.security_algorithm,
     )

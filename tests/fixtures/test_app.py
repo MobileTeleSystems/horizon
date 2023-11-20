@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 
-from horizon.backend.main import application_factory
+from horizon.backend import application_factory
 from horizon.backend.settings import Settings
 
 

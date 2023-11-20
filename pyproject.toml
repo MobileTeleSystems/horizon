@@ -29,8 +29,9 @@ classifiers = [
 ]
 keywords = ["Horizon", "REST", "API", "HWM"]
 include = [
-    {path = "py.typed"},
-    {path = "**/*.yml"},
+    {path = "horizon/py.typed"},
+    {path = "horizon/**/*.yml"},
+    {path = "horizon/**/*.ini"},
 ]
 
 [tool.poetry.urls]  # Optional

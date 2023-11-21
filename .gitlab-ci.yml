@@ -8,8 +8,9 @@ stages:
   - build test image
   - static analysis
   - tests
-  - coverage
+  - post tests
   - artifacts
+  - deploy
 
 include:
   # VAULT
@@ -32,6 +33,11 @@ include:
       - .base_rt_upload.yml
       - .base_rt_cli.yml
 
+  # PAGES
+  - project: DevOps/cicd-store/gitlabci/pages
+    ref: v2
+    file: .base_pages_deploy_sphinx.yml
+
   # PIP BUILD AND DEPLOY TO JFROG
   - project: DevOps/cicd-store/gitlabci/python
     ref: v4
@@ -51,7 +57,7 @@ workflow:
 variables:
   DEFAULT_PYTHON: '3.11'
   DEFAULT_PYDANTIC: '2'
-  DEFAULT_IMAGE: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
+  IMAGE_PREFIX: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
 
 ### --------------- Get Vault secret --------------- ###
 devops_get_techuser_secrets:
@@ -74,9 +80,9 @@ backend_test_image:
         PYDANTIC_VERSION: ['1', '2']
   variables:
     CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.test
-    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend:develop-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
-    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
+    CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}
+    CICD_DOCKER__CACHE_FROM: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:develop
+    CICD_DOCKER__IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     CICD_DOCKER__BUILD_EXTRA_ARGS: --build-arg PYTHON_VERSION=$PYTHON_VERSION --build-arg PYDANTIC_VERSION=${PYDANTIC_VERSION}
     CICD_DOCKER__STOP_IF_EXISTS: 'false'
   rules:
@@ -121,8 +127,43 @@ build_backend_image:
     - when: on_success
   interruptible: true
 
+get_version:
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
+  stage: static analysis
+  script:
+    - >
+      if [[ "x$CI_COMMIT_TAG" != "x" ]]; then
+        # read release number from git tag
+        echo "RELEASE=$CI_COMMIT_TAG" >> deploy.env;
+        echo "VERSION=$CI_COMMIT_TAG" >> deploy.env;
+      else
+        # read release number from pyproject.toml
+        export "RELEASE=$(poetry version -s)";
+        echo "RELEASE=$RELEASE" >> deploy.env
+
+        if [[ "x$CI_COMMIT_BRANCH" != "xdevelop" ]] && [[ "x$CI_COMMIT_BRANCH" != "xdev" ]]; then
+          # feature/bugfix branch - version format is 1.2.3.dev456+feature.789
+          branch=$(echo "$CI_COMMIT_REF_SLUG" | tr '-' '.');
+          export VERSION="$RELEASE.dev${CI_PIPELINE_IID}+${branch}";
+        else
+          # dev/develop branch - version format is 1.2.3.dev456
+          export VERSION="$RELEASE.dev${CI_PIPELINE_IID}";
+        fi
+        echo "VERSION=$VERSION" >> deploy.env
+      fi
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        DOCKER_IMAGE_TAG: develop
+      when: on_success
+    - when: on_success
+  interruptible: true
+
 mypy:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
   stage: static analysis
   script:
     - python -m mypy ./horizon --config-file ./pyproject.toml
@@ -133,7 +174,7 @@ mypy:
   interruptible: true
 
 flake8:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
   stage: static analysis
   script:
     - python -m flake8 --max-line-length 120 --format=default ./horizon 2>&1 | tee flake8.txt
@@ -147,7 +188,7 @@ flake8:
   interruptible: true
 
 black:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
   stage: static analysis
   script:
     - python -m black ./horizon --check
@@ -158,7 +199,7 @@ black:
   interruptible: true
 
 bandit:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
   stage: static analysis
   script:
     - python -m bandit -ll -iii -r ./horizon -f json -o ./bandit.json
@@ -172,7 +213,7 @@ bandit:
   interruptible: true
 
 test-backend:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
+  image: ${IMAGE_PREFIX}/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:${CI_COMMIT_REF_SLUG}
   stage: tests
   parallel:
     matrix:
@@ -212,7 +253,7 @@ test-backend:
   interruptible: true
 
 test-client:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${PYTHON_VERSION}-pydantic${PYDANTIC_VERSION}
+  image: ${IMAGE_PREFIX}/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:${CI_COMMIT_REF_SLUG}
   stage: tests
   parallel:
     matrix:
@@ -254,8 +295,8 @@ test-client:
   interruptible: true
 
 coverage:
-  image: ${DEFAULT_IMAGE}:${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
-  stage: coverage
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
+  stage: post tests
   dependencies:
     - test-backend
     - test-client
@@ -279,42 +320,91 @@ coverage:
     - when: on_success
   interruptible: true
 
+### --------------- Build and publish docs --------------- ###
+build_docs:
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
+  stage: post tests
+  dependencies:
+    - get_version
+  variables:
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
+    HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+    HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON__SERVER__DEBUG: 'true'
+    HORIZON__SERVER__LOGGING__PRESET: colored
+    # Enables creation of a Docker network per build with the docker executor
+    FF_NETWORK_PER_BUILD: 1
+  services:
+    - name: central-mirror.services.mts.ru/postgres:15-alpine
+      alias: db
+      variables:
+        POSTGRES_DB: horizon
+        POSTGRES_USER: horizon
+        POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
+    - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${BACKEND_IMAGE_TAG}
+      alias: backend
+  before_script:
+    # update version number in docs
+    - poetry version "${VERSION}"
+    # get openapi.json
+    - wget http://backend:8000/openapi.json -O docs/static/openapi.json
+  script:
+    - cd docs
+    - make html
+    - tar cvzf html-${VERSION}.tar.gz -C _build/html .
+    - >
+      if [ "$CI_COMMIT_TAG" != "" ]; then
+        cp html-${VERSION}.tar.gz html-latest.tar.gz;
+      fi
+  artifacts:
+    paths:
+      - docs/html-*.tar.gz
+    reports:
+      dotenv: deploy.env
+  rules:
+    - if: $CI_COMMIT_TAG
+      variables:
+        DOCKER_IMAGE_TAG: develop
+        BACKEND_IMAGE_TAG: $CI_COMMIT_TAG
+      when: on_success
+    - when: on_success
+  interruptible: true
+
+publish_docs:
+  extends: .base_rt_upload
+  stage: artifacts
+  variables:
+    CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
+    CICD_ARTIFACTORY__USER: $CICD_USER_NAME
+    CICD_ARTIFACTORY__PASSWORD: $CICD_USER_PASSWORD
+    CICD_ARTIFACTORY__ARTIFACTS_PATTERN: docs/html-*.tar.gz
+    CICD_ARTIFACTORY__UPLOAD_PATH: docs-onetl-generic-local/${CI_PROJECT_NAME}/
+  dependencies:
+    - build_docs
+    - devops_get_techuser_secrets
+  interruptible: true
+
 ## --------------- DEPLOY --------------- ###
 pip:
   extends: .base_pip_poetry_pkg_build_and_deploy_to_jfrog
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
   stage: artifacts
-  image: ${DEFAULT_IMAGE}:${DOCKER_IMAGE_TAG}
+  dependencies:
+    - devops_get_techuser_secrets
+    - get_version
   variables:
-    IS_DEV_VERSION: 'true'
-    ADD_BRANCH_TO_VERSION: 'true'
-    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+    DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     CICD_PYTHON__REPO_URL: https://artifactory.mts.ru/artifactory/api/pypi/own-onetl-pypi-local/
     CICD_PYTHON__REPO_USER: $CICD_USER_NAME
     CICD_PYTHON__REPO_PASSWORD: $CICD_USER_PASSWORD
-  dependencies:
-    - devops_get_techuser_secrets
   before_script:
-    - >
-      if $IS_DEV_VERSION; then
-        if $ADD_BRANCH_TO_VERSION; then
-          # feature/bugfix branch - version format is 1.2.3.dev456+feature-789
-          poetry version "$(poetry version -s).dev${CI_PIPELINE_IID}+${CI_COMMIT_REF_SLUG}";
-        else
-          # dev/develop branch - version format is 1.2.3.dev456
-          poetry version "$(poetry version -s).dev${CI_PIPELINE_IID}";
-        fi
-        # release - version format is 1.2.3
-        poetry version "$(poetry version -s)"
-      fi
+    # update version number in pyproject.toml and package sources
+    - poetry version "${VERSION}"
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /^(develop|dev)$/
-      variables:
-        ADD_BRANCH_TO_VERSION: 'false'
-      when: on_success
     - if: $CI_COMMIT_TAG
       variables:
-        IS_DEV_VERSION: 'false'
-        DOCKER_IMAGE_TAG: develop-python${DEFAULT_PYTHON}-pydantic${DEFAULT_PYDANTIC}
+        DOCKER_IMAGE_TAG: develop
       when: on_success
     - when: on_success
   interruptible: true
@@ -340,9 +430,20 @@ remove_dev_versions:
     - when: never
   allow_failure: true
 
+pages:
+  extends: .base_pages_deploy_sphinx
+  stage: deploy
+  variables:
+    CICD_PAGES__ARTIFACTORY_USER: $CICD_USER_NAME
+    CICD_PAGES__ARTIFACTORY_PASSWORD: $CICD_USER_PASSWORD
+    CICD_PAGES__ARTIFACTORY_DOCS_PATH: docs-onetl-generic-local/${CI_PROJECT_NAME}/docs
+  interruptible: true
+
 ## --------------- Remove artifacts after remove feature/bug branch --------------- ###
 start_review_pip:
   stage: .post
+  dependencies:
+    - get_version
   environment:
     name: review/pip/$CI_COMMIT_REF_SLUG
     url: ${CI_PAGES_URL}/${VERSION}/
@@ -405,17 +506,22 @@ stop_review_docker:
   extends: .base_docker_cleaner
   stage: .post
   dependencies: []
+  variables:
+    CICD_DOCKER__IMAGE_TAGS: ${CI_COMMIT_REF_SLUG}
   script:
     - !reference [.base_tools__bricks_send_usage_statistics, script]
     - !reference [.base_docker_cleaner__bricks_debug, script]
-    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}-python3.7-pydantic1,${CI_COMMIT_REF_SLUG}-python3.11-pydantic1,${CI_COMMIT_REF_SLUG}-python3.7-pydantic2,${CI_COMMIT_REF_SLUG}-python3.11-pydantic2
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python3.7/pydantic1
+    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python3.11/pydantic1
+    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python3.7/pydantic2
+    - !reference [.base_docker_cleaner__bricks_remove_tags, script]
+    - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend/python3.11/pydantic2
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/ldap
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
-    - CICD_DOCKER__IMAGE_TAGS=${CI_COMMIT_REF_SLUG}
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
   environment:
     name: review/docker/$CI_COMMIT_REF_SLUG

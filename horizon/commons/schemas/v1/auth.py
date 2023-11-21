@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 
 class AuthTokenResponseV1(BaseModel):
+    """Authorization response."""
+
     access_token: str
     token_type: str
     expires_at: float

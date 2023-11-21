@@ -12,6 +12,18 @@ class CorsSettings(BaseModel):
     """CORS Middleware Settings.
 
     See `CORSMiddleware <https://www.starlette.io/middleware/#corsmiddleware>`_ documentation.
+
+    Examples
+    --------
+
+    For development environment:
+
+    .. code-block:: bash
+
+        HORIZON__SERVER__CORS__ENABLED=True
+        HORIZON__SERVER__CORS__ALLOW_ORIGINS=["*"]
+        HORIZON__SERVER__CORS__ALLOW_METHODS=["*"]
+        HORIZON__SERVER__CORS__ALLOW_HEADERS=["*"]
     """
 
     enabled: bool = True
@@ -30,6 +42,15 @@ class PrometheusSettings(BaseModel):
     """Prometheus Middleware Settings.
 
     See `starlette-exporter <https://github.com/stephenhillier/starlette_exporter#options>`_ documentation.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__SERVER__PROMETHEUS__ENABLED=True
+        HORIZON__SERVER__PROMETHEUS__SKIP_PATHS=["/some/path"]
+        HORIZON__SERVER__PROMETHEUS__SKIP_METHODS=["OPTIONS"]
     """
 
     enabled: bool = True
@@ -48,6 +69,14 @@ class RequestIDSettings(BaseModel):
     """X-Request-ID Middleware Settings.
 
     See `asgi-correlation-id <https://github.com/snok/asgi-correlation-id>`_ documentation.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__SERVER__REQUEST_ID__ENABLED=True
+        HORIZON__SERVER__REQUEST_ID__UPDATE_REQUEST_HEADER=True
     """
 
     enabled: bool = True
@@ -56,6 +85,20 @@ class RequestIDSettings(BaseModel):
 
 
 class ServerSettings(BaseModel):
+    """Backend server settings.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__SERVER__DEBUG=True
+        HORIZON__SERVER__LOGGING__PRESET=colored
+        HORIZON__SERVER__PROMETHEUS__ENABLED=True
+        HORIZON__SERVER__CORS__ENABLED=True
+        HORIZON__SERVER__REQUEST_ID__ENABLED=True
+    """
+
     debug: bool = Field(
         default=False,
         description="Enable debug output in responses. Do not use this on production!",

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import http
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from typing_extensions import Literal
@@ -14,8 +14,8 @@ from horizon.commons.exceptions.entity import EntityNotFoundError
 
 class NotFoundDetailsSchema(BaseModel):
     entity_type: str
-    field: Optional[str] = None
-    value: Optional[Any] = None
+    field: str
+    value: Any
 
 
 @register_error_response(

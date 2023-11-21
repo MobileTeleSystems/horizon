@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserResponseV1(BaseModel):
-    id: int
-    username: str
+    """User info response."""
+
+    id: int = Field(description="Internal user id, not for external usage")
+    username: str = Field(description="User name, unique in the entire database")
 
     class Config:
         # pydantic v1

@@ -6,14 +6,18 @@ from typing import Any
 
 
 class ApplicationError(ABC, Exception):
+    """Base class for all exceptions raised by Horizon."""
+
     @property
     @abstractmethod
     def message(self) -> str:
+        """Message string"""
         ...
 
     @property
     @abstractmethod
     def details(self) -> Any:
+        """Details related to specific error"""
         ...
 
     def __str__(self) -> str:

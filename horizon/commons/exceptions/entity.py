@@ -8,12 +8,26 @@ from horizon.commons.exceptions.base import ApplicationError
 
 
 class EntityNotFoundError(ApplicationError):
-    def __init__(
-        self,
-        entity_type: str,
-        field: str | None = None,
-        value: Any | None = None,
-    ):
+    """Entity not found.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        raise EntityNotFoundError("User", "username", "test")
+    """
+
+    entity_type: str
+    """Entity type"""
+
+    field: str
+    """Entity identifier field"""
+
+    value: Any
+    """Entity identifier value"""
+
+    def __init__(self, entity_type: str, field: str, value: Any):
         self.entity_type = entity_type
         self.field = field
         self.value = value
@@ -34,6 +48,25 @@ class EntityNotFoundError(ApplicationError):
 
 
 class EntityAlreadyExistsError(ApplicationError):
+    """Entity with same identifier already exists.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        raise EntityAlreadyExistsError("User", "username", "test")
+    """
+
+    entity_type: str
+    """Entity type"""
+
+    field: str
+    """Entity identifier field"""
+
+    value: Any
+    """Entity identifier value"""
+
     def __init__(self, entity_type: str, field: str, value: Any):
         self.entity_type = entity_type
         self.field = field
@@ -53,6 +86,25 @@ class EntityAlreadyExistsError(ApplicationError):
 
 
 class EntityInvalidError(ApplicationError):
+    """Entity field value is not valid.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        raise EntityInvalidError("HWM", "type", Unset())
+    """
+
+    entity_type: str
+    """Entity type"""
+
+    field: str
+    """Entity identifier field"""
+
+    value: Any
+    """Entity identifier value"""
+
     def __init__(self, entity_type: str, field: str, value: Any):
         self.entity_type = entity_type
         self.field = field

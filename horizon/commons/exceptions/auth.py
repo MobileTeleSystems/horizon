@@ -7,6 +7,17 @@ from horizon.commons.exceptions.base import ApplicationError
 
 
 class AuthorizationError(ApplicationError):
+    """Authorization request is failed.
+
+    Examples
+    --------
+
+    .. code-block:: python
+
+        raise AuthorizationError("User 'test' is disabled")
+
+    """
+
     def __init__(self, message: str, details: Any = None) -> None:
         self._message = message
         self._details = details

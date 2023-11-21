@@ -27,7 +27,7 @@ ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
 
 
 class HorizonClientSync(BaseClient[OAuth2Session]):
-    """Sync Horizon client implementation, based on ``requests``.
+    """Sync Horizon client implementation, based on ``authlib`` and ``requests``.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     auth : :obj:`BaseAuth <horizon.client.auth.base.BaseAuth>`
         Authentication class
 
-    session : :obj:`OAuth2Session <authlib.integrations.requests_client.OAuth2Session>`
+    session : :obj:`authlib.integrations.requests_client.OAuth2Session`
         Custom session object. Inherited from :obj:`requests.Session`, so you can pass custom
         session options.
 
@@ -57,12 +57,10 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     def authorize(self) -> None:
         """Fetch and set access token (if required).
 
-        Examples
-        --------
-
-        .. code-block:: python
-
-            client.authorize()
+        Raises
+        ------
+        :obj:`horizon.commons.exceptions.AuthorizationError`
+            Authorization failed
         """
 
         session: OAuth2Session = self.session  # type: ignore[assignment]

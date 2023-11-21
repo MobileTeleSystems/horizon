@@ -36,7 +36,7 @@ venv-cleanup: ##@Env Cleanup venv
 venv-install: ##@Env Install requirements to venv
 	${POETRY} config virtualenvs.create false
 	${POETRY} self add poetry-bumpversion
-	${POETRY} install --no-root --all-extras --with dev,test $(ARGS)
+	${POETRY} install --no-root --all-extras --with dev,test,docs $(ARGS)
 
 venv-add: ##@Env Add requirement to venv
 	${POETRY} add $(ARGS)
@@ -80,10 +80,24 @@ cleanup: ##@Test Cleanup tests dependencies
 
 
 dev: db-start ##@Application Run development server (without docker)
-	${POETRY} run python -m horizon.backend --host 0.0.0.0 --port 8000 $(ARGS)
+	${POETRY} run python -m horizon.backend $(ARGS)
 
 prod-build: ##@Application Build docker image
 	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
 	docker compose up -d
+
+.PHONY: docs
+
+docs: ##@Docs Generate docs
+	$(MAKE) -C docs html
+
+docs-open: ##@Docs Open docs
+	xdg-open docs/_build/html/index.html
+
+docs-cleanup: ##@Docs Cleanup docs
+	$(MAKE) -C docs clean
+
+docs-fresh: docs-cleanup docs ##@Docs Cleanup & build docs
+	$(MAKE) -C docs clean html

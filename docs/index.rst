@@ -34,5 +34,6 @@
     :caption: Development
     :hidden:
 
+    changelog
     contributing
     security

@@ -353,25 +353,25 @@ reference = "nexus"
 
 [[package]]
 name = "bonsai"
-version = "1.5.1"
+version = "1.5.2"
 description = "Python 3 module for accessing LDAP directory servers."
 optional = true
 python-versions = "*"
 files = [
-    {file = "bonsai-1.5.1-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:1fa0d5e8ca5ea5ca6af88d515037e9de32430ca65cdd3d9ffd3caabd5d42da71"},
-    {file = "bonsai-1.5.1-cp310-cp310-win32.whl", hash = "sha256:7919257957ec72d16d3375676bbc20232f15a1c12d909623a971a69a5ea553ba"},
-    {file = "bonsai-1.5.1-cp310-cp310-win_amd64.whl", hash = "sha256:62d509e047adcdb06736896fd3f24cb3f334785664e60a0d66dc428ea415a3a1"},
-    {file = "bonsai-1.5.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:e960cadc3ef96622a7df8297948e9fd7284708805747f10f52ef11e52f06b63d"},
-    {file = "bonsai-1.5.1-cp311-cp311-win32.whl", hash = "sha256:81c85f2208d7ffe80855c8096dd17b99f52e61f0fb4e3e72357bf4e5af092929"},
-    {file = "bonsai-1.5.1-cp311-cp311-win_amd64.whl", hash = "sha256:5ff980752304d59e77b7b86275c9a28dd39b597780f720bfb32c57d0134f9217"},
-    {file = "bonsai-1.5.1-cp37-cp37m-macosx_10_15_x86_64.whl", hash = "sha256:72d435264229cb9adf74c8a0b88dbdd84805904617387582b6741adf95555fef"},
-    {file = "bonsai-1.5.1-cp38-cp38-macosx_10_15_x86_64.whl", hash = "sha256:97e489da7e2958e69d3e617e25f92a688d9bebc2308ea06a053f66d4893bc7a9"},
-    {file = "bonsai-1.5.1-cp38-cp38-win32.whl", hash = "sha256:03f264278f2d02346bf3603a836e918c193e63831d306569304aed3f854fce7d"},
-    {file = "bonsai-1.5.1-cp38-cp38-win_amd64.whl", hash = "sha256:a2b0aaa51293167ab2d82acee904feeeb25f0668087c7101906169538dfaa494"},
-    {file = "bonsai-1.5.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:8b1ed74406d7b839307067a1006699bdbd1e23fed3f6440f71e8bc4b52c3e64a"},
-    {file = "bonsai-1.5.1-cp39-cp39-win32.whl", hash = "sha256:8a8f3615bc5b6546b28731514c3276c3e2c725f6a42276d0005bf26f73d188fc"},
-    {file = "bonsai-1.5.1-cp39-cp39-win_amd64.whl", hash = "sha256:e599f5dc11e38a143edb451e28fdd448d18b5ecae4a74addf583d602a8f9057a"},
-    {file = "bonsai-1.5.1.tar.gz", hash = "sha256:101b0d166349bdcbf764a8139fd06b85b5524b4425e3f2bd6c2381f90369f735"},
+    {file = "bonsai-1.5.2-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:aaa4ed441cb6562b587f524a7ca6898ef41c6c4d2600fab5cc91af8fbd2d02e8"},
+    {file = "bonsai-1.5.2-cp310-cp310-win32.whl", hash = "sha256:c82320679bdaaccf1939eaf4326a4721e80ca099f5bd790c3eb546f37f157e7b"},
+    {file = "bonsai-1.5.2-cp310-cp310-win_amd64.whl", hash = "sha256:3ce093a6a188fcba50c1107f86f30c2ce3dc1f080f1d009b54d160c3b620353b"},
+    {file = "bonsai-1.5.2-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:b40510c6d3c338ba805eaf6d07aebffc138d1beca31dc750eb2b6127f99296b1"},
+    {file = "bonsai-1.5.2-cp311-cp311-win32.whl", hash = "sha256:3ebc465dcafd0d739e258a201c5043f5ac2380770c3a0ab8b7412222002bf4a4"},
+    {file = "bonsai-1.5.2-cp311-cp311-win_amd64.whl", hash = "sha256:78e75ce4298041516e2a67c47c8332089fc7e0e19a46840b5dd9c0068cfd8abd"},
+    {file = "bonsai-1.5.2-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:24d3ee90938eaea96c21e176202d8dad2ee0fd2119eaae40f3349fcd69e98682"},
+    {file = "bonsai-1.5.2-cp312-cp312-win32.whl", hash = "sha256:ee7cb0269fc887cf60f6fd27dba019a88bfaf1104219e6b23e1bb6b01498dfb6"},
+    {file = "bonsai-1.5.2-cp312-cp312-win_amd64.whl", hash = "sha256:428c503d6d7895f050d55438648572172020c0b3fe0ee7dc524ce6eb046b3a12"},
+    {file = "bonsai-1.5.2-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:bccd9bbd5ba6722444a01557f75b031c455d35c5d0307bceebdad99a35ed1473"},
+    {file = "bonsai-1.5.2-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:3c75286ae61f243c9a13855f47734bff1b99736a9350b19350083cd5c9ca4ed8"},
+    {file = "bonsai-1.5.2-cp39-cp39-win32.whl", hash = "sha256:87765b3971bd63a88dd597f471992767d69d523c4759f372cbf5034767fbb2c6"},
+    {file = "bonsai-1.5.2-cp39-cp39-win_amd64.whl", hash = "sha256:763a0e1d59f31c530599caf1158cf370a5c1b8e41d71a5e8000c552913b35697"},
+    {file = "bonsai-1.5.2.tar.gz", hash = "sha256:8d6ba21fcbbd4309dcffdba723247aa3dc6a971474b941edcfa3ce1c0ed3ff41"},
 ]
 
 [package.dependencies]
@@ -1617,6 +1617,26 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "incremental"
+version = "22.10.0"
+description = "\"A small library that versions your Python projects.\""
+optional = false
+python-versions = "*"
+files = [
+    {file = "incremental-22.10.0-py2.py3-none-any.whl", hash = "sha256:b864a1f30885ee72c5ac2835a761b8fe8aa9c28b9395cacf27286602688d3e51"},
+    {file = "incremental-22.10.0.tar.gz", hash = "sha256:912feeb5e0f7e0188e6f42241d2f450002e11bbc0937c65865045854c24c0bd0"},
+]
+
+[package.extras]
+mypy = ["click (>=6.0)", "mypy (==0.812)", "twisted (>=16.4.0)"]
+scripts = ["click (>=6.0)", "twisted (>=16.4.0)"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "iniconfig"
 version = "2.0.0"
 description = "brain-dead simple config-ini parsing"
@@ -2185,13 +2205,13 @@ reference = "nexus"
 
 [[package]]
 name = "pyasn1"
-version = "0.5.0"
+version = "0.5.1"
 description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
 optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
 files = [
-    {file = "pyasn1-0.5.0-py2.py3-none-any.whl", hash = "sha256:87a2121042a1ac9358cabcaf1d07680ff97ee6404333bacca15f76aa8ad01a57"},
-    {file = "pyasn1-0.5.0.tar.gz", hash = "sha256:97b7290ca68e62a832558ec3976f15cbf911bf5d7c7039d8b861c2a0ece69fde"},
+    {file = "pyasn1-0.5.1-py2.py3-none-any.whl", hash = "sha256:4439847c58d40b1d0a573d07e3856e95333f1976294494c325775aeca506eb58"},
+    {file = "pyasn1-0.5.1.tar.gz", hash = "sha256:6d391a96e59b23130a5cfa74d6fd7f388dbbe26cc8f1edf39fdddf08d9d6676c"},
 ]
 
 [package.source]
@@ -2996,6 +3016,30 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "sphinx-issues"
+version = "3.0.1"
+description = "A Sphinx extension for linking to your project's issue tracker"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "sphinx-issues-3.0.1.tar.gz", hash = "sha256:b7c1dc1f4808563c454d11c1112796f8c176cdecfee95f0fd2302ef98e21e3d6"},
+    {file = "sphinx_issues-3.0.1-py3-none-any.whl", hash = "sha256:8b25dc0301159375468f563b3699af7a63720fd84caf81c1442036fcd418b20c"},
+]
+
+[package.dependencies]
+sphinx = "*"
+
+[package.extras]
+dev = ["flake8 (==3.9.2)", "flake8-bugbear (==20.11.1)", "pre-commit (>=2.7,<3.0)", "pytest (>=6.2.0)", "tox"]
+lint = ["flake8 (==3.9.2)", "flake8-bugbear (==20.11.1)", "pre-commit (>=2.7,<3.0)"]
+tests = ["pytest (>=6.2.0)"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "sphinx-rtd-theme"
 version = "1.3.0"
 description = "Read the Docs theme for Sphinx"
@@ -3166,6 +3210,26 @@ Sphinx = ">=5"
 [package.extras]
 lint = ["docutils-stubs", "flake8", "mypy"]
 test = ["pytest"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
+name = "sphinxcontrib-towncrier"
+version = "0.4.0a0"
+description = "An RST directive for injecting a Towncrier-generated changelog draft containing fragments for the unreleased (next) project version"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "sphinxcontrib-towncrier-0.4.0a0.tar.gz", hash = "sha256:d9b1513fc07781432dd3a0b2ca797cfe0e99e9b5bc5e5c8bf112d5d142afb6dc"},
+    {file = "sphinxcontrib_towncrier-0.4.0a0-py3-none-any.whl", hash = "sha256:ec734e3d0920e2ce26e99681119f398a9e1fc0aa6c2d7ed1f052f1219dcd4653"},
+]
+
+[package.dependencies]
+sphinx = "*"
+towncrier = ">=19.2"
 
 [package.source]
 type = "legacy"
@@ -3391,6 +3455,30 @@ files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
+name = "towncrier"
+version = "23.11.0"
+description = "Building newsfiles for your project."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "towncrier-23.11.0-py3-none-any.whl", hash = "sha256:2e519ca619426d189e3c98c99558fe8be50c9ced13ea1fc20a4a353a95d2ded7"},
+    {file = "towncrier-23.11.0.tar.gz", hash = "sha256:13937c247e3f8ae20ac44d895cf5f96a60ad46cfdcc1671759530d7837d9ee5d"},
+]
+
+[package.dependencies]
+click = "*"
+incremental = "*"
+jinja2 = "*"
+
+[package.extras]
+dev = ["furo", "packaging", "sphinx (>=5)", "twisted"]
 
 [package.source]
 type = "legacy"
@@ -3699,4 +3787,4 @@ postgres = ["asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "841509f12d5ce9111bd788d8c9e2700c698e76b9d84fd40aea391415a0347021"
+content-hash = "713da3081bf6a568384bc1b4b526a93f1d929707f488e4ccb80063f61816c424"

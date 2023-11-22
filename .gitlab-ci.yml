@@ -450,6 +450,7 @@ start_review_pip:
     on_stop: stop_review_pip
   script:
     - echo "Start review"
+    - echo "$CI_PAGES_URL"
   rules:
   # environment is used to remove artifacts build in feature/ and bugfix/ branches only
   # dev and release packages are left intact

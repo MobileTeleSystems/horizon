@@ -440,14 +440,14 @@ pages:
   interruptible: true
 
 ## --------------- Remove artifacts after remove feature/bug branch --------------- ###
-start_review_docs:
+init_docs:
   stage: .post
   dependencies:
     - get_version
   environment:
     name: docs/$CI_COMMIT_REF_SLUG
     url: ${CI_PAGES_URL}/${VERSION}/
-    on_stop: stop_review_docs
+    on_stop: cleanup_docs
   script:
     - echo "Start review"
   rules:
@@ -459,7 +459,7 @@ start_review_docs:
       when: never
     - when: on_success
 
-stop_review_docs:
+cleanup_docs:
   extends: .base_rt_cli
   stage: .post
   dependencies:
@@ -486,7 +486,7 @@ stop_review_docs:
     - when: manual
       allow_failure: true
 
-start_review_docs_develop:
+docs_develop:
   stage: .post
   dependencies:
     - get_version
@@ -501,11 +501,11 @@ start_review_docs_develop:
       when: on_success
     - when: never
 
-start_review_docker:
+init_docker:
   stage: .post
   environment:
     name: docker/$CI_COMMIT_REF_SLUG
-    on_stop: stop_review_docker
+    on_stop: cleanup_docker
   script:
     - echo "Start review"
   rules:
@@ -517,7 +517,7 @@ start_review_docker:
       when: never
     - when: on_success
 
-stop_review_docker:
+cleanup_docker:
   extends: .base_docker_cleaner
   stage: .post
   dependencies: []

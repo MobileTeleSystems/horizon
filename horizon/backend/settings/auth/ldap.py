@@ -65,9 +65,14 @@ class LDAPConnectionPoolSettings(BaseModel):
 
     .. code-block:: bash
 
-        HORIZON__AUTH__LDAP__POOL__MAX=10
+        HORIZON__AUTH__LDAP__LOOKUP__POOL__MAX=10
+        HORIZON__AUTH__LDAP__LOOKUP__POOL__CHECK_ON_STARTUP=True
     """
 
+    check_on_startup: bool = Field(
+        default=True,
+        description="If ``True``, and LDAP is not available during application start, abort application startup",
+    )
     initial: int = Field(
         default=1,
         description="Initial size of connection pool",
@@ -91,6 +96,10 @@ class LDAPLookupSettings(BaseModel):
         HORIZON__AUTH__LDAP__LOOKUP__QUERY=(uid={username})
     """
 
+    pool: LDAPConnectionPoolSettings = Field(
+        default_factory=LDAPConnectionPoolSettings,
+        description="LDAP connection pool settings",
+    )
     credentials: Optional[LDAPCredentials] = Field(
         default=None,
         description="Credentials used for connecting to LDAP while performing user lookup",
@@ -169,10 +178,6 @@ class LDAPSettings(BaseModel):
         ),
     )
 
-    pool: LDAPConnectionPoolSettings = Field(
-        default_factory=LDAPConnectionPoolSettings,
-        description="LDAP connection pool settings",
-    )
     lookup: Optional[LDAPLookupSettings] = Field(
         default_factory=LDAPLookupSettings,
         description="LDAP search options. Set to ``None`` to disable lookup.",

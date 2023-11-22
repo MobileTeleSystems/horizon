@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from horizon.backend.settings.server import ServerSettings
 from horizon.commons.errors.base import APIErrorSchema, BaseErrorSchema
 from horizon.commons.errors.registration import get_response_for_exception
-from horizon.commons.exceptions import ApplicationError
+from horizon.commons.exceptions import ApplicationError, ServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ async def unknown_exception_handler(request: Request, exc: Exception):
     logger.exception("Got unhandled error")
 
     server: ServerSettings = request.app.state.settings.server
-
     details = None
     if server.debug:
         details = exc.args
@@ -47,6 +46,27 @@ async def unknown_exception_handler(request: Request, exc: Exception):
     )
     return exception_json_response(
         status=http.HTTPStatus.INTERNAL_SERVER_ERROR.value,
+        content=content,
+        # https://github.com/snok/asgi-correlation-id#exception-handling
+        headers={server.request_id.header_name: correlation_id.get() or ""},
+    )
+
+
+async def service_exception_handler(request: Request, exc: ServiceError):
+    logger.exception("Got service error")
+
+    server: ServerSettings = request.app.state.settings.server
+    details = None
+    if server.debug:
+        details = exc.message
+
+    content = BaseErrorSchema(
+        code="service_unavailable",
+        message="Service unavailable",
+        details=details,
+    )
+    return exception_json_response(
+        status=http.HTTPStatus.SERVICE_UNAVAILABLE.value,
         content=content,
         # https://github.com/snok/asgi-correlation-id#exception-handling
         headers={server.request_id.header_name: correlation_id.get() or ""},
@@ -78,6 +98,9 @@ async def application_exception_handler(request: Request, exc: ApplicationError)
     response = get_response_for_exception(type(exc))
     if not response:
         return await unknown_exception_handler(request, exc)
+
+    server: ServerSettings = request.app.state.settings.server
+    logger.error("%s", exc, exc_info=server.debug)
 
     # code is set within class implementation
     content = response.schema(  # type: ignore[call-arg]

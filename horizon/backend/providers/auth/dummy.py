@@ -5,6 +5,7 @@ import logging
 from time import time
 from typing import Any, Dict, List, Optional, Tuple
 
+from devtools import pformat
 from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
 
@@ -31,6 +32,7 @@ class DummyAuthProvider(AuthProvider):
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
         settings = DummyAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
+        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(settings))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[DummyAuthProviderSettings] = lambda: settings
         return app
@@ -57,15 +59,15 @@ class DummyAuthProvider(AuthProvider):
         if not username or not password:
             raise AuthorizationError("Missing auth credentials")
 
-        log.debug("Get/create user %r in database", username)
+        log.info("Get/create user %r in database", username)
         async with self._uow:
             user = await self._uow.user.get_or_create(username=username)
 
-        log.debug("Used with id %r found", user.id)
+        log.info("Used with id %r found", user.id)
         if not user.is_active:
             raise AuthorizationError(f"User {username!r} is disabled")
 
-        log.debug("Generate access token for user id %r", user.id)
+        log.info("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user_id=user.id)
         return {
             "access_token": access_token,

@@ -1,25 +1,23 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Any
 
 from horizon.commons.exceptions.base import ApplicationError
 
 
-class SetupError(ApplicationError):
-    """Application setup is failed.
+class ServiceError(ApplicationError):
+    """Service used by application have not responded properly.
 
     Examples
     --------
 
     .. code-block:: python
 
-        raise SetupError("Application is not set up properly")
+        raise ServiceError("Some server response is invalid")
     """
 
-    def __init__(self, message: str, details: Any = None) -> None:
+    def __init__(self, message: str) -> None:
         self._message = message
-        self._details = details
 
     @property
     def message(self) -> str:
@@ -27,4 +25,4 @@ class SetupError(ApplicationError):
 
     @property
     def details(self) -> None:
-        return self._details
+        pass

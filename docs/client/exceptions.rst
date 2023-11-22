@@ -38,10 +38,10 @@ Entity
     :members: message, details, entity_type, field, value
     :member-order: bysource
 
-Setup
-------
+Service
+-------
 
-.. currentmodule:: horizon.commons.exceptions.setup
+.. currentmodule:: horizon.commons.exceptions.service
 
-.. autoclass:: SetupError
-    :members: message, details
+.. autoclass:: ServiceError
+    :members: message

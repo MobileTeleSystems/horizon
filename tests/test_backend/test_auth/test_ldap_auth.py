@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import User
+from horizon.backend.settings import Settings
 from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
@@ -132,12 +133,7 @@ async def test_ldap_auth_get_token_with_wrong_password(
 @pytest.mark.parametrize(
     "settings",
     [
-        {
-            "auth": {
-                "provider": LDAP,
-                "ldap": {"lookup": {"query": "(mail={username})"}},
-            }
-        },
+        {"auth": {"provider": LDAP, "ldap": {"lookup": {"query": "(mail={username})"}}}},
     ],
     indirect=True,
 )
@@ -152,7 +148,7 @@ async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
     response = await test_client.post(
         "v1/auth/token",
         data={
-            # lookup user in LDAP by email
+            # lookup user in LDAPAuthProvider by email
             "username": "developer.one@ldapmock.local",
             "password": "password",
         },
@@ -188,24 +184,9 @@ async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
 @pytest.mark.parametrize(
     "settings",
     [
-        {
-            "auth": {
-                "provider": LDAP,
-                "ldap": {"lookup": {"query": "(mail={username})"}},
-            }
-        },
-        {
-            "auth": {
-                "provider": LDAP,
-                "ldap": {"uid_attribute": "mail"},
-            }
-        },
-        {
-            "auth": {
-                "provider": LDAP,
-                "ldap": {"base_dn": "dc=unknown,dc=company"},
-            }
-        },
+        {"auth": {"provider": LDAP, "ldap": {"lookup": {"query": "(mail={username})"}}}},
+        {"auth": {"provider": LDAP, "ldap": {"uid_attribute": "mail"}}},
+        {"auth": {"provider": LDAP, "ldap": {"base_dn": "dc=unknown,dc=company"}}},
     ],
     indirect=True,
 )
@@ -276,11 +257,9 @@ async def test_ldap_auth_get_token_without_lookup(
 @pytest.mark.parametrize(
     "settings",
     [
-        {
-            "auth": {"provider": LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}},
-            "auth": {"provider": LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}},
-            "auth": {"provider": LDAP, "ldap": {"lookup": None, "bind_dn_template": "{username}"}},
-        },
+        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}}},
+        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}}},
+        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "bind_dn_template": "{username}"}}},
     ],
     indirect=True,
 )
@@ -414,14 +393,7 @@ async def test_ldap_auth_get_token_for_deleted_user(
     }
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"provider": LDAP}, "server": {"debug": True}},
-        {"auth": {"provider": LDAP}, "server": {"debug": False}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
     new_user: User,
@@ -491,7 +463,66 @@ async def test_ldap_auth_check_inactive_user(
     }
 
 
-# LDAP is not accessed while checking access token to avoid calling it on each incoming request
+@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {
+            "server": {"debug": False},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"check_on_startup": False}},
+                },
+            },
+        },
+        {
+            "server": {"debug": True},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"check_on_startup": False}},
+                },
+            },
+        },
+        {
+            "server": {"debug": False},
+            "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+        },
+        {"server": {"debug": True}, "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+    ],
+    indirect=True,
+)
+async def test_ldap_auth_get_token_ldap_is_unavailable(
+    test_client: AsyncClient,
+    settings: Settings,
+    user: User,
+):
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 503
+
+    details: str | None = None
+    if settings.server.debug:
+        details = "Failed to connect to LDAP"
+
+    assert response.json() == {
+        "error": {
+            "code": "service_unavailable",
+            "message": "Service unavailable",
+            "details": details,
+        },
+    }
+
+
+# LDAPAuthProvider is not accessed while checking access token to avoid calling it on each incoming request
 @pytest.mark.parametrize("user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check(

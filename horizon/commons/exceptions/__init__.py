@@ -8,4 +8,4 @@ from horizon.commons.exceptions.entity import (
     EntityInvalidError,
     EntityNotFoundError,
 )
-from horizon.commons.exceptions.setup import SetupError
+from horizon.commons.exceptions.service import ServiceError

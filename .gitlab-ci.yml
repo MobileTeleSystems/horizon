@@ -440,14 +440,14 @@ pages:
   interruptible: true
 
 ## --------------- Remove artifacts after remove feature/bug branch --------------- ###
-start_review_pip:
+start_review_docs:
   stage: .post
   dependencies:
     - get_version
   environment:
-    name: review/pip/$CI_COMMIT_REF_SLUG
+    name: docs/$CI_COMMIT_REF_SLUG
     url: ${CI_PAGES_URL}/${VERSION}/
-    on_stop: stop_review_pip
+    on_stop: stop_review_docs
   script:
     - echo "Start review"
   rules:
@@ -459,7 +459,7 @@ start_review_pip:
       when: never
     - when: on_success
 
-stop_review_pip:
+stop_review_docs:
   extends: .base_rt_cli
   stage: .post
   dependencies:
@@ -474,7 +474,7 @@ stop_review_pip:
     - jf rt delete docs-onetl-generic-local/${CI_PROJECT_NAME}/docs/*+${CI_COMMIT_REF_SLUG}*
     - jf rt delete own-onetl-pypi-local/${CI_PROJECT_NAME}/*+${CI_COMMIT_REF_SLUG}
   environment:
-    name: review/pip/$CI_COMMIT_REF_SLUG
+    name: docs/$CI_COMMIT_REF_SLUG
     action: stop
   rules:
   # environment is used to remove artifacts build in feature/ and bugfix/ branches only
@@ -486,10 +486,25 @@ stop_review_pip:
     - when: manual
       allow_failure: true
 
+start_review_docs_develop:
+  stage: .post
+  dependencies:
+    - get_version
+  environment:
+    name: docs/develop
+    url: ${CI_PAGES_URL}/${VERSION}/
+  script:
+    - echo "Start review"
+  rules:
+  # environment is used to show link to documentation build for development branch
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|develop)$/
+      when: on_success
+    - when: never
+
 start_review_docker:
   stage: .post
   environment:
-    name: review/docker/$CI_COMMIT_REF_SLUG
+    name: docker/$CI_COMMIT_REF_SLUG
     on_stop: stop_review_docker
   script:
     - echo "Start review"
@@ -524,7 +539,7 @@ stop_review_docker:
     - CICD_DOCKER__IMAGE_NAME=${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend
     - !reference [.base_docker_cleaner__bricks_remove_tags, script]
   environment:
-    name: review/docker/$CI_COMMIT_REF_SLUG
+    name: docker/$CI_COMMIT_REF_SLUG
     action: stop
   rules:
   # environment is used to remove artifacts build in feature/ and bugfix/ branches only

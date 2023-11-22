@@ -486,7 +486,7 @@ cleanup_docs:
     - when: manual
       allow_failure: true
 
-docs_develop:
+develop_docs:
   stage: .post
   dependencies:
     - get_version

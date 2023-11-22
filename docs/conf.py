@@ -55,6 +55,8 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.towncrier",  # provides `towncrier-draft-entries` directive
+    "sphinx_issues",
 ]
 swagger = [
     {
@@ -83,6 +85,10 @@ autodoc_pydantic_settings_show_validator_members = False
 autodoc_pydantic_settings_member_order = "bysource"
 autodoc_pydantic_field_list_validators = False
 sphinx_tabs_disable_tab_closing = True
+
+towncrier_draft_autoversion_mode = "draft"
+towncrier_draft_include_empty = False
+towncrier_draft_working_directory = PROJECT_ROOT_DIR
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -144,9 +150,15 @@ head_sha = get_sha("HEAD")
 on_tag = tag and head_sha is not None and head_sha == tag_sha
 
 
-intersphinx_mapping = {
-    "jira": ("https://jira.mts.ru/browse/", None),
-}
+# which is the equivalent to:
+issues_uri = "https://jira.mts.ru/browse/{issue}"
+issues_prefix = "#"
+issues_pr_uri = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/merge_requests/{pr}"
+issues_pr_prefix = "#"
+issues_commit_uri = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/commit/{commit}"
+issues_commit_prefix = "@"
+issues_user_uri = "https://gitlab.services.mts.ru/{user}"
+issues_user_prefix = "@"
 
 context = {
     "current_version": release,

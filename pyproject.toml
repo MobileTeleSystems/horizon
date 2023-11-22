@@ -123,6 +123,9 @@ numpydoc = {version = "^1.6.0", python = ">=3.11"}
 sphinx = {version = "^7.2.6", python = ">=3.11"}
 sphinx-rtd-theme = {version = "^1.3.0", python = ">=3.11"}
 sphinx-copybutton = {version = "^0.5.2", python = ">=3.11"}
+sphinxcontrib-towncrier = {version = "^0.4.0a0", python = ">=3.11"}
+towncrier = {version = "^23.11.0", python = ">=3.11"}
+sphinx-issues = {version = "^3.0.1", python = ">=3.11"}
 
 [[tool.poetry.source]]
 name = "nexus"
@@ -134,11 +137,11 @@ name = "artifactory"
 url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
 priority = "primary"
 
-[[tool.poetry_bumpversion.replacements."horizon/__init__.py"]]
+[tool.poetry_bumpversion.file."horizon/__init__.py"]
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
-[[tool.poetry_bumpversion.replacements."docs/conf.py"]]
+[tool.poetry_bumpversion.file."docs/conf.py"]
 search = 'ver = Version.parse("{current_version}")'
 replace = 'ver = Version.parse("{new_version}")'
 
@@ -410,3 +413,51 @@ per-file-ignores = [
 # WPS118 Found too long name:
   "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432,WPS334,WPS218,WPS226,WPS118",
 ]
+
+[tool.towncrier]
+name = "Horizon"
+package = "horizon"
+filename = "docs/changelog/NEXT_RELEASE.rst"
+directory = "docs/changelog/next_release/"
+title_format = "{version} ({project_date})"
+issue_format = ":issue:`{issue}`"
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "significant"
+name = "Significant Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "improvement"
+name = "Improvements"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dependency"
+name = "Dependencies"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "doc"
+name = "Doc only Changes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Misc"
+showcontent = true

@@ -38,9 +38,6 @@ venv-install: ##@Env Install requirements to venv
 	${POETRY} self add poetry-bumpversion
 	${POETRY} install --no-root --all-extras --with dev,test,docs $(ARGS)
 
-venv-add: ##@Env Add requirement to venv
-	${POETRY} add $(ARGS)
-
 
 
 db: db-start db-upgrade ##@DB Prepare database (in docker)
@@ -90,7 +87,9 @@ prod: ##@Application Run production server (with docker)
 
 .PHONY: docs
 
-docs: ##@Docs Generate docs
+docs: docs-build docs-open ##@Docs Generate & open docs
+
+docs-build: ##@Docs Generate docs
 	$(MAKE) -C docs html
 
 docs-open: ##@Docs Open docs
@@ -99,5 +98,4 @@ docs-open: ##@Docs Open docs
 docs-cleanup: ##@Docs Cleanup docs
 	$(MAKE) -C docs clean
 
-docs-fresh: docs-cleanup docs ##@Docs Cleanup & build docs
-	$(MAKE) -C docs clean html
+docs-fresh: docs-cleanup docs-build ##@Docs Cleanup & build docs

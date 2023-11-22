@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post(
     "/token",
-    description="Get access token",
+    summary="Get access token",
     responses=get_error_responses(include={NotAuthorizedSchema, InvalidRequestSchema}),
 )
 async def login(

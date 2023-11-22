@@ -8,6 +8,6 @@ from horizon.commons.schemas import PingResponse
 router = APIRouter(tags=["Monitoring"], prefix="/monitoring")
 
 
-@router.get("/ping")
+@router.get("/ping", summary="Check if server is alive")
 async def ping() -> PingResponse:
     return PingResponse()

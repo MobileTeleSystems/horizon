@@ -25,6 +25,9 @@ class NamespaceRepository(Repository[Namespace]):
             page_size=page_size,
         )
 
+    async def count(self) -> int:
+        return await self._count(where=[Namespace.is_deleted.is_(False)])
+
     async def get_by_name(self, name: str) -> Namespace:
         result = await self._get(
             Namespace.name == name,

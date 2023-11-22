@@ -28,6 +28,9 @@ class HWMRepository(Repository[HWM]):
             page_size=page_size,
         )
 
+    async def count(self) -> int:
+        return await self._count(where=[HWM.is_deleted.is_(False)])
+
     async def get_by_name(
         self,
         namespace_id: int,

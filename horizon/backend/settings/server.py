@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Set
+from typing import Dict, List, Set
 
 from pydantic import BaseModel, Field
 
@@ -54,6 +54,7 @@ class PrometheusSettings(BaseModel):
     """
 
     enabled: bool = True
+    labels: Dict[str, str] = {}
     skip_paths: Set[str] = set()
     skip_methods: Set[str] = {"OPTIONS"}
     # These will be new defaults in starlette-exporter 0.18:

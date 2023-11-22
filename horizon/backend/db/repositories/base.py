@@ -105,3 +105,14 @@ class Repository(ABC, Generic[Model]):
             page=page,
             page_size=page_size,
         )
+
+    async def _count(
+        self,
+        where: list[SQLColumnExpression] | None = None,
+    ) -> int:
+        model_type = self.model_type()
+        query: Select = select(func.count()).select_from(model_type)
+        if where:
+            query = query.where(*where)
+
+        return await self._session.scalar(query)

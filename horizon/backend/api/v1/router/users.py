@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get(
     "/me",
-    description="Get current user info",
+    summary="Get current user info",
     responses=get_error_responses(),
 )
 async def whoami(

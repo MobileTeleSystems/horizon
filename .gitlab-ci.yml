@@ -224,6 +224,8 @@ test-backend:
     HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
     HORIZON__AUTH__LDAP__URL: ldap://ldap:389
     HORIZON__AUTH__LDAP__BASE_DN: ou=people,dc=ldapmock,dc=local
+    HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER: uid=adminuser1,ou=people,dc=ldapmock,dc=local
+    HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD: password
     HORIZON__SERVER__DEBUG: 'true'
     HORIZON__SERVER__LOGGING__PRESET: colored
   services:

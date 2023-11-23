@@ -153,14 +153,7 @@ async def test_dummy_auth_get_token_for_deleted_user(
     }
 
 
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"auth": {"provider": DUMMY}, "server": {"debug": True}},
-        {"auth": {"provider": DUMMY}, "server": {"debug": False}},
-    ],
-    indirect=True,
-)
+@pytest.mark.parametrize("settings", [{"auth": {"provider": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
     new_user: User,

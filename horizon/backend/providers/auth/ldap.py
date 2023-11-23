@@ -13,11 +13,12 @@ Similar to:
 
 import logging
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, ClassVar, Dict, List, Optional, Tuple
 
 from bonsai import InvalidDN, LDAPClient
 from bonsai.asyncio import AIOConnectionPool
 from bonsai.errors import AuthenticationError, LDAPError
+from devtools import pformat
 from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
 
@@ -31,14 +32,18 @@ from horizon.backend.settings.auth.ldap import (
     LDAPLookupSettings,
 )
 from horizon.backend.utils.jwt import decode_jwt, sign_jwt
-from horizon.commons.exceptions.auth import AuthorizationError
-from horizon.commons.exceptions.entity import EntityNotFoundError
-from horizon.commons.exceptions.setup import SetupError
+from horizon.commons.exceptions import (
+    AuthorizationError,
+    EntityNotFoundError,
+    ServiceError,
+)
 
 log = logging.getLogger(__name__)
 
 
 class LDAPAuthProvider(AuthProvider):
+    TEST_CONNECTION_DURING_START: ClassVar[bool] = True
+
     def __init__(
         self,
         settings: Annotated[Settings, Depends(Stub(Settings))],
@@ -54,11 +59,13 @@ class LDAPAuthProvider(AuthProvider):
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
         settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
+        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(settings))
         app.dependency_overrides[AuthProvider] = cls
         app.dependency_overrides[LDAPAuthProviderSettings] = lambda: settings
         app.dependency_overrides[AIOConnectionPool] = lambda: None
 
         if settings.ldap.lookup:
+            log.debug("Lookup enabled, creating connection pool")
             # lookup uses the same connection pool for all users
             client = LDAPClient(str(settings.ldap.url))
             if settings.ldap.lookup.credentials:
@@ -67,12 +74,16 @@ class LDAPAuthProvider(AuthProvider):
                     settings.ldap.lookup.credentials.user,
                     settings.ldap.lookup.credentials.password.get_secret_value(),
                 )
-            client.connect()  # test connection during start
+            if settings.ldap.lookup.pool.check_on_startup:
+                try:
+                    client.connect()
+                except LDAPError as e:
+                    raise ServiceError("Failed to connect to LDAP") from e
 
             pool = AIOConnectionPool(
                 client,
-                minconn=settings.ldap.pool.initial,
-                maxconn=settings.ldap.pool.max,
+                minconn=settings.ldap.lookup.pool.initial,
+                maxconn=settings.ldap.lookup.pool.max,
             )
             app.dependency_overrides[AIOConnectionPool] = lambda: pool
         return app
@@ -100,9 +111,34 @@ class LDAPAuthProvider(AuthProvider):
             raise AuthorizationError("Missing auth credentials")
 
         # firstly check if user exists in LDAP and credentials are valid
+        log.info("Resolve user %r in LDAP", username)
+        real_username = await self._resolve_ldap_user(username, password)
+
+        log.info("Get/create user %r in database", real_username)
+        async with self._uow:
+            # and only then create user in database.
+            # avoid creating fake users by spamming auth endpoint
+            user = await self._uow.user.get_or_create(username=real_username)
+
+        log.info("Used id %r found", user.id)
+        if not user.is_active:
+            # TODO: check if user is locked in LDAP
+            raise AuthorizationError(f"User {real_username!r} is disabled")
+
+        log.info("Generate access token for user id %r", user.id)
+        access_token, expires_at = self._generate_access_token(user_id=user.id)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_at": expires_at,
+        }
+
+    async def _resolve_ldap_user(self, username: str, password: str) -> str:
+        real_username = username
         lookup = self._auth_settings.ldap.lookup
+
         if lookup:
-            log.debug("Looking up user %r in LDAP", username)
+            log.info("Perform lookup in LDAP")
             dn, real_username = await self._lookup_user(username, lookup)
         else:
             dn = self._auth_settings.ldap.bind_dn_template.format(
@@ -110,28 +146,11 @@ class LDAPAuthProvider(AuthProvider):
                 base_dn=self._auth_settings.ldap.base_dn,
                 uid_attribute=self._auth_settings.ldap.uid_attribute,
             )
-            real_username = username
-        log.debug("Check user credentials %r in LDAP", dn)
+
+        log.info("Check user credentials %r in LDAP", dn)
         await self._login(dn, password)
 
-        log.debug("Get/create user %r in database", real_username)
-        async with self._uow:
-            # and only then create user in database.
-            # avoid creating fake users by spamming auth endpoint
-            user = await self._uow.user.get_or_create(username=real_username)
-
-        log.debug("Used id %r found", user.id)
-        if not user.is_active:
-            # TODO: check if user is locked in LDAP
-            raise AuthorizationError(f"User {real_username!r} is disabled")
-
-        log.debug("Generate access token for user id %r", user.id)
-        access_token, expires_at = self._generate_access_token(user_id=user.id)
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "expires_at": expires_at,
-        }
+        return real_username
 
     async def _lookup_user(self, username: str, options: LDAPLookupSettings) -> Tuple[str, str]:
         # Reference implementations:
@@ -151,12 +170,12 @@ class LDAPAuthProvider(AuthProvider):
                 )
                 if results:
                     entry = results[0]
-                    log.debug("Found entry:\n%s", entry)
+                    log.debug("Found entry:\n%s", pformat(entry))
                     dn = str(entry["dn"])
                     uid = entry[self._auth_settings.ldap.uid_attribute][0]
                     return dn, uid
         except LDAPError as e:
-            raise SetupError("Wrong LDAP settings") from e
+            raise ServiceError("Failed to connect to LDAP") from e
 
         raise EntityNotFoundError("User", "username", username)
 
@@ -168,6 +187,8 @@ class LDAPAuthProvider(AuthProvider):
                 await connection.whoami()
         except (AuthenticationError, InvalidDN) as e:
             raise AuthorizationError("Wrong credentials") from e
+        except LDAPError as e:
+            raise ServiceError("Failed to connect to LDAP") from e
 
     def _generate_access_token(self, user_id: int) -> Tuple[str, float]:
         expires_at = time() + self._auth_settings.access_token.expire_seconds

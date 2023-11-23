@@ -11,6 +11,7 @@ import horizon
 from horizon.backend.api.handlers import (
     application_exception_handler,
     http_exception_handler,
+    service_exception_handler,
     unknown_exception_handler,
     validation_exception_handler,
 )
@@ -22,7 +23,7 @@ from horizon.backend.middlewares.prometheus import add_prometheus_middleware
 from horizon.backend.middlewares.request_id import add_request_id_middleware
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.settings import Settings
-from horizon.commons.exceptions.base import ApplicationError
+from horizon.commons.exceptions import ApplicationError, ServiceError
 
 
 def application_factory(settings: Settings) -> FastAPI:
@@ -34,6 +35,7 @@ def application_factory(settings: Settings) -> FastAPI:
     application.state.settings = settings
     application.include_router(api_router)
 
+    application.add_exception_handler(ServiceError, service_exception_handler)
     application.add_exception_handler(ApplicationError, application_exception_handler)
     application.add_exception_handler(
         RequestValidationError,

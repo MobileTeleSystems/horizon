@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+Settings for LDAPAuthProvider class.
+
+Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com/books/ldap/ch2/>`_
+"""
+
+import textwrap
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, Field
+
+from horizon.backend.settings.auth.ldap import LDAPAuthProviderSettings
+
+
+class LDAPCacheCleanupSettings(BaseModel):
+    """Settings related to LDAP credentials cache cleanup.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
+        HORIZON__AUTH__CACHE__CLEANUP__STALE_SECONDS=36000
+    """
+
+    cron: str = Field(
+        default="0 * * * *",
+        description=textwrap.dedent(
+            """
+            Cron expression used to periodically delete rows from credentials cache.
+
+            See `https://crontab.guru/`_ for more details.
+            """,
+        ),
+    )
+    stale_seconds: int = Field(
+        default=10 * 60 * 60,
+        description="Time after credentials cache row is considered stale and will be deleted, in seconds",
+    )
+
+
+class LDAPCachePasswordHashSettings(BaseModel):
+    """Settings related to LDAP credentials cache password hashing.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__CACHE__PASSWORD_HASH__ALGORITHM=argon2
+        HORIZON__AUTH__CACHE__PASSWORD_HASH__OPTIONS={"time_cost": 2, "memory_cost": 1024, "parallelism": 1}
+    """
+
+    algorithm: str = Field(
+        default="argon2",
+        description=textwrap.dedent(
+            """
+            Hashing algorithm used to hash user credentials.
+
+            See `passlib documentation <https://passlib.readthedocs.io/en/stable/lib/passlib.hash.html#active-hashes>`_
+            for more details.
+            """,
+        ),
+    )
+    options: Dict[str, Any] = Field(
+        default={},
+        description="Options passed to hashing algorithm",
+    )
+
+
+class LDAPCacheSettings(BaseModel):
+    """Settings related to LDAP credentials cache.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__CACHE__EXPIRE_SECONDS=3600  # 1 hour
+        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
+    """
+
+    expire_seconds: int = Field(
+        default=60 * 60,
+        description=textwrap.dedent(
+            """
+            Credentials cache expiration time, in seconds.
+
+            .. warning::
+
+                Please do not set too large value here, as it may lead to security issues.
+            """,
+        ),
+    )
+    password_hash: LDAPCachePasswordHashSettings = Field(
+        default_factory=LDAPCachePasswordHashSettings,
+        description="Password hashing options",
+    )
+    cleanup: Optional[LDAPCacheCleanupSettings] = Field(
+        default_factory=LDAPCacheCleanupSettings,
+        description="Credentials cache cleanup options. Set to ``None`` to disable cleanup.",
+    )
+
+
+class CashedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
+    """Settings for CashedLDAPAuthProvider.
+
+    Examples
+    --------
+
+    .. code-block:: bash
+
+        HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.cached_ldap.CashedLDAPAuthProvider
+        HORIZON__AUTH__ACCESS_KEY__SECRET_KEY=secret
+        HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
+        HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
+        HORIZON__AUTH__CACHE__EXPIRE_SECONDS=3600  # 1 hour
+        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
+    """
+
+    cache: LDAPCacheSettings = Field(default_factory=LDAPCacheSettings, description="Cache related settings")

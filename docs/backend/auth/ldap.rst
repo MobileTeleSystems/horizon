@@ -31,10 +31,10 @@ There are 2 strategies to check for user in LDAP:
 
 By default, **lookup strategy is used**, as it can find user in a complex LDAP/ActiveDirectory environment. For example:
 
-* you can search for user by ``uid``, e.g. ``(uid={username})`` or ``(sAMAccountName={username})``
-* you can search for user by several attributes, e.g. ``(|(uid={username})(mail={username}@domain.com))``
-* you can filter for entries, like ``(&(uid={username})(objectClass=person)``
-* you can filter for users matching a specific group or some other condition, like ``(&(uid={username})(memberOf=cn=MyPrettyGroup,ou=Groups,dc=mycompany,dc=com))``
+* you can search for user by ``uid``, e.g. ``(uid={login})`` or ``(sAMAccountName={login})``
+* you can search for user by several attributes, e.g. ``(|(uid={login})(mail={login}@domain.com))``
+* you can filter for entries, like ``(&(uid={login})(objectClass=person)``
+* you can filter for users matching a specific group or some other condition, like ``(&(uid={login})(memberOf=cn=MyPrettyGroup,ou=Groups,dc=mycompany,dc=com))``
 
 After user is found in LDAP, its :obj:`uid_attribute <horizon.backend.settings.auth.ldap.LDAPSettings.uid_attribute>` is used for audit records.
 

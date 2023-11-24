@@ -25,7 +25,7 @@ async def login(
 ) -> AuthTokenResponseV1:
     token = await auth_provider.get_token(
         grant_type=form_data.grant_type,
-        username=form_data.username,
+        login=form_data.username,
         password=form_data.password,
         scopes=form_data.scopes,
         client_id=form_data.client_id,

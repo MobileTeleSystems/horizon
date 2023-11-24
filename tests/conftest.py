@@ -12,6 +12,7 @@ pytest_plugins = [
     "tests.fixtures.async_session",
     "tests.fixtures.jwt",
     "tests.factories.user",
+    "tests.factories.credentials_cache",
     "tests.factories.namespace",
     "tests.factories.hwm",
     "tests.factories.hwm_history",

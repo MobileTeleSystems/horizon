@@ -50,22 +50,22 @@ class DummyAuthProvider(AuthProvider):
     async def get_token(
         self,
         grant_type: Optional[str] = None,
-        username: Optional[str] = None,
+        login: Optional[str] = None,
         password: Optional[str] = None,
         scopes: Optional[List[str]] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
     ) -> Dict[str, Any]:
-        if not username or not password:
+        if not login or not password:
             raise AuthorizationError("Missing auth credentials")
 
-        log.info("Get/create user %r in database", username)
+        log.info("Get/create user %r in database", login)
         async with self._uow:
-            user = await self._uow.user.get_or_create(username=username)
+            user = await self._uow.user.get_or_create(username=login)
 
         log.info("Used with id %r found", user.id)
         if not user.is_active:
-            raise AuthorizationError(f"User {username!r} is disabled")
+            raise AuthorizationError(f"User {user.username!r} is disabled")
 
         log.info("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user_id=user.id)

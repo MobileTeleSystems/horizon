@@ -38,7 +38,7 @@ else:
 
 class LDAPCredentials(BaseModel):
     """LDAP lookup query is executed using this credentials
-    (instead of username and password provided by user).
+    (instead of login and password provided by user).
 
     Examples
     --------
@@ -93,7 +93,7 @@ class LDAPLookupSettings(BaseModel):
 
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
-        HORIZON__AUTH__LDAP__LOOKUP__QUERY=(uid={username})
+        HORIZON__AUTH__LDAP__LOOKUP__QUERY=(uid={login})
     """
 
     pool: LDAPConnectionPoolSettings = Field(
@@ -105,7 +105,7 @@ class LDAPLookupSettings(BaseModel):
         description="Credentials used for connecting to LDAP while performing user lookup",
     )
     query: str = Field(
-        default="({uid_attribute}={username})",
+        default="({uid_attribute}={login})",
         description=textwrap.dedent(
             """
             LDAP query send in lookup request.
@@ -116,7 +116,7 @@ class LDAPLookupSettings(BaseModel):
 
             Supported substitution values (see :obj:`horizon.backend.settings.auth.ldap.LDAPSettings`.):
               * ``{uid_attribute}``
-              * ``{username}``
+              * ``{login}``
             """,
         ),
     )
@@ -147,6 +147,10 @@ class LDAPSettings(BaseModel):
     url: LDAPUrl = Field(
         description="LDAP URL to connect to",
     )
+    timeout_seconds: Optional[int] = Field(
+        default=10,
+        description="LDAP request timeout, in seconds. ``None`` means no timeout",
+    )
     auth_mechanism: Literal["SIMPLE", "DIGEST-MD5"] = Field(
         default="SIMPLE",
         description="LDAP auth mechanism, used for ``bind`` request",
@@ -165,13 +169,13 @@ class LDAPSettings(BaseModel):
         ),
     )
     bind_dn_template: str = Field(
-        default="{uid_attribute}={username},{base_dn}",
+        default="{uid_attribute}={login},{base_dn}",
         description=textwrap.dedent(
             """
             Template for building DN string, used for checking credentials in LDAP. You can pass any DN value supported by LDAP.
 
             Supported substitution values:
-              * ``{username}``
+              * ``{login}``
               * ``{uid_attribute}`` (see :obj:`~uid_attribute`)
               * ``{base_dn}`` (see :obj:`~base_dn`)
             """,

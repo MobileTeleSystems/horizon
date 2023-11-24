@@ -11,15 +11,13 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import User
-from tests.factories.base import random_datetime, random_string
+from tests.factories.base import random_string
 
 
 def user_factory(**kwargs):
     data = {
         "id": randint(0, 10000000),
         "username": random_string(),
-        "created_at": random_datetime(),
-        "updated_at": random_datetime(),
         "is_active": True,
         "is_deleted": False,
     }

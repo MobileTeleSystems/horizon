@@ -17,7 +17,7 @@ Here is a short example of using sync client to interact with backend.
     # create client object
     client = HorizonClientSync(
         base_url="http://some.domain.com",
-        auth=LoginPassword(username="me", password="12345"),
+        auth=LoginPassword(login="me", password="12345"),
     )
 
     # check for credentials and issue access token

@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from time import time
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from passlib.hash import argon2
 from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import User
+from horizon.backend.db.models import CredentialsCache, User
 from horizon.backend.settings import Settings
+from horizon.backend.settings.auth.cached_ldap import CashedLDAPAuthProviderSettings
 from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
@@ -21,13 +23,13 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
 
-LDAP = "horizon.backend.providers.auth.ldap.LDAPAuthProvider"
+CACHED_LDAP = "horizon.backend.providers.auth.cached_ldap.CashedLDAPAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_creates_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_creates_user(
     test_client: AsyncClient,
     new_user: User,
     access_token_settings: JWTSettings,
@@ -70,8 +72,8 @@ async def test_ldap_auth_get_token_creates_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_for_existing_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_for_existing_user(
     test_client: AsyncClient,
     user: User,
     access_token_settings: JWTSettings,
@@ -109,8 +111,8 @@ async def test_ldap_auth_get_token_for_existing_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_with_wrong_password(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_with_wrong_password(
     test_client: AsyncClient,
     user: User,
 ):
@@ -135,11 +137,11 @@ async def test_ldap_auth_get_token_with_wrong_password(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
     ],
     indirect=True,
 )
-async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
+async def test_cached_ldap_auth_get_token_with_lookup_by_custom_attribute(
     test_client: AsyncClient,
     new_user: User,
     access_token_settings: JWTSettings,
@@ -187,13 +189,13 @@ async def test_ldap_auth_get_token_with_lookup_by_custom_attribute(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
-        {"auth": {"provider": LDAP, "ldap": {"uid_attribute": "mail"}}},
-        {"auth": {"provider": LDAP, "ldap": {"base_dn": "dc=unknown,dc=company"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"uid_attribute": "mail"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"base_dn": "dc=unknown,dc=company"}}},
     ],
     indirect=True,
 )
-async def test_ldap_auth_get_token_with_wrong_lookup_settings(
+async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
     test_client: AsyncClient,
     user: User,
 ):
@@ -219,8 +221,8 @@ async def test_ldap_auth_get_token_with_wrong_lookup_settings(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP, "ldap": {"lookup": None}}}], indirect=True)
-async def test_ldap_auth_get_token_without_lookup(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None}}}], indirect=True)
+async def test_cached_ldap_auth_get_token_without_lookup(
     test_client: AsyncClient,
     user: User,
     access_token_settings: JWTSettings,
@@ -261,13 +263,13 @@ async def test_ldap_auth_get_token_without_lookup(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}}},
-        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}}},
-        {"auth": {"provider": LDAP, "ldap": {"lookup": None, "bind_dn_template": "{login}"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "bind_dn_template": "{login}"}}},
     ],
     indirect=True,
 )
-async def test_ldap_auth_get_token_without_lookup_wrong_settings(
+async def test_cached_ldap_auth_get_token_without_lookup_wrong_settings(
     test_client: AsyncClient,
     user: User,
 ):
@@ -288,8 +290,8 @@ async def test_ldap_auth_get_token_without_lookup_wrong_settings(
     }
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_database(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_database(
     test_client: AsyncClient,
     new_user: User,
     async_session: AsyncSession,
@@ -321,8 +323,8 @@ async def test_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_
     assert not created_user
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_for_missing_user_from_ldap(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_for_missing_user_from_ldap(
     test_client: AsyncClient,
     user: User,
 ):
@@ -348,8 +350,8 @@ async def test_ldap_auth_get_token_for_missing_user_from_ldap(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_for_inactive_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_for_inactive_user(
     test_client: AsyncClient,
     user: User,
 ):
@@ -371,8 +373,8 @@ async def test_ldap_auth_get_token_for_inactive_user(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_deleted": True}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_for_deleted_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_for_deleted_user(
     test_client: AsyncClient,
     user: User,
 ):
@@ -397,8 +399,8 @@ async def test_ldap_auth_get_token_for_deleted_user(
     }
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_get_token_with_malformed_input(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
     new_user: User,
 ):
@@ -447,8 +449,8 @@ async def test_ldap_auth_get_token_with_malformed_input(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_check_inactive_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_check_inactive_user(
     test_client: AsyncClient,
     access_token: str,
     user: User,
@@ -474,7 +476,7 @@ async def test_ldap_auth_check_inactive_user(
         {
             "server": {"debug": False},
             "auth": {
-                "provider": LDAP,
+                "provider": CACHED_LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
                     "lookup": {"pool": {"check_on_startup": False}},
@@ -484,7 +486,7 @@ async def test_ldap_auth_check_inactive_user(
         {
             "server": {"debug": True},
             "auth": {
-                "provider": LDAP,
+                "provider": CACHED_LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
                     "lookup": {"pool": {"check_on_startup": False}},
@@ -493,13 +495,16 @@ async def test_ldap_auth_check_inactive_user(
         },
         {
             "server": {"debug": False},
-            "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
         },
-        {"server": {"debug": True}, "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+        {
+            "server": {"debug": True},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+        },
     ],
     indirect=True,
 )
-async def test_ldap_auth_get_token_ldap_is_unavailable(
+async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_cache_item_is_missing(
     test_client: AsyncClient,
     settings: Settings,
     user: User,
@@ -526,10 +531,157 @@ async def test_ldap_auth_get_token_ldap_is_unavailable(
     }
 
 
+@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+@pytest.mark.parametrize(
+    "credentials_cache_item", [{"login": "developer1", "password_hash": argon2.hash("password")}], indirect=True
+)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"check_on_startup": False}},
+                },
+            },
+        },
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+    ],
+    indirect=True,
+)
+async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_cache_is_up_to_date(
+    test_client: AsyncClient,
+    settings: Settings,
+    user: User,
+    credentials_cache_item: CredentialsCache,
+    access_token_settings: JWTSettings,
+):
+    before = time()
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 200
+
+    content = response.json()
+    assert content["access_token"]
+    assert content["token_type"] == "bearer"
+    assert before < content["expires_at"] <= time() + access_token_settings.expire_seconds
+
+
+@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+@pytest.mark.parametrize(
+    "credentials_cache_item",
+    [
+        {
+            "login": "developer1",
+            "password_hash": argon2.hash("password"),
+            "updated_at": datetime.now(tz=timezone.utc) - timedelta(days=1),
+        },
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {
+            "server": {"debug": False},
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"check_on_startup": False}},
+                },
+            },
+        },
+        {
+            "server": {"debug": False},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+        },
+    ],
+    indirect=True,
+)
+async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_cache_is_expired(
+    test_client: AsyncClient,
+    settings: Settings,
+    user: User,
+    credentials_cache_item: CredentialsCache,
+):
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 503
+    assert response.json() == {
+        "error": {
+            "code": "service_unavailable",
+            "message": "Service unavailable",
+            "details": None,
+        },
+    }
+
+
+@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+@pytest.mark.parametrize(
+    "credentials_cache_item",
+    [
+        {
+            "login": "developer1",
+            "password_hash": argon2.hash("wrong_password"),
+        },
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"check_on_startup": False}},
+                },
+            },
+        },
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+    ],
+    indirect=True,
+)
+async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_cache_contains_wrong_password_hash(
+    test_client: AsyncClient,
+    user: User,
+    credentials_cache_item: CredentialsCache,
+):
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 401
+    assert response.json() == {
+        "error": {
+            "code": "unauthorized",
+            "message": "Wrong credentials",
+            "details": None,
+        },
+    }
+
+
 # LDAPAuthProvider is not accessed while checking access token to avoid calling it on each incoming request
 @pytest.mark.parametrize("user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_check(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_check(
     test_client: AsyncClient,
     access_token: str,
 ):
@@ -541,8 +693,8 @@ async def test_ldap_auth_check(
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_check_missing_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_check_missing_user(
     test_client: AsyncClient,
     fake_access_token: str,
     new_user: User,
@@ -566,8 +718,8 @@ async def test_ldap_auth_check_missing_user(
 
 
 @pytest.mark.parametrize("user", [{"is_deleted": True}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_check_disabled_user(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_check_disabled_user(
     test_client: AsyncClient,
     access_token: str,
     user: User,
@@ -590,8 +742,8 @@ async def test_ldap_auth_check_disabled_user(
     }
 
 
-@pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
-async def test_ldap_auth_check_invalid_token(
+@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
+async def test_cached_ldap_auth_check_invalid_token(
     test_client: AsyncClient,
     invalid_access_token: str,
 ):

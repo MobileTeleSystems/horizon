@@ -73,10 +73,10 @@ class Repository(ABC, Generic[Model]):
         result = await self._session.scalars(query)
         return result.one_or_none()
 
-    async def _delete(self, user_id: int) -> Model | None:
+    async def _delete(self, id: int) -> Model | None:
         model_type = self.model_type()
         query: ReturningDelete[tuple[Model]] = (
-            delete(model_type).where(model_type.id == user_id).returning(model_type)  # type: ignore[attr-defined]
+            delete(model_type).where(model_type.id == id).returning(model_type)  # type: ignore[attr-defined]
         )
         result = await self._session.scalars(query)
         return result.one_or_none()

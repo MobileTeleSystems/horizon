@@ -72,7 +72,7 @@ class AuthProvider(ABC):
     async def get_token(
         self,
         grant_type: Optional[str] = None,
-        username: Optional[str] = None,
+        login: Optional[str] = None,
         password: Optional[str] = None,
         scopes: Optional[List[str]] = None,
         client_id: Optional[str] = None,

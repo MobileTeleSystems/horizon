@@ -64,6 +64,8 @@ pyyaml = {version = "*", optional = true}
 asgi-correlation-id = {version = "*", optional = true}
 uuid6 = {version = "*", optional = true}
 devtools = {version = "*", optional = true}
+argon2-cffi = {version = "*", optional = true}
+passlib = {version = "*", optional = true}
 
 [tool.poetry.extras]
 backend = [
@@ -82,12 +84,14 @@ backend = [
   "uuid6",
   "pydantic-settings",
   "devtools",
+  "passlib",
 ]
 postgres = [
   "asyncpg",
 ]
 ldap = [
   "bonsai",
+  "argon2-cffi",
 ]
 client-sync = [
   "authlib",
@@ -117,6 +121,7 @@ wemake-python-styleguide = {version = "^0.18.0", python = ">=3.11"}
 flake8-pyproject = {version = "^1.2.3", python = ">=3.11"}
 types-python-jose = {version = "^3.3.4.8", python = ">=3.11"}
 types-pyyaml = {version = "^6.0.12.12", python = ">=3.11"}
+types-passlib = {version = "^1.7.7.13", python = ">=3.11"}
 
 [tool.poetry.group.docs.dependencies]
 setuptools-git-versioning = {version = "^1.13.5", python = ">=3.11"}

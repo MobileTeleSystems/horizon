@@ -32,10 +32,10 @@ class LoginPassword(BaseAuth, BaseModel):
 
         from horizon.client.auth import LoginPassword
 
-        auth = LoginPassword(username="me", password="12345")
+        auth = LoginPassword(login="me", password="12345")
     """
 
-    username: str
+    login: str
     password: SecretStr
 
     type: Literal["login_password"] = "login_password"
@@ -51,6 +51,6 @@ class LoginPassword(BaseAuth, BaseModel):
 
         return {
             "url": str(url),
-            "username": self.username,
+            "username": self.login,
             "password": self.password.get_secret_value(),
         }

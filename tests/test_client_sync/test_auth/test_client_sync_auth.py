@@ -15,7 +15,7 @@ from horizon.commons.exceptions.auth import AuthorizationError
 def test_sync_client_authorize_with_login_password(external_app_url: str, user: User):
     sync_client = HorizonClientSync(
         base_url=external_app_url,
-        auth=LoginPassword(username=user.username, password="test"),
+        auth=LoginPassword(login=user.username, password="test"),
     )
     sync_client.authorize()
     assert sync_client.session.token

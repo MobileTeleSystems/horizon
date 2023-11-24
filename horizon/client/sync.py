@@ -50,7 +50,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         from horizon.client.auth import LoginPassword
         from horizon.client.sync import HorizonClientSync
 
-        auth = LoginPassword(username="me", password="12345")
+        auth = LoginPassword(login="me", password="12345")
         client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
     """
 

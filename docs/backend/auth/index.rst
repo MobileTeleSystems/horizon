@@ -11,6 +11,7 @@ Horizon supports different auth provider implementations. They are designed to b
 
     dummy
     ldap
+    cached_ldap
 
 .. toctree::
     :maxdepth: 2

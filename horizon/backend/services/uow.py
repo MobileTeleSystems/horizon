@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing_extensions import Annotated
 
 from horizon.backend.db.repositories import (
+    CredentialsCacheRepository,
     HWMHistoryRepository,
     HWMRepository,
     NamespaceRepository,
@@ -24,6 +25,7 @@ class UnitOfWork:
         self.hwm_history = HWMHistoryRepository(session=session)
         self.user = UserRepository(session=session)
         self.hwm = HWMRepository(session=session)
+        self.credentials_cache = CredentialsCacheRepository(session=session)
 
     async def __aenter__(self):
         return self

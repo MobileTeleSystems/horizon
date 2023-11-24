@@ -33,6 +33,7 @@ async def test_dummy_auth_get_token_creates_user(
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
+    before = time()
     response = await test_client.post(
         "v1/auth/token",
         data={
@@ -45,7 +46,7 @@ async def test_dummy_auth_get_token_creates_user(
     content = response.json()
     assert content["access_token"]
     assert content["token_type"] == "bearer"
-    assert time() < content["expires_at"] <= time() + access_token_settings.expire_seconds
+    assert before < content["expires_at"] <= time() + access_token_settings.expire_seconds
 
     jwt = decode_jwt(
         content["access_token"],
@@ -73,6 +74,7 @@ async def test_dummy_auth_get_token_for_existing_user(
     access_token_settings: JWTSettings,
     async_session: AsyncSession,
 ):
+    before = time()
     response = await test_client.post(
         "v1/auth/token",
         data={
@@ -85,7 +87,7 @@ async def test_dummy_auth_get_token_for_existing_user(
     content = response.json()
     assert content["access_token"]
     assert content["token_type"] == "bearer"
-    assert time() < content["expires_at"] <= time() + access_token_settings.expire_seconds
+    assert before < content["expires_at"] <= time() + access_token_settings.expire_seconds
 
     jwt = decode_jwt(
         content["access_token"],

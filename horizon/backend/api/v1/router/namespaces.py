@@ -25,7 +25,7 @@ router = APIRouter(prefix="/namespaces", tags=["Namespace"], responses=get_error
 
 @router.get(
     "/",
-    description="Paginage namespaces",
+    summary="Paginage namespaces",
     dependencies=[Depends(current_user)],
 )
 async def paginate_namespaces(
@@ -38,7 +38,7 @@ async def paginate_namespaces(
 
 @router.post(
     "/",
-    description="Create namespace",
+    summary="Create namespace",
     status_code=status.HTTP_201_CREATED,
 )
 async def create_namespace(
@@ -53,7 +53,7 @@ async def create_namespace(
 
 @router.get(
     "/{namespace_name}",
-    description="Get namespace by name",
+    summary="Get namespace by name",
     dependencies=[Depends(current_user)],
 )
 async def get_namespace(
@@ -66,7 +66,7 @@ async def get_namespace(
 
 @router.patch(
     "/{namespace_name}",
-    description="Update namespace",
+    summary="Update namespace",
 )
 async def update_namespace(
     namespace_name: str,
@@ -85,7 +85,7 @@ async def update_namespace(
 
 @router.delete(
     "/{namespace_name}",
-    description="Delete namespace",
+    summary="Delete namespace",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_namespace(
@@ -102,7 +102,7 @@ async def delete_namespace(
 
 @router.get(
     "/{namespace_name}/hwm/",
-    description="Paginate HWM",
+    summary="Paginate HWM",
     dependencies=[Depends(current_user)],
 )
 async def paginate_hwm(
@@ -120,7 +120,7 @@ async def paginate_hwm(
 
 @router.get(
     "/{namespace_name}/hwm/{hwm_name}",
-    description="Get HWM by name",
+    summary="Get HWM by name",
     dependencies=[Depends(current_user)],
 )
 async def get_hwm(
@@ -138,7 +138,7 @@ async def get_hwm(
 
 @router.patch(
     "/{namespace_name}/hwm/{hwm_name}",
-    description="Write HWM value",
+    summary="Write HWM value",
 )
 async def write_hwm(
     namespace_name: str,
@@ -164,7 +164,7 @@ async def write_hwm(
 
 @router.delete(
     "/{namespace_name}/hwm/{hwm_name}",
-    description="Delete HWM",
+    summary="Delete HWM",
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_hwm(
@@ -188,7 +188,7 @@ async def delete_hwm(
 
 @router.get(
     "/{namespace_name}/hwm/{hwm_name}/history",
-    description="Paginate HWM history",
+    summary="Paginate HWM history",
     dependencies=[Depends(current_user)],
 )
 async def paginate_hwm_history(

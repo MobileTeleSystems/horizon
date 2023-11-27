@@ -65,10 +65,15 @@ class LDAPConnectionPoolSettings(BaseModel):
 
     .. code-block:: bash
 
+        HORIZON__AUTH__LDAP__LOOKUP__POOL__ENABLED=True
         HORIZON__AUTH__LDAP__LOOKUP__POOL__MAX=10
         HORIZON__AUTH__LDAP__LOOKUP__POOL__CHECK_ON_STARTUP=True
     """
 
+    enabled: bool = Field(
+        default=True,
+        description="Set to ``True`` to enable connection pool",
+    )
     check_on_startup: bool = Field(
         default=True,
         description="If ``True``, and LDAP is not available during application start, abort application startup",
@@ -91,11 +96,17 @@ class LDAPLookupSettings(BaseModel):
 
     .. code-block:: bash
 
+        HORIZON__AUTH__LDAP__LOOKUP__ENABLED=True
+        HORIZON__AUTH__LDAP__LOOKUP__POOL__ENABLED=True
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
         HORIZON__AUTH__LDAP__LOOKUP__QUERY=(uid={login})
     """
 
+    enabled: bool = Field(
+        default=True,
+        description="Set to ``True`` to enable lookup",
+    )
     pool: LDAPConnectionPoolSettings = Field(
         default_factory=LDAPConnectionPoolSettings,
         description="LDAP connection pool settings",
@@ -182,9 +193,9 @@ class LDAPSettings(BaseModel):
         ),
     )
 
-    lookup: Optional[LDAPLookupSettings] = Field(
+    lookup: LDAPLookupSettings = Field(
         default_factory=LDAPLookupSettings,
-        description="LDAP search options. Set to ``None`` to disable lookup.",
+        description="LDAP search options",
     )
 
 
@@ -199,6 +210,8 @@ class LDAPAuthProviderSettings(BaseModel):
         HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.ldap.LDAPAuthProvider
         HORIZON__AUTH__ACCESS_KEY__SECRET_KEY=secret
         HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
+        HORIZON__AUTH__LDAP__LOOKUP__ENABLED=True
+        HORIZON__AUTH__LDAP__LOOKUP__POOL_ENABLED=True
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
     """

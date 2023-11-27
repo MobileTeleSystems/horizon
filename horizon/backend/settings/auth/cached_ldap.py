@@ -84,6 +84,8 @@ class CachedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
         HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.cached_ldap.CachedLDAPAuthProvider
         HORIZON__AUTH__ACCESS_KEY__SECRET_KEY=secret
         HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
+        HORIZON__AUTH__LDAP__LOOKUP__ENABLED=True
+        HORIZON__AUTH__LDAP__LOOKUP__POOL_ENABLED=True
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
         HORIZON__AUTH__CACHE__EXPIRE_SECONDS=3600  # 1 hour

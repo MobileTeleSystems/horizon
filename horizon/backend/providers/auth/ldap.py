@@ -12,11 +12,12 @@ Similar to:
 """
 
 import logging
+from contextlib import asynccontextmanager, suppress
 from time import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple
 
 from bonsai import InvalidDN, LDAPClient
-from bonsai.asyncio import AIOConnectionPool
+from bonsai.asyncio import AIOConnectionPool, AIOLDAPConnection
 from bonsai.errors import AuthenticationError, LDAPError
 from devtools import pformat
 from fastapi import Depends, FastAPI
@@ -26,12 +27,7 @@ from horizon.backend.db.models import User
 from horizon.backend.dependencies import Stub
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.services import UnitOfWork
-from horizon.backend.settings import Settings
-from horizon.backend.settings.auth.ldap import (
-    LDAPAuthProviderSettings,
-    LDAPLookupSettings,
-    LDAPSettings,
-)
+from horizon.backend.settings.auth.ldap import LDAPAuthProviderSettings
 from horizon.backend.utils.jwt import decode_jwt, sign_jwt
 from horizon.commons.exceptions import (
     AuthorizationError,
@@ -45,50 +41,21 @@ log = logging.getLogger(__name__)
 class LDAPAuthProvider(AuthProvider):
     def __init__(
         self,
-        settings: Annotated[Settings, Depends(Stub(Settings))],
         auth_settings: Annotated[LDAPAuthProviderSettings, Depends(Stub(LDAPAuthProviderSettings))],
         pool: Annotated[Optional[AIOConnectionPool], Depends(Stub(AIOConnectionPool))],
         unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._pool: Optional[AIOConnectionPool] = pool
-        self._settings: Settings = settings
         self._auth_settings: LDAPAuthProviderSettings = auth_settings
         self._uow: UnitOfWork = unit_of_work
 
     @classmethod
-    def get_lookup_pool(cls, settings: LDAPSettings) -> Optional[AIOConnectionPool]:
-        if not settings.lookup:
-            return None
-
-        log.debug("Lookup enabled, creating connection pool")
-        client = LDAPClient(str(settings.url))
-        if settings.lookup.credentials:
-            client.set_credentials(
-                settings.auth_mechanism,
-                settings.lookup.credentials.user,
-                settings.lookup.credentials.password.get_secret_value(),
-            )
-        if settings.lookup.pool.check_on_startup:
-            try:
-                client.connect(timeout=settings.timeout_seconds)
-            except LDAPError as e:
-                raise ServiceError("Failed to connect to LDAP") from e
-
-        return AIOConnectionPool(
-            client,
-            minconn=settings.lookup.pool.initial,
-            maxconn=settings.lookup.pool.max,
-        )
-
-    @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
-        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(settings))
+        auth_settings = LDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
+        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(auth_settings))
         app.dependency_overrides[AuthProvider] = cls
-        app.dependency_overrides[LDAPAuthProviderSettings] = lambda: settings
-
-        # lookup uses the same connection pool for all users
-        pool = cls.get_lookup_pool(settings.ldap)
+        app.dependency_overrides[LDAPAuthProviderSettings] = lambda: auth_settings
+        pool = cls._create_lookup_pool(auth_settings)
         app.dependency_overrides[AIOConnectionPool] = lambda: pool
         return app
 
@@ -136,14 +103,75 @@ class LDAPAuthProvider(AuthProvider):
             "expires_at": expires_at,
         }
 
+    @classmethod
+    def _get_lookup_client(cls, settings: LDAPAuthProviderSettings) -> LDAPClient:
+        """Create client for lookup queries"""
+        client = LDAPClient(str(settings.ldap.url))
+        if settings.ldap.lookup.credentials:
+            client.set_credentials(
+                settings.ldap.auth_mechanism,
+                settings.ldap.lookup.credentials.user,
+                settings.ldap.lookup.credentials.password.get_secret_value(),
+            )
+        return client
+
+    @classmethod
+    def _create_lookup_pool(cls, settings: LDAPAuthProviderSettings) -> Optional[AIOConnectionPool]:
+        """Create and check connection pool for lookup queries"""
+        if not settings.ldap.lookup.enabled or not settings.ldap.lookup.pool.enabled:
+            return None
+
+        log.debug("Lookup enabled, creating connection pool")
+        client = cls._get_lookup_client(settings)
+        if settings.ldap.lookup.pool.check_on_startup:
+            try:
+                client.connect(timeout=settings.ldap.timeout_seconds)
+            except LDAPError as e:
+                raise ServiceError("Failed to connect to LDAP") from e
+
+        return AIOConnectionPool(
+            client,
+            minconn=settings.ldap.lookup.pool.initial,
+            maxconn=settings.ldap.lookup.pool.max,
+        )
+
+    @asynccontextmanager
+    async def _get_lookup_connection(self) -> AsyncGenerator[AIOLDAPConnection, None]:
+        """Create connection used for lookup queries"""
+        try:
+            connect: AsyncContextManager[AIOLDAPConnection]
+            if self._pool:
+                log.debug("Using lookup pool")
+                connect = self._pool.spawn()
+
+            else:
+                log.debug("Creating non-pooled connection for lookup")
+                client = self._get_lookup_client(self._auth_settings)
+                connect = client.connect(is_async=True, timeout=self._auth_settings.ldap.timeout_seconds)
+
+            async with connect as connection:
+                try:  # noqa: WPS505
+                    yield connection
+                except LDAPError as err:
+                    # Explicitly closing connection to avoid returning broken connection to a pool.
+                    # Also do that twice to avoid partially closing connection,
+                    # See https://github.com/noirello/bonsai/issues/87
+                    with suppress(LDAPError):
+                        connection.close()  # noqa: WPS220
+                    with suppress(LDAPError):
+                        connection.close()  # noqa: WPS220
+                    raise ServiceError("Failed to connect to LDAP") from err
+
+        except LDAPError as e:
+            raise ServiceError("Failed to connect to LDAP") from e
+
     async def _resolve_username_from_ldap(self, login: str, password: str) -> str:
         log.info("Resolve user %r in LDAP", login)
         username = login
-        lookup = self._auth_settings.ldap.lookup
 
-        if lookup:
+        if self._auth_settings.ldap.lookup.enabled:
             log.info("Perform lookup in LDAP")
-            dn, username = await self._lookup_user(login, lookup)
+            dn, username = await self._lookup_user(login)
         else:
             dn = self._auth_settings.ldap.bind_dn_template.format(
                 login=login,
@@ -156,33 +184,38 @@ class LDAPAuthProvider(AuthProvider):
 
         return username
 
-    async def _lookup_user(self, login: str, options: LDAPLookupSettings) -> Tuple[str, str]:
+    async def _lookup_user(self, login: str) -> Tuple[str, str]:
         # Reference implementations:
         # https://github.com/dpgaspar/Flask-AppBuilder/blob/2c5763371b81cd679d88b9971ba5d1fc4d71d54b/flask_appbuilder/security/manager.py#L902
         # https://github.com/jupyterhub/ldapauthenticator/blob/main/ldapauthenticator/ldapauthenticator.py
-        query = options.query.format(login=login, uid_attribute=self._auth_settings.ldap.uid_attribute)
+        query = self._auth_settings.ldap.lookup.query.format(
+            login=login,
+            uid_attribute=self._auth_settings.ldap.uid_attribute,
+        )
+        base_dn = self._auth_settings.ldap.base_dn
+        scope = self._auth_settings.ldap.lookup.scope
+        log.debug("Lookup query: %r", query)
+        log.debug("Base DN: %r", base_dn)
+        log.debug("Scope: %r", scope)
 
-        pool: AIOConnectionPool = self._pool  # type: ignore[assignment]
-        try:
-            async with pool.spawn() as connection:
-                results = await connection.search(
-                    timeout=self._auth_settings.ldap.timeout_seconds,
-                    base=self._auth_settings.ldap.base_dn,
-                    scope=options.scope,
-                    filter_exp=query,
-                    attrlist=["*"],
-                    sizelimit=1,
-                )
-                if results:
-                    entry = results[0]
-                    log.debug("Found entry:\n%s", pformat(entry))
-                    dn = str(entry["dn"])
-                    uid = entry[self._auth_settings.ldap.uid_attribute][0]
-                    return dn, uid
-        except LDAPError as e:
-            raise ServiceError("Failed to connect to LDAP") from e
+        async with self._get_lookup_connection() as connection:
+            results = await connection.search(
+                base=base_dn,
+                scope=scope,
+                filter_exp=query,
+                attrlist=["*"],
+                sizelimit=1,
+                timeout=self._auth_settings.ldap.timeout_seconds,
+            )
 
-        raise EntityNotFoundError("User", "username", login)
+        if not results:
+            raise EntityNotFoundError("User", "username", login)
+
+        entry = results[0]
+        log.debug("Found entry:\n%s", pformat(entry))
+        dn = str(entry["dn"])
+        uid = entry[self._auth_settings.ldap.uid_attribute][0]
+        return dn, uid
 
     async def _login(self, login: str, password: str):
         client = LDAPClient(str(self._auth_settings.ldap.url))

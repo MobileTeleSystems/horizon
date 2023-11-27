@@ -350,6 +350,7 @@ build_docs:
     # update version number in docs
     - poetry version "${VERSION}"
     # get openapi.json
+    - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - wget http://backend:8000/openapi.json -O docs/static/openapi.json
   script:
     - cd docs

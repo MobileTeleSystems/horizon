@@ -15,7 +15,6 @@ from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import CredentialsCache, User
 from horizon.backend.settings import Settings
-from horizon.backend.settings.auth.cached_ldap import CachedLDAPAuthProviderSettings
 from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
@@ -31,9 +30,9 @@ pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_creates_user(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     new_user: User,
     access_token_settings: JWTSettings,
-    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
     before = time()
@@ -60,6 +59,7 @@ async def test_cached_ldap_auth_get_token_creates_user(
     user_id = jwt["user_id"]
     assert user_id
 
+    # User is created
     query = select(User).where(User.id == user_id)
     users = await async_session.scalars(query)
     created_user = users.one()
@@ -70,15 +70,26 @@ async def test_cached_ldap_auth_get_token_creates_user(
     assert created_user.is_active
     assert not created_user.is_deleted
 
+    # credentials cache is updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user_id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one()
+
+    assert cache_item.login == new_user.username
+    assert cache_item.created_at >= current_dt
+    assert cache_item.updated_at >= current_dt
+    assert argon2.verify("password", cache_item.password_hash)
+
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_for_existing_user(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
     access_token_settings: JWTSettings,
-    async_session: AsyncSession,
 ):
+    current_dt = datetime.now(tz=timezone.utc)
     before = time()
     response = await test_client.post(
         "v1/auth/token",
@@ -106,20 +117,31 @@ async def test_cached_ldap_auth_get_token_for_existing_user(
     query_result = await async_session.scalars(query)
     user_after = query_result.one()
 
-    # Nothing is changed
+    # user is not changed
     assert naturally_equivalent(user_after, user)
 
+    # credentials cache is updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one()
 
-@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+    assert cache_item.login == user.username
+    assert cache_item.created_at >= current_dt
+    assert cache_item.updated_at >= current_dt
+    assert argon2.verify("password", cache_item.password_hash)
+
+
+@pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_with_wrong_password(
     test_client: AsyncClient,
-    user: User,
+    async_session: AsyncSession,
+    new_user: User,
 ):
     response = await test_client.post(
         "v1/auth/token",
         data={
-            "username": user.username,
+            "username": new_user.username,
             "password": secrets.token_hex(16),
         },
     )
@@ -132,20 +154,34 @@ async def test_cached_ldap_auth_get_token_with_wrong_password(
         },
     }
 
+    # user is not created
+    query = select(User).where(User.username == new_user.username)
+    users = await async_session.scalars(query)
+    created_user = users.one_or_none()
+
+    assert not created_user
+
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.login == new_user.username)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query_template": "(mail={login})"}}}},
     ],
     indirect=True,
 )
 async def test_cached_ldap_auth_get_token_with_lookup_by_custom_attribute(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     new_user: User,
     access_token_settings: JWTSettings,
-    async_session: AsyncSession,
 ):
     current_dt = datetime.now(tz=timezone.utc)
     before = time()
@@ -184,12 +220,22 @@ async def test_cached_ldap_auth_get_token_with_lookup_by_custom_attribute(
     assert created_user.is_active
     assert not created_user.is_deleted
 
+    # credentials cache is updated, containing login == user email
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user_id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one()
 
-@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+    assert cache_item.login == "developer.one@ldapmock.local"
+    assert cache_item.created_at >= current_dt
+    assert cache_item.updated_at >= current_dt
+    assert argon2.verify("password", cache_item.password_hash)
+
+
+@pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query": "(mail={login})"}}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"query_template": "(mail={login})"}}}},
         {"auth": {"provider": CACHED_LDAP, "ldap": {"uid_attribute": "mail"}}},
         {"auth": {"provider": CACHED_LDAP, "ldap": {"base_dn": "dc=unknown,dc=company"}}},
     ],
@@ -197,12 +243,13 @@ async def test_cached_ldap_auth_get_token_with_lookup_by_custom_attribute(
 )
 async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
     test_client: AsyncClient,
-    user: User,
+    async_session: AsyncSession,
+    new_user: User,
 ):
     response = await test_client.post(
         "v1/auth/token",
         data={
-            "username": user.username,
+            "username": new_user.username,
             "password": "password",
         },
     )
@@ -210,14 +257,28 @@ async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"User with username='{user.username}' not found",
+            "message": f"User with username='{new_user.username}' not found",
             "details": {
                 "entity_type": "User",
                 "field": "username",
-                "value": user.username,
+                "value": new_user.username,
             },
         },
     }
+
+    # user is not created
+    query = select(User).where(User.username == new_user.username)
+    users = await async_session.scalars(query)
+    created_user = users.one_or_none()
+
+    assert not created_user
+
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.login == new_user.username)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
@@ -226,10 +287,11 @@ async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
 )
 async def test_cached_ldap_auth_get_token_without_lookup(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
     access_token_settings: JWTSettings,
-    async_session: AsyncSession,
 ):
+    current_dt = datetime.now(tz=timezone.utc)
     before = time()
     response = await test_client.post(
         "v1/auth/token",
@@ -257,11 +319,21 @@ async def test_cached_ldap_auth_get_token_without_lookup(
     query_result = await async_session.scalars(query)
     user_after = query_result.one()
 
-    # Nothing is changed
+    # user is not changed
     assert naturally_equivalent(user_after, user)
 
+    # credentials cache is updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one()
 
-@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+    assert cache_item.login == user.username
+    assert cache_item.created_at >= current_dt
+    assert cache_item.updated_at >= current_dt
+    assert argon2.verify("password", cache_item.password_hash)
+
+
+@pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize(
     "settings",
     [
@@ -273,12 +345,13 @@ async def test_cached_ldap_auth_get_token_without_lookup(
 )
 async def test_cached_ldap_auth_get_token_without_lookup_wrong_settings(
     test_client: AsyncClient,
-    user: User,
+    async_session: AsyncSession,
+    new_user: User,
 ):
     response = await test_client.post(
         "v1/auth/token",
         data={
-            "username": user.username,
+            "username": new_user.username,
             "password": "password",
         },
     )
@@ -291,12 +364,26 @@ async def test_cached_ldap_auth_get_token_without_lookup_wrong_settings(
         },
     }
 
+    # user is not created
+    query = select(User).where(User.username == new_user.username)
+    users = await async_session.scalars(query)
+    created_user = users.one_or_none()
+
+    assert not created_user
+
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.login == new_user.username)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_for_missing_user_from_both_ldap_and_internal_database(
     test_client: AsyncClient,
-    new_user: User,
     async_session: AsyncSession,
+    new_user: User,
 ):
     response = await test_client.post(
         "v1/auth/token",
@@ -324,10 +411,18 @@ async def test_cached_ldap_auth_get_token_for_missing_user_from_both_ldap_and_in
 
     assert not created_user
 
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.login == new_user.username)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_for_missing_user_from_ldap(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
 ):
     response = await test_client.post(
@@ -350,11 +445,19 @@ async def test_cached_ldap_auth_get_token_for_missing_user_from_ldap(
         },
     }
 
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_for_inactive_user(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
 ):
     response = await test_client.post(
@@ -373,11 +476,19 @@ async def test_cached_ldap_auth_get_token_for_inactive_user(
         },
     }
 
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_deleted": True}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_for_deleted_user(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
 ):
     response = await test_client.post(
@@ -400,10 +511,18 @@ async def test_cached_ldap_auth_get_token_for_deleted_user(
         },
     }
 
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     new_user: User,
 ):
     username = new_user.username
@@ -449,11 +568,26 @@ async def test_cached_ldap_auth_get_token_with_malformed_input(
     assert response.status_code == 422
     assert response.json() == expected
 
+    # user is not created
+    query = select(User).where(User.username == username)
+    users = await async_session.scalars(query)
+    created_user = users.one_or_none()
+
+    assert not created_user
+
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.login == username)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
+
 
 @pytest.mark.parametrize("user", [{"username": "developer1", "is_active": False}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP}}], indirect=True)
 async def test_cached_ldap_auth_check_inactive_user(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     access_token: str,
     user: User,
 ):
@@ -528,6 +662,7 @@ async def test_cached_ldap_auth_check_inactive_user(
 )
 async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_cache_item_is_missing(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     settings: Settings,
     user: User,
 ):
@@ -551,6 +686,13 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
             "details": details,
         },
     }
+
+    # credentials are not cached
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert not cache_item
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
@@ -584,6 +726,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
 )
 async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_cache_is_up_to_date(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     settings: Settings,
     user: User,
     credentials_cache_item: CredentialsCache,
@@ -603,6 +746,13 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
     assert content["access_token"]
     assert content["token_type"] == "bearer"
     assert before < content["expires_at"] <= time() + access_token_settings.expire_seconds
+
+    # credentials cache item is not updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert naturally_equivalent(cache_item, credentials_cache_item)
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
@@ -649,6 +799,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
 )
 async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_cache_is_expired(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     settings: Settings,
     user: User,
     credentials_cache_item: CredentialsCache,
@@ -668,6 +819,12 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
             "details": None,
         },
     }
+    # credentials cache item is not updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert naturally_equivalent(cache_item, credentials_cache_item)
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
@@ -708,6 +865,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
 )
 async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_cache_contains_wrong_password_hash(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     user: User,
     credentials_cache_item: CredentialsCache,
 ):
@@ -726,6 +884,12 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
             "details": None,
         },
     }
+    # credentials cache item is not updated
+    query = select(CredentialsCache).where(CredentialsCache.user_id == user.id)
+    cache = await async_session.scalars(query)
+    cache_item = cache.one_or_none()
+
+    assert naturally_equivalent(cache_item, credentials_cache_item)
 
 
 # LDAPAuthProvider is not accessed while checking access token to avoid calling it on each incoming request

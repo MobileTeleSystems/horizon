@@ -101,7 +101,7 @@ async def test_dummy_auth_get_token_for_existing_user(
     query_result = await async_session.scalars(query)
     user_after = query_result.one()
 
-    # Nothing is changed
+    # user is not changed
     assert naturally_equivalent(user_after, user)
 
 
@@ -158,6 +158,7 @@ async def test_dummy_auth_get_token_for_deleted_user(
 @pytest.mark.parametrize("settings", [{"auth": {"provider": DUMMY}}], indirect=True)
 async def test_dummy_auth_get_token_with_malformed_input(
     test_client: AsyncClient,
+    async_session: AsyncSession,
     new_user: User,
 ):
     username = new_user.username
@@ -202,6 +203,13 @@ async def test_dummy_auth_get_token_with_malformed_input(
 
     assert response.status_code == 422
     assert response.json() == expected
+
+    # user is not created
+    query = select(User).where(User.username == new_user.username)
+    users = await async_session.scalars(query)
+    created_user = users.one_or_none()
+
+    assert not created_user
 
 
 @pytest.mark.parametrize("settings", [{"auth": {"provider": DUMMY}}], indirect=True)

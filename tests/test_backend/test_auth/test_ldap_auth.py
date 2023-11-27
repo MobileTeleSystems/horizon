@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import secrets
+from copy import deepcopy
 from datetime import datetime, timezone
 from time import time
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from fastapi import FastAPI
 from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import User
+from horizon.backend.providers.auth.ldap import LDAPAuthProvider
 from horizon.backend.settings import Settings
 from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
@@ -513,7 +516,7 @@ async def test_ldap_auth_check_inactive_user(
                 "provider": LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
-                    "lookup": {"pool": {"check_on_startup": False}},
+                    "lookup": {"enabled": True, "check_on_startup": False, "pool": {"enabled": True}},
                 },
             },
         },
@@ -523,7 +526,7 @@ async def test_ldap_auth_check_inactive_user(
                 "provider": LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
-                    "lookup": {"pool": {"check_on_startup": False}},
+                    "lookup": {"enabled": True, "check_on_startup": False, "pool": {"enabled": True}},
                 },
             },
         },
@@ -533,7 +536,7 @@ async def test_ldap_auth_check_inactive_user(
                 "provider": LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
-                    "lookup": {"pool": {"enabled": False}},
+                    "lookup": {"enabled": True, "check_on_startup": False, "pool": {"enabled": False}},
                 },
             },
         },
@@ -543,17 +546,29 @@ async def test_ldap_auth_check_inactive_user(
                 "provider": LDAP,
                 "ldap": {
                     "url": "ldap://unknown.host",
-                    "lookup": {"pool": {"enabled": False}},
+                    "lookup": {"enabled": True, "check_on_startup": False, "pool": {"enabled": False}},
                 },
             },
         },
         {
             "server": {"debug": False},
-            "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"enabled": False},
+                },
+            },
         },
         {
             "server": {"debug": True},
-            "auth": {"provider": LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"enabled": False},
+                },
+            },
         },
     ],
     indirect=True,
@@ -585,7 +600,65 @@ async def test_ldap_auth_get_token_ldap_is_unavailable(
     }
 
 
-# LDAPAuthProvider is not accessed while checking access token to avoid calling it on each incoming request
+@pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
+@pytest.mark.parametrize(
+    "settings",
+    [
+        {
+            "server": {"debug": False},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "lookup": {"check_on_startup": False, "pool": {"enabled": True}},
+                },
+            },
+        },
+        {
+            "server": {"debug": False},
+            "auth": {
+                "provider": LDAP,
+                "ldap": {
+                    "lookup": {"check_on_startup": False, "pool": {"enabled": False}},
+                },
+            },
+        },
+    ],
+    indirect=True,
+)
+async def test_ldap_auth_get_token_ldap_is_unavailable_but_then_restored(
+    test_client: AsyncClient,
+    settings: Settings,
+    test_app: FastAPI,
+    user: User,
+):
+    # patch application to make all LDAP connections failing
+    valid_settings = deepcopy(settings.auth)
+    settings.auth.ldap["url"] = "ldap://unknown.host"
+
+    LDAPAuthProvider.setup(test_app)
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 503
+
+    settings.auth = valid_settings
+    LDAPAuthProvider.setup(test_app)
+    response = await test_client.post(
+        "v1/auth/token",
+        data={
+            "username": user.username,
+            "password": "password",
+        },
+    )
+    assert response.status_code == 200
+
+
+# LDAP is not accessed while checking access token to avoid calling it on each incoming request
+# so check is successful even for username missing in LDAP
 @pytest.mark.parametrize("user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
 @pytest.mark.parametrize("settings", [{"auth": {"provider": LDAP}}], indirect=True)
 async def test_ldap_auth_check(

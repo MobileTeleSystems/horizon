@@ -118,17 +118,20 @@ class LDAPAuthProvider(AuthProvider):
     @classmethod
     def _create_lookup_pool(cls, settings: LDAPAuthProviderSettings) -> Optional[AIOConnectionPool]:
         """Create and check connection pool for lookup queries"""
-        if not settings.ldap.lookup.enabled or not settings.ldap.lookup.pool.enabled:
+        if not settings.ldap.lookup.enabled:
             return None
 
-        log.debug("Lookup enabled, creating connection pool")
         client = cls._get_lookup_client(settings)
-        if settings.ldap.lookup.pool.check_on_startup:
+        if settings.ldap.lookup.check_on_startup:
             try:
                 client.connect(timeout=settings.ldap.timeout_seconds)
             except LDAPError as e:
                 raise ServiceError("Failed to connect to LDAP") from e
 
+        if not settings.ldap.lookup.pool.enabled:
+            return None
+
+        log.debug("Lookup enabled, creating connection pool")
         return AIOConnectionPool(
             client,
             minconn=settings.ldap.lookup.pool.initial,

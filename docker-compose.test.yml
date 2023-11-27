@@ -41,8 +41,6 @@ services:
     ports:
       - 389:389
       - 636:636
-    volumes:
-      - ./docker/mocks/ldap/bootstrap:/bootstrap
 
 volumes:
   postgres_data:

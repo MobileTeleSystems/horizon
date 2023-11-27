@@ -20,7 +20,6 @@ from horizon.backend.dependencies import Stub
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.providers.auth.ldap import LDAPAuthProvider
 from horizon.backend.services import UnitOfWork
-from horizon.backend.settings import Settings
 from horizon.backend.settings.auth.cached_ldap import CachedLDAPAuthProviderSettings
 from horizon.commons.exceptions import AuthorizationError
 
@@ -30,25 +29,21 @@ log = logging.getLogger(__name__)
 class CachedLDAPAuthProvider(LDAPAuthProvider):
     def __init__(
         self,
-        settings: Annotated[Settings, Depends(Stub(Settings))],
         auth_settings: Annotated[CachedLDAPAuthProviderSettings, Depends(Stub(CachedLDAPAuthProviderSettings))],
         pool: Annotated[Optional[AIOConnectionPool], Depends(Stub(AIOConnectionPool))],
         unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._pool: Optional[AIOConnectionPool] = pool
-        self._settings: Settings = settings
         self._auth_settings: CachedLDAPAuthProviderSettings = auth_settings
         self._uow: UnitOfWork = unit_of_work
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = CachedLDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
-        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(settings))
+        auth_settings = CachedLDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
+        log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(auth_settings))
         app.dependency_overrides[AuthProvider] = cls
-        app.dependency_overrides[CachedLDAPAuthProviderSettings] = lambda: settings
-
-        # lookup uses the same connection pool for all users
-        pool = cls.get_lookup_pool(settings.ldap)
+        app.dependency_overrides[CachedLDAPAuthProviderSettings] = lambda: auth_settings
+        pool = cls._create_lookup_pool(auth_settings)
         app.dependency_overrides[AIOConnectionPool] = lambda: pool
         return app
 
@@ -92,9 +87,9 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
         }
 
     def _get_hasher(self) -> PasswordHash:
-        hashing_settings = self._auth_settings.cache.password_hash
-        handler = get_crypt_handler(hashing_settings.algorithm)
-        return handler.using(**hashing_settings.options)
+        hash_settings = self._auth_settings.cache.password_hash
+        handler = get_crypt_handler(hash_settings.algorithm)
+        return handler.using(**hash_settings.options)
 
     async def _resolve_username_from_credentials_cache(self, login: str, password: str) -> Optional[str]:
         log.info("Perform lookup in credentials cache")

@@ -221,7 +221,9 @@ async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
 
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
-@pytest.mark.parametrize("settings", [{"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None}}}], indirect=True)
+@pytest.mark.parametrize(
+    "settings", [{"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"enabled": False}}}}], indirect=True
+)
 async def test_cached_ldap_auth_get_token_without_lookup(
     test_client: AsyncClient,
     user: User,
@@ -263,9 +265,9 @@ async def test_cached_ldap_auth_get_token_without_lookup(
 @pytest.mark.parametrize(
     "settings",
     [
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "uid_attribute": "mail"}}},
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "base_dn": "dc=unknown,dc=company"}}},
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": None, "bind_dn_template": "{login}"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"enabled": False}, "uid_attribute": "mail"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"enabled": False}, "base_dn": "dc=unknown,dc=company"}}},
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"lookup": {"enabled": False}, "bind_dn_template": "{login}"}}},
     ],
     indirect=True,
 )
@@ -495,11 +497,31 @@ async def test_cached_ldap_auth_check_inactive_user(
         },
         {
             "server": {"debug": False},
-            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"enabled": False}},
+                },
+            },
         },
         {
             "server": {"debug": True},
-            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"enabled": False}},
+                },
+            },
+        },
+        {
+            "server": {"debug": False},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}},
+        },
+        {
+            "server": {"debug": True},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}},
         },
     ],
     indirect=True,
@@ -547,7 +569,16 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
                 },
             },
         },
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+        {
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"enabled": False}},
+                },
+            },
+        },
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}}},
     ],
     indirect=True,
 )
@@ -601,7 +632,17 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
         },
         {
             "server": {"debug": False},
-            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}},
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"enabled": False}},
+                },
+            },
+        },
+        {
+            "server": {"debug": False},
+            "auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}},
         },
     ],
     indirect=True,
@@ -652,7 +693,16 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
                 },
             },
         },
-        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": None}}},
+        {
+            "auth": {
+                "provider": CACHED_LDAP,
+                "ldap": {
+                    "url": "ldap://unknown.host",
+                    "lookup": {"pool": {"enabled": False}},
+                },
+            },
+        },
+        {"auth": {"provider": CACHED_LDAP, "ldap": {"url": "ldap://unknown.host", "lookup": {"enabled": False}}}},
     ],
     indirect=True,
 )

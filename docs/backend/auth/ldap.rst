@@ -38,6 +38,186 @@ By default, **lookup strategy is used**, as it can find user in a complex LDAP/A
 
 After user is found in LDAP, its :obj:`uid_attribute <horizon.backend.settings.auth.ldap.LDAPSettings.uid_attribute>` is used for audit records.
 
+Interaction schema
+------------------
+
+.. dropdown:: No lookup
+
+    .. plantuml::
+
+        @startuml
+            title LDAPAuthProvider (no lookup)
+            participant "Client"
+            participant "Backend"
+            participant "LDAP"
+
+            == POST v1/auth/token ==
+
+            activate "Client"
+            alt Successful case
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : DN = bind_dn_template(login)
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Successful
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = login
+                "Backend" -> "Backend" : Create user if not exist
+                "Backend" -[#green]> "Client" -- : Generate and return access_token
+
+            else Wrong credentials | User blocker in LDAP
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : DN = bind_dn_template(login)
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" x-[#red]> "Backend" -- : Bind error
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is blocked in internal backend database
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : DN = bind_dn_template(login)
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Successful
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = login
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+
+            else User is deleted in internal backend database
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : DN = bind_dn_template(login)
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Return user info
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = login
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+
+            else LDAP is unavailable
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : DN = bind_dn_template(login)
+                "Backend" -[#red]>x "LDAP" : Call bind(DN, password)
+                "Backend" x-[#red]> "Client" -- : 503 Service unavailable
+            end
+
+            == GET v1/namespaces ==
+
+            alt Successful case
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" -> "Backend" : Get data
+                "Backend" -[#green]> "Client" -- : Return data
+
+            else Token is expired
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is blocked
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is deleted
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+            end
+
+            deactivate "Client"
+        @enduml
+
+.. dropdown:: With lookup
+
+    .. plantuml::
+
+        @startuml
+            title LDAPAuthProvider (with lookup)
+            participant "Client"
+            participant "Backend"
+            participant "LDAP"
+
+            == Backend start ==
+
+            "Backend" ->o "LDAP" ++ : bind(lookup.username, lookup.password)
+            note right of "LDAP" : Open connection \npool for\nsearch queries
+
+            == POST v1/auth/token ==
+
+            activate "Client"
+            alt Successful case
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : query = query_template(login)
+                "Backend" ->o "LDAP" : Call search(query, base_dn, attributes=*)
+                "LDAP" --[#green]> "Backend" : Return user DN and uid_attribute
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Successful
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = uid_attribute from LDAP response
+                "Backend" -> "Backend" : Create user if not exist
+                "Backend" -[#green]> "Client" -- : Generate and return access_token
+
+            else Wrong credentials | User blocker in LDAP
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : query = query_template(login)
+                "Backend" ->o "LDAP" : Call search(query, base_dn, attributes=*)
+                "LDAP" --[#green]> "Backend" : Return user DN and uid_attribute
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" x--[#red]> "Backend" -- : Bind error
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is blocked in internal backend database
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : query = query_template(login)
+                "Backend" ->o "LDAP" : Call search(query, base_dn, attributes=*)
+                "LDAP" --[#green]> "Backend" : Return user DN and uid_attribute
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Successful
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = uid_attribute from LDAP response
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+
+            else User is deleted in internal backend database
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : query = query_template(login)
+                "Backend" ->o "LDAP" : Call search(query, base_dn, attributes=*)
+                "LDAP" --[#green]> "Backend" : Return user DN and uid_attribute
+                "Backend" -> "LDAP" ++ : Call bind(DN, password)
+                "LDAP" --[#green]> "Backend" -- : Successful
+                "Backend" --> "Backend" : Check user in internal backend database,\nusername = uid_attribute from LDAP response
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+
+            else LDAP is unavailable
+                "Client" -> "Backend" ++ : login + password
+                "Backend" --> "Backend" : query = query_template(login)
+                "Backend" -[#red]>x "LDAP" : Call search(query, base_dn, attributes=*)
+                "Backend" x-[#red]> "Client" -- : 503 Service unavailable
+            end
+
+            == GET v1/namespaces ==
+
+            alt Successful case
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" -> "Backend" : Get data
+                "Backend" -[#green]> "Client" -- : Return data
+
+            else Token is expired
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is blocked
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" x-[#red]> "Client" -- : 401 Unauthorized
+
+            else User is deleted
+                "Client" -> "Backend" ++ : access_token
+                "Backend" --> "Backend" : Validate token
+                "Backend" --> "Backend" : Check user in internal backend database
+                "Backend" x-[#red]> "Client" -- : 404 Not found
+            end
+
+            deactivate "Client"
+        @enduml
+
 Basic configuration
 -------------------
 

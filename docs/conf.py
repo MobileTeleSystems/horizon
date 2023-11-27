@@ -57,6 +57,8 @@ extensions = [
     "sphinxcontrib.autodoc_pydantic",
     "sphinxcontrib.towncrier",  # provides `towncrier-draft-entries` directive
     "sphinx_issues",
+    "sphinx_design",  # provides `dropdown` directive
+    "sphinxcontrib.plantuml",
 ]
 swagger = [
     {

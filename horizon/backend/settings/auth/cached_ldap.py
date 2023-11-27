@@ -8,39 +8,11 @@ Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com
 """
 
 import textwrap
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from pydantic import BaseModel, Field
 
 from horizon.backend.settings.auth.ldap import LDAPAuthProviderSettings
-
-
-class LDAPCacheCleanupSettings(BaseModel):
-    """Settings related to LDAP credentials cache cleanup.
-
-    Examples
-    --------
-
-    .. code-block:: bash
-
-        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
-        HORIZON__AUTH__CACHE__CLEANUP__STALE_SECONDS=36000
-    """
-
-    cron: str = Field(
-        default="0 * * * *",
-        description=textwrap.dedent(
-            """
-            Cron expression used to periodically delete rows from credentials cache.
-
-            See `https://crontab.guru/`_ for more details.
-            """,
-        ),
-    )
-    stale_seconds: int = Field(
-        default=10 * 60 * 60,
-        description="Time after credentials cache row is considered stale and will be deleted, in seconds",
-    )
 
 
 class LDAPCachePasswordHashSettings(BaseModel):
@@ -81,7 +53,6 @@ class LDAPCacheSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__AUTH__CACHE__EXPIRE_SECONDS=3600  # 1 hour
-        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
     """
 
     expire_seconds: int = Field(
@@ -100,10 +71,6 @@ class LDAPCacheSettings(BaseModel):
         default_factory=LDAPCachePasswordHashSettings,
         description="Password hashing options",
     )
-    cleanup: Optional[LDAPCacheCleanupSettings] = Field(
-        default_factory=LDAPCacheCleanupSettings,
-        description="Credentials cache cleanup options. Set to ``None`` to disable cleanup.",
-    )
 
 
 class CashedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
@@ -120,7 +87,6 @@ class CashedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__PASSWORD=somepassword
         HORIZON__AUTH__CACHE__EXPIRE_SECONDS=3600  # 1 hour
-        HORIZON__AUTH__CACHE__CLEANUP__CRON="0 * * * *"
     """
 
     cache: LDAPCacheSettings = Field(default_factory=LDAPCacheSettings, description="Cache related settings")

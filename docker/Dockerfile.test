@@ -33,7 +33,9 @@ RUN set +x\
 
 COPY ./pyproject.toml ./poetry.lock* ./
 
-RUN poetry install \
+# TODO: remove sphinx-plantuml install after solving https://github.com/zqmillet/sphinx-plantuml/pull/4
+RUN pip install sphinx-plantuml && \
+    poetry install \
         --no-root \
         --all-extras \
         --with dev,test,docs

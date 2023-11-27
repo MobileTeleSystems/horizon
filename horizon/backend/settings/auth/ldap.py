@@ -115,7 +115,7 @@ class LDAPLookupSettings(BaseModel):
         default=None,
         description="Credentials used for connecting to LDAP while performing user lookup",
     )
-    query: str = Field(
+    query_template: str = Field(
         default="({uid_attribute}={login})",
         description=textwrap.dedent(
             """

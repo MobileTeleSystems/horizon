@@ -188,7 +188,7 @@ class LDAPAuthProvider(AuthProvider):
         # Reference implementations:
         # https://github.com/dpgaspar/Flask-AppBuilder/blob/2c5763371b81cd679d88b9971ba5d1fc4d71d54b/flask_appbuilder/security/manager.py#L902
         # https://github.com/jupyterhub/ldapauthenticator/blob/main/ldapauthenticator/ldapauthenticator.py
-        query = self._auth_settings.ldap.lookup.query.format(
+        query = self._auth_settings.ldap.lookup.query_template.format(
             login=login,
             uid_attribute=self._auth_settings.ldap.uid_attribute,
         )

@@ -60,8 +60,10 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
             raise AuthorizationError("Missing auth credentials")
 
         # firstly check if user credentials already exists in cache
+        from_cache = True
         username = await self._resolve_username_from_credentials_cache(login, password)
         if not username:
+            from_cache = False
             username = await self._resolve_username_from_ldap(login, password)
 
         log.info("Get/create user %r in database", username)
@@ -75,8 +77,11 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
                 # TODO: check if user is locked in LDAP
                 raise AuthorizationError(f"User {username!r} is disabled")
 
-            log.info("Update credentials cache for user id %r", user.id)
-            await self._update_credentials_cache(user_id=user.id, login=login, password=password)
+            if not from_cache:
+                # updating cache without checking user in LDAP means cache item will never expire,
+                # and we will never check if used is valid
+                log.info("Update credentials cache for user id %r", user.id)
+                await self._update_credentials_cache(user_id=user.id, login=login, password=password)
 
         log.info("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user)

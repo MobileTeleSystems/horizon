@@ -26,7 +26,7 @@ Configuration
 
 Other settings are just the same as for ``LDAPAuthProvider``
 
-.. autopydantic_model:: horizon.backend.settings.auth.cached_ldap.CashedLDAPAuthProviderSettings
+.. autopydantic_model:: horizon.backend.settings.auth.cached_ldap.CachedLDAPAuthProviderSettings
     :inherited-members: BaseModel
 
 .. autopydantic_model:: horizon.backend.settings.auth.cached_ldap.LDAPCacheSettings

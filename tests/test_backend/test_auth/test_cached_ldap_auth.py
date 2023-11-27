@@ -15,7 +15,7 @@ from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import CredentialsCache, User
 from horizon.backend.settings import Settings
-from horizon.backend.settings.auth.cached_ldap import CashedLDAPAuthProviderSettings
+from horizon.backend.settings.auth.cached_ldap import CachedLDAPAuthProviderSettings
 from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
 
-CACHED_LDAP = "horizon.backend.providers.auth.cached_ldap.CashedLDAPAuthProvider"
+CACHED_LDAP = "horizon.backend.providers.auth.cached_ldap.CachedLDAPAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
 
 

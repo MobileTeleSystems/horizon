@@ -21,31 +21,31 @@ from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.providers.auth.ldap import LDAPAuthProvider
 from horizon.backend.services import UnitOfWork
 from horizon.backend.settings import Settings
-from horizon.backend.settings.auth.cached_ldap import CashedLDAPAuthProviderSettings
+from horizon.backend.settings.auth.cached_ldap import CachedLDAPAuthProviderSettings
 from horizon.commons.exceptions import AuthorizationError
 
 log = logging.getLogger(__name__)
 
 
-class CashedLDAPAuthProvider(LDAPAuthProvider):
+class CachedLDAPAuthProvider(LDAPAuthProvider):
     def __init__(
         self,
         settings: Annotated[Settings, Depends(Stub(Settings))],
-        auth_settings: Annotated[CashedLDAPAuthProviderSettings, Depends(Stub(CashedLDAPAuthProviderSettings))],
+        auth_settings: Annotated[CachedLDAPAuthProviderSettings, Depends(Stub(CachedLDAPAuthProviderSettings))],
         pool: Annotated[Optional[AIOConnectionPool], Depends(Stub(AIOConnectionPool))],
         unit_of_work: Annotated[UnitOfWork, Depends()],
     ) -> None:
         self._pool: Optional[AIOConnectionPool] = pool
         self._settings: Settings = settings
-        self._auth_settings: CashedLDAPAuthProviderSettings = auth_settings
+        self._auth_settings: CachedLDAPAuthProviderSettings = auth_settings
         self._uow: UnitOfWork = unit_of_work
 
     @classmethod
     def setup(cls, app: FastAPI) -> FastAPI:
-        settings = CashedLDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
+        settings = CachedLDAPAuthProviderSettings.parse_obj(app.state.settings.auth.dict(exclude={"provider"}))
         log.info("Using %s provider with settings:\n%s", cls.__name__, pformat(settings))
         app.dependency_overrides[AuthProvider] = cls
-        app.dependency_overrides[CashedLDAPAuthProviderSettings] = lambda: settings
+        app.dependency_overrides[CachedLDAPAuthProviderSettings] = lambda: settings
 
         # lookup uses the same connection pool for all users
         pool = cls.get_lookup_pool(settings.ldap)

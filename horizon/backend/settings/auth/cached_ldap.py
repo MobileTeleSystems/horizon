@@ -73,15 +73,15 @@ class LDAPCacheSettings(BaseModel):
     )
 
 
-class CashedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
-    """Settings for CashedLDAPAuthProvider.
+class CachedLDAPAuthProviderSettings(LDAPAuthProviderSettings):
+    """Settings for CachedLDAPAuthProvider.
 
     Examples
     --------
 
     .. code-block:: bash
 
-        HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.cached_ldap.CashedLDAPAuthProvider
+        HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.cached_ldap.CachedLDAPAuthProvider
         HORIZON__AUTH__ACCESS_KEY__SECRET_KEY=secret
         HORIZON__AUTH__LDAP__URL=ldap://ldap.domain.com:389
         HORIZON__AUTH__LDAP__LOOKUP__CREDENTIALS__USER=uid=techuser,ou=users,dc=example,dc=com

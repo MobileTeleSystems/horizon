@@ -33,7 +33,7 @@ async def test_stats_empty(test_client: AsyncClient):
     assert response.text == expected
 
 
-@pytest.mark.parametrize("settings", [{"server": {"prometheus": {"labels": {"a": "b", "c": "d"}}}}], indirect=True)
+@pytest.mark.parametrize("settings", [{"server": {"monitoring": {"labels": {"a": "b", "c": "d"}}}}], indirect=True)
 async def test_stats_with_custom_labels(test_client: AsyncClient):
     response = await test_client.get("/monitoring/stats")
     assert response.status_code == 200

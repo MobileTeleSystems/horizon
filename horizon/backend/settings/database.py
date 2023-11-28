@@ -9,8 +9,11 @@ from pydantic import BaseModel, Field
 class DatabaseSettings(BaseModel):
     """Database connection settings.
 
-    You can pass here any extra option supported by
-    `SQLAlchemy Engine class <https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine>`_.
+    .. note::
+
+        You can pass here any extra option supported by
+        `SQLAlchemy Engine class <https://docs.sqlalchemy.org/en/20/core/engines.html#sqlalchemy.create_engine>`_,
+        even if it is not mentioned in documentation.
 
     Examples
     --------
@@ -18,6 +21,7 @@ class DatabaseSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__DATABASE__URL=postgresql+asyncpg://postgres:postgres@localhost:5432/horizon
+        # custom option passed directly to engine factory
         HORIZON__DATABASE__POOL_PRE_PING=True
     """
 

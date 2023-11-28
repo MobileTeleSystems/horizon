@@ -18,11 +18,13 @@ Installation process
 Docker will download backend image of Horizon & Postgres, and run them.
 Options can be set via ``.env`` file or ``environment`` section in ``docker-compose.yml``
 
-.. literalinclude:: ../../docker-compose.yml
-    :caption: docker-compose.yml
+.. dropdown:: ``docker-compose.yml``
 
-.. literalinclude:: ../../.env.docker
-    :caption: .env.docker
+    .. literalinclude:: ../../docker-compose.yml
+
+.. dropdown:: ``.env.docker``
+
+    .. literalinclude:: ../../.env.docker
 
 After container is started and ready, open http://localhost:8000/docs.
 
@@ -64,7 +66,7 @@ Start Postgres instance somewhere, and set up database url using environment var
 You can use virtually any database supported by `SQLAlchemy <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_,
 but the only one we really tested is Postgres.
 
-See :obj:`DatabaseSettings <horizon.backend.settings.database.DatabaseSettings>` for more options.
+See :ref:`Database settings <backend-configuration-database>` for more options.
 
 Run migrations
 ~~~~~~~~~~~~~~

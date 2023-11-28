@@ -1,9 +1,11 @@
-.. _auth-providers:
+.. _backend-auth-providers:
 
 Auth Providers
 ==============
 
-Horizon supports different auth provider implementations. They are designed to be pluggable.
+Horizon supports different auth provider implementations. You can change implementation via settings:
+
+.. autopydantic_model:: horizon.backend.settings.auth.AuthSettings
 
 .. toctree::
     :maxdepth: 2

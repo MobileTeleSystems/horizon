@@ -1,4 +1,4 @@
-.. _backend-configuration-db:
+.. _backend-configuration-database:
 
 Database settings
 =================

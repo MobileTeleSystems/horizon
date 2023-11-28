@@ -4,7 +4,7 @@ from fastapi import APIRouter, FastAPI
 from starlette.responses import PlainTextResponse
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 
-from horizon.backend.settings.server import PrometheusSettings
+from horizon.backend.settings.server import MonitoringSettings
 from horizon.backend.utils.slug import slugify
 
 DEFAULT_SKIP_PATHS = {
@@ -29,8 +29,8 @@ router.get(
 )(handle_metrics)
 
 
-def add_prometheus_metrics_middleware(app: FastAPI, settings: PrometheusSettings) -> FastAPI:
-    """Add Prometheus metrics middleware & endpoint to the application."""
+def add_monitoring_metrics_middleware(app: FastAPI, settings: MonitoringSettings) -> FastAPI:
+    """Add monitoring metrics middleware & endpoint to the application."""
     skip_paths = DEFAULT_SKIP_PATHS | settings.skip_paths
     app.add_middleware(
         PrometheusMiddleware,

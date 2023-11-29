@@ -74,10 +74,6 @@ class LDAPConnectionPoolSettings(BaseModel):
         default=True,
         description="Set to ``True`` to enable connection pool",
     )
-    check_on_startup: bool = Field(
-        default=True,
-        description="If ``True``, and LDAP is not available during application start, abort application startup",
-    )
     initial: int = Field(
         default=1,
         description="Initial size of connection pool",
@@ -106,6 +102,10 @@ class LDAPLookupSettings(BaseModel):
     enabled: bool = Field(
         default=True,
         description="Set to ``True`` to enable lookup",
+    )
+    check_on_startup: bool = Field(
+        default=True,
+        description="If ``True``, and LDAP is not available during application start, abort application startup",
     )
     pool: LDAPConnectionPoolSettings = Field(
         default_factory=LDAPConnectionPoolSettings,

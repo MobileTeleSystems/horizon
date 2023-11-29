@@ -136,7 +136,7 @@ Interaction schema
             == Backend start ==
 
             "Backend" ->o "LDAP" ++ : bind(lookup.username, lookup.password)
-            note right of "LDAP" : Open connection \npool for\nsearch queries
+            note right of "LDAP" : Open connection \npool for\nsearch queries\n(optional, recommended)
 
             == POST v1/auth/token ==
 

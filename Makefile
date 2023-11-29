@@ -54,10 +54,6 @@ db-upgrade: ##@DB Run migrations to head
 db-downgrade: ##@DB Downgrade head migration
 	${POETRY} run python -m horizon.backend.db.migrations downgrade head-1
 
-
-ldap-build: ##@LDAP Start LDAP container
-	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/test/ldap:develop -f ./docker/Dockerfile.ldap $(ARGS) .
-
 ldap-start: ##@LDAP Start LDAP container
 	docker compose -f docker-compose.test.yml up -d --wait ldap $(DOCKER_COMPOSE_ARGS)
 

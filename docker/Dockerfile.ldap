@@ -1,3 +1,0 @@
-FROM central-mirror.services.mts.ru/thoteam/slapd-server-mock
-
-COPY docker/mocks/ldap/bootstrap /bootstrap

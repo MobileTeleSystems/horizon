@@ -25,7 +25,7 @@ async def test_update_namespace_anonymous_user(
     namespace: Namespace,
 ):
     response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
         json={
             "name": secrets.token_hex(16),
         },
@@ -46,7 +46,7 @@ async def test_update_namespace_missing(
     new_namespace: Namespace,
 ):
     response = await test_client.patch(
-        f"v1/namespaces/{new_namespace.name}",
+        f"v1/namespaces/{new_namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
             "name": secrets.token_hex(16),
@@ -56,11 +56,11 @@ async def test_update_namespace_missing(
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
+            "message": f"Namespace with id={new_namespace.id!r} not found",
             "details": {
                 "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
+                "field": "id",
+                "value": new_namespace.id,
             },
         },
     }
@@ -77,7 +77,7 @@ async def test_update_namespace_name(
     current_dt = datetime.now(tz=timezone.utc)
 
     response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
             "name": new_namespace.name,
@@ -116,7 +116,7 @@ async def test_update_namespace_description(
 ):
     current_dt = datetime.now(tz=timezone.utc)
     response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
             "description": new_namespace.description,
@@ -159,7 +159,7 @@ async def test_update_namespace_no_data(
     namespace: Namespace,
 ):
     response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={"unexpected": "value"},
     )
@@ -204,7 +204,7 @@ async def test_update_namespace_duplicated_name(
     namespace1, namespace2, *_ = namespaces
 
     response = await test_client.patch(
-        f"v1/namespaces/{namespace1.name}",
+        f"v1/namespaces/{namespace1.id}",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
             "name": namespace2.name,
@@ -214,7 +214,7 @@ async def test_update_namespace_duplicated_name(
     assert response.json() == {
         "error": {
             "code": "already_exists",
-            "message": f"Namespace with name='{namespace2.name}' already exists",
+            "message": f"Namespace with name={namespace2.name!r} already exists",
             "details": {
                 "entity_type": "Namespace",
                 "field": "name",

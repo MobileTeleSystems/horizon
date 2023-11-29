@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace
+from horizon.backend.db.models import HWM, HWMHistory
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -17,10 +18,12 @@ pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 async def test_paginate_hwm_history_anonymous_user(
     test_client: AsyncClient,
-    namespace: Namespace,
     hwm: HWM,
 ):
-    response = await test_client.get(f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history")
+    response = await test_client.get(
+        "v1/hwm-history/",
+        params={"hwm_id": hwm.id},
+    )
     assert response.status_code == 401
     assert response.json() == {
         "error": {
@@ -31,63 +34,81 @@ async def test_paginate_hwm_history_anonymous_user(
     }
 
 
-async def test_paginate_hwm_history_missing_namespace(
+async def test_paginate_hwm_history_not_enough_arguments(
     test_client: AsyncClient,
-    new_namespace: Namespace,
-    new_hwm: HWM,
     access_token: str,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}/history",
+        "v1/hwm-history/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == 422
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        details = [
+            {
+                "location": ["query", "hwm_id"],
+                "code": "value_error.missing",
+                "message": "field required",
+            }
+        ]
+    else:
+        details = [
+            {
+                "code": "missing",
+                "context": {},
+                "input": None,
+                "location": ["query", "hwm_id"],
+                "message": "Field required",
+                "url": "https://errors.pydantic.dev/2.5/v/missing",
+            },
+        ]
+
     assert response.json() == {
         "error": {
-            "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
-            "details": {
-                "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
-            },
+            "code": "invalid_request",
+            "message": "Invalid request",
+            "details": details,
         },
     }
 
 
 async def test_paginate_hwm_history_missing_hwm(
     test_client: AsyncClient,
-    namespace: Namespace,
     new_hwm: HWM,
     access_token: str,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}/history",
+        "v1/hwm-history/",
         headers={"Authorization": f"Bearer {access_token}"},
+        params={"hwm_id": new_hwm.id},
     )
-    assert response.status_code == 404
+    assert response.status_code == 200
     assert response.json() == {
-        "error": {
-            "code": "not_found",
-            "message": f"HWM with name='{new_hwm.name}' not found",
-            "details": {
-                "entity_type": "HWM",
-                "field": "name",
-                "value": new_hwm.name,
-            },
+        "meta": {
+            "page": 1,
+            "pages_count": 1,
+            "page_size": 20,
+            "total_count": 0,
+            "has_next": False,
+            "has_previous": False,
+            "next_page": None,
+            "previous_page": None,
         },
+        "items": [],
     }
 
 
-async def test_paginate_hwm_history_empty(
+async def test_paginate_hwm_history_empty_hwm_history(
     test_client: AsyncClient,
-    namespace: Namespace,
     hwm: HWM,
     access_token: str,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history",
+        "v1/hwm-history/",
         headers={"Authorization": f"Bearer {access_token}"},
+        params={"hwm_id": hwm.id},
     )
     assert response.status_code == 200
     assert response.json() == {
@@ -107,7 +128,6 @@ async def test_paginate_hwm_history_empty(
 
 async def test_paginate_hwm_history(
     test_client: AsyncClient,
-    namespace: Namespace,
     hwm: HWM,
     access_token: str,
     hwm_history_items: list[HWMHistory],
@@ -115,8 +135,9 @@ async def test_paginate_hwm_history(
     hwm_history_items = sorted(hwm_history_items, key=lambda ns: ns.changed_at, reverse=True)
 
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}/history",
+        "v1/hwm-history/",
         headers={"Authorization": f"Bearer {access_token}"},
+        params={"hwm_id": hwm.id},
     )
     assert response.status_code == 200
 
@@ -142,6 +163,7 @@ async def test_paginate_hwm_history(
         assert response_item == {
             "id": hwm_history_item.id,
             "hwm_id": hwm_history_item.hwm_id,
+            "namespace_id": hwm_history_item.namespace_id,
             "name": hwm_history_item.name,
             "description": hwm_history_item.description,
             "type": hwm_history_item.type,

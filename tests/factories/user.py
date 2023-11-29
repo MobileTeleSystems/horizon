@@ -40,6 +40,7 @@ async def new_user(request: pytest.FixtureRequest, async_session: AsyncSession) 
 async def user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
     params = request.param
     user = user_factory(**params)
+    del user.id
     async_session.add(user)
     # this is not required for backend tests, but needed by client tests
     await async_session.commit()
@@ -63,6 +64,7 @@ async def users(
     size, params = request.param
     result = [user_factory(**params) for _ in range(size)]
     for item in result:
+        del item.id
         async_session.add(item)
 
     # this is not required for backend tests, but needed by client tests

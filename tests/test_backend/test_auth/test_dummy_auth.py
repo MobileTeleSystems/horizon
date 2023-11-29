@@ -122,7 +122,7 @@ async def test_dummy_auth_get_token_for_inactive_user(
     assert response.json() == {
         "error": {
             "code": "unauthorized",
-            "message": f"User '{user.username}' is disabled",
+            "message": f"User {user.username!r} is disabled",
             "details": None,
         },
     }
@@ -145,7 +145,7 @@ async def test_dummy_auth_get_token_for_deleted_user(
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"User with username='{user.username}' not found",
+            "message": f"User with username={user.username!r} not found",
             "details": {
                 "entity_type": "User",
                 "field": "username",
@@ -239,7 +239,7 @@ async def test_dummy_auth_check_inactive_user(
     assert response.json() == {
         "error": {
             "code": "unauthorized",
-            "message": f"User '{user.username}' is disabled",
+            "message": f"User {user.username!r} is disabled",
             "details": None,
         },
     }

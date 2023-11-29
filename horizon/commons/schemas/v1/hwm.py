@@ -12,7 +12,8 @@ from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 class HWMResponseV1(BaseModel):
     """HWM response."""
 
-    id: int = Field(description="Internal HWM id, not for external usage")
+    id: int = Field(description="HWM id")
+    namespace_id: int = Field(description="Namespace id HWM is bound to")
     name: str = Field(description="HWM name, unique in the namespace")
     description: str = Field(description="HWM description")
     type: str = Field(description="HWM type, any non-empty string")
@@ -35,17 +36,31 @@ class HWMResponseV1(BaseModel):
 class HWMPaginateQueryV1(PaginateQueryV1):
     """Query params for HWM pagination request."""
 
+    namespace_id: int = Field(description="Namespace id HWM is bound to")
+    name: Optional[str] = Field(default=None, description="HWM name")
+
     # more arguments can be added in future
 
 
-class HWMWriteRequestV1(BaseModel):
-    """Request body for HWM write request.
+class HWMCreateRequestV1(BaseModel):
+    """Request body for HWM create request."""
 
-    If HWM does not exist, it will be created. If does, it will be updated.
+    namespace_id: int
+    name: str = Field(min_length=1)
+    description: str = ""
+    type: str = Field(min_length=1)
+    value: Any
+    entity: Optional[str] = None
+    expression: Optional[str] = None
+
+
+class HWMUpdateRequestV1(BaseModel):
+    """Request body for HWM update request.
 
     If field value is not set, it will not be updated.
     """
 
+    name: Union[str, Unset] = Field(default=Unset(), min_length=1)
     description: Union[str, Unset] = Unset()
     type: Union[str, Unset] = Field(default=Unset(), min_length=1)
     value: Union[Any, Unset] = Unset()

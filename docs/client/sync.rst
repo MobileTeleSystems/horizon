@@ -12,7 +12,7 @@ Here is a short example of using sync client to interact with backend.
 
     from horizon.client.sync import HorizonClientSync
     from horizon.client.auth import LoginPassword
-    from horizon.commons.schemas.v1 import NamespaceCreateRequestV1, HWMWriteRequestV1
+    from horizon.commons.schemas.v1 import NamespaceCreateRequestV1, HWMUpdateRequestV1
 
     # create client object
     client = HorizonClientSync(
@@ -26,9 +26,18 @@ Here is a short example of using sync client to interact with backend.
     # create namespace with name "my_namespace"
     created_namespace = client.create_namespace(NamespaceCreateRequestV1(name="my_namespace"))
 
-    # create or update HWM with name "my_hwm" in this namespace
-    hwm = HWMWriteRequestV1(name="my_hwm", type="column_int", value=123)
-    created_hwm = client.write_hwm("my_namespace", hwm)
+    # create HWM with name "my_hwm" in this namespace
+    hwm = HWMCreateRequestV1(
+        namespace_id=created_namespace.id,
+        name="my_hwm",
+        type="column_int",
+        value=123,
+    )
+    created_hwm = client.create_hwm(hwm)
+
+    # update HWM with name "my_hwm" in this namespace
+    hwm_change = HWMUpdateRequestV1(value=234)
+    updated_hwm = client.update_hwm(hwm.id, hwm_change)
 
 Reference
 ---------
@@ -36,5 +45,5 @@ Reference
 .. currentmodule:: horizon.client.sync
 
 .. autoclass:: HorizonClientSync
-    :members: authorize, ping, whoami, paginate_namespaces, create_namespace, update_namespace, delete_namespace, paginate_hwm, write_hwm, delete_hwm, paginate_hwm_history
+    :members: authorize, ping, whoami, paginate_namespaces, create_namespace, update_namespace, delete_namespace, paginate_hwm, create_hwm, update_hwm, delete_hwm, paginate_hwm_history
     :member-order: bysource

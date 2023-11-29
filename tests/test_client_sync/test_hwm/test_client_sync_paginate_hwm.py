@@ -26,6 +26,7 @@ def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], sync_cl
     items = [
         HWMResponseV1(
             id=hwm.id,
+            namespace_id=hwm.namespace_id,
             name=hwm.name,
             type=hwm.type,
             value=hwm.value,
@@ -38,7 +39,7 @@ def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], sync_cl
         for hwm in hwms
     ]
 
-    response = sync_client.paginate_hwm(namespace.name)
+    response = sync_client.paginate_hwm(HWMPaginateQueryV1(namespace_id=namespace.id))
     assert response == PageResponseV1[HWMResponseV1](
         meta=PageMetaResponseV1(
             page=1,
@@ -54,8 +55,40 @@ def test_sync_client_paginate_hwm(namespace: Namespace, hwms: list[HWM], sync_cl
     )
 
 
+def test_sync_client_paginate_hwm_filter_by_name(namespace: Namespace, hwms: list[HWM], sync_client: HorizonClientSync):
+    hwm = hwms[0]
+
+    response = sync_client.paginate_hwm(HWMPaginateQueryV1(namespace_id=namespace.id, name=hwm.name))
+    assert response == PageResponseV1[HWMResponseV1](
+        meta=PageMetaResponseV1(
+            page=1,
+            pages_count=1,
+            total_count=1,
+            page_size=20,
+            has_next=False,
+            has_previous=False,
+            next_page=None,
+            previous_page=None,
+        ),
+        items=[
+            HWMResponseV1(
+                id=hwm.id,
+                namespace_id=hwm.namespace_id,
+                name=hwm.name,
+                type=hwm.type,
+                value=hwm.value,
+                entity=hwm.entity,
+                expression=hwm.expression,
+                description=hwm.description,
+                changed_at=hwm.changed_at,
+                changed_by=hwm.changed_by,
+            ),
+        ],
+    )
+
+
 @pytest.mark.parametrize("hwms", [(10, {})], indirect=True)
-def test_sync_client_paginate_hwm_with_params(
+def test_sync_client_paginate_hwm_page_options(
     namespace: Namespace,
     hwms: list[HWM],
     sync_client: HorizonClientSync,
@@ -64,6 +97,7 @@ def test_sync_client_paginate_hwm_with_params(
     items = [
         HWMResponseV1(
             id=hwm.id,
+            namespace_id=hwm.namespace_id,
             name=hwm.name,
             type=hwm.type,
             value=hwm.value,
@@ -76,7 +110,7 @@ def test_sync_client_paginate_hwm_with_params(
         for hwm in hwms
     ]
 
-    page1 = sync_client.paginate_hwm(namespace.name, query=HWMPaginateQueryV1(page=1, page_size=8))
+    page1 = sync_client.paginate_hwm(HWMPaginateQueryV1(namespace_id=namespace.id, page=1, page_size=8))
     assert page1 == PageResponseV1[HWMResponseV1](
         meta=PageMetaResponseV1(
             page=1,
@@ -91,7 +125,7 @@ def test_sync_client_paginate_hwm_with_params(
         items=items[0:8],
     )
 
-    page2 = sync_client.paginate_hwm(namespace.name, query=HWMPaginateQueryV1(page=2, page_size=8))
+    page2 = sync_client.paginate_hwm(HWMPaginateQueryV1(namespace_id=namespace.id, page=2, page_size=8))
     assert page2 == PageResponseV1[HWMResponseV1](
         meta=PageMetaResponseV1(
             page=2,

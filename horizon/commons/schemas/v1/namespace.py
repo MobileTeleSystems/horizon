@@ -12,7 +12,7 @@ from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 class NamespaceResponseV1(BaseModel):
     """Namespace response."""
 
-    id: int = Field(description="Internal namespace id, not for external usage")
+    id: int = Field(description="Namespace id")
     name: str = Field(description="Namespace name, unique in the entire database")
     description: str = Field(description="Namespace description")
     changed_at: datetime = Field(description="Timestamp of last change of the namespace data")
@@ -27,6 +27,8 @@ class NamespaceResponseV1(BaseModel):
 
 class NamespacePaginateQueryV1(PaginateQueryV1):
     """Query params for namespace pagination request."""
+
+    name: Optional[str] = Field(default=None, min_length=1)
 
     # more arguments can be added in future
 

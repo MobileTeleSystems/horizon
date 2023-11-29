@@ -97,7 +97,7 @@ async def test_create_namespace_duplicated_name(
     assert response.json() == {
         "error": {
             "code": "already_exists",
-            "message": f"Namespace with name='{namespace.name}' already exists",
+            "message": f"Namespace with name={namespace.name!r} already exists",
             "details": {
                 "entity_type": "Namespace",
                 "field": "name",

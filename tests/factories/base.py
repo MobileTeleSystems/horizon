@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import secrets
 from datetime import datetime, timezone
 from random import randrange
+from string import ascii_letters, digits, punctuation
+
+letters = ascii_letters + digits + punctuation + " "
 
 
 def random_string(length: int = 16) -> str:
-    return secrets.token_hex(length // 2)
+    return "".join(letters[randrange(0, len(letters))] for _ in range(length))
 
 
 def random_datetime(

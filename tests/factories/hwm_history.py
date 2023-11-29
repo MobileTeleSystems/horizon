@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from random import randint
 
 import pytest
 import pytest_asyncio
@@ -15,6 +16,7 @@ from tests.factories.base import random_datetime, random_string
 
 def hwm_history_factory(**kwargs):
     data = {
+        "id": randint(0, 10000000),
         "name": random_string(),
         "description": random_string(),
         "value": random_string(),
@@ -42,6 +44,7 @@ async def hwm_history_items(
         for _ in range(size)
     ]
     for item in result:
+        del item.id
         async_session.add(item)
 
     # this is not required for backend tests, but needed by client tests

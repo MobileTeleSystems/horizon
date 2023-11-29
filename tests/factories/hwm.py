@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from random import randint
 
 import pytest
 import pytest_asyncio
@@ -15,6 +16,7 @@ from tests.factories.base import random_datetime, random_string
 
 def hwm_factory(**kwargs):
     data = {
+        "id": randint(0, 10000000),
         "name": random_string(),
         "description": random_string(),
         "value": random_string(),
@@ -48,6 +50,7 @@ async def hwm(
 ) -> AsyncGenerator[HWM, None]:
     params = request.param
     hwm = hwm_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params)
+    del hwm.id
     async_session.add(hwm)
     # this is not required for backend tests, but needed by client tests
     await async_session.commit()
@@ -74,6 +77,7 @@ async def hwms(
     size, params = request.param
     result = [hwm_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params) for _ in range(size)]
     for item in result:
+        del item.id
         async_session.add(item)
 
     # this is not required for backend tests, but needed by client tests

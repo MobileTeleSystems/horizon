@@ -268,6 +268,9 @@ test-client:
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - python -m horizon.backend.db.migrations upgrade head
     - python -m coverage run -m pytest -k 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
+    - wget http://backend:8000/openapi.json -O reports/openapi.json
+    - wget http://backend:8000/monitoring/metrics -O reports/metrics.prom
+    - wget http://backend:8000/monitoring/stats -O reports/stats.prom
   artifacts:
     when: always
     paths:
@@ -311,32 +314,20 @@ coverage:
 build_docs:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
   stage: post tests
-  dependencies:
-    - get_version
+  needs:
+    - job: get_version
+      artifacts: true
+      optional: true
+    - job: test-client
+      artifacts: true
+      optional: true
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-    BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-    HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
-    HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
-    HORIZON__SERVER__DEBUG: 'true'
-    HORIZON__SERVER__LOGGING__PRESET: colored
-    # Enables creation of a Docker network per build with the docker executor
-    FF_NETWORK_PER_BUILD: 1
-  services:
-    - name: central-mirror.services.mts.ru/postgres:15-alpine
-      alias: db
-      variables:
-        POSTGRES_DB: horizon
-        POSTGRES_USER: horizon
-        POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
-    - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${BACKEND_IMAGE_TAG}
-      alias: backend
   before_script:
     # update version number in docs
     - poetry version "${VERSION}"
-    # get openapi.json
-    - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
-    - wget http://backend:8000/openapi.json -O docs/static/openapi.json
+    - cp reports/openapi.json docs/static/
+    - cp reports/*.prom docs/static/
   script:
     - cd docs
     - make html
@@ -354,7 +345,6 @@ build_docs:
     - if: $CI_COMMIT_TAG
       variables:
         DOCKER_IMAGE_TAG: develop
-        BACKEND_IMAGE_TAG: $CI_COMMIT_TAG
       when: on_success
     - when: on_success
   interruptible: true

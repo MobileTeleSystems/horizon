@@ -155,5 +155,3 @@ cython_debug/
 
 .idea/
 .vscode/
-
-openapi.json

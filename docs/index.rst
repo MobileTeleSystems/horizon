@@ -14,7 +14,7 @@
     :hidden:
 
     backend/install
-    backend/settings/index
+    backend/configuration/index
     backend/auth/index
     backend/openapi
 

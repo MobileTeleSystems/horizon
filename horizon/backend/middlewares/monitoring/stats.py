@@ -56,8 +56,8 @@ async def stats(
     # https://github.com/stephenhillier/starlette_exporter/blob/7b011cd/starlette_exporter/middleware.py#L277
     app_name = slugify(request.app.title)
     registry = CollectorRegistry()
-    label_keys = list(settings.server.prometheus.labels.keys())
-    label_values = list(settings.server.prometheus.labels.values())
+    label_keys = list(settings.server.monitoring.labels.keys())
+    label_values = list(settings.server.monitoring.labels.values())
 
     for name, description, value in metrics:
         Gauge(
@@ -74,7 +74,7 @@ async def stats(
     return PlainTextResponse(generate_latest(registry), headers=headers)
 
 
-def add_prometheus_stats_middleware(app: FastAPI) -> FastAPI:
-    """Add Prometheus stats endpoint to the application."""
+def add_monitoring_stats_middleware(app: FastAPI) -> FastAPI:
+    """Add monitoring stats endpoint to the application."""
     app.include_router(router)
     return app

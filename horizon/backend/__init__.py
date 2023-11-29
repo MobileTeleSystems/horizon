@@ -19,9 +19,9 @@ from horizon.backend.api.router import api_router
 from horizon.backend.db.factory import create_session_factory
 from horizon.backend.middlewares.cors import add_cors_middleware
 from horizon.backend.middlewares.logging import setup_logging
-from horizon.backend.middlewares.prometheus import (
-    add_prometheus_metrics_middleware,
-    add_prometheus_stats_middleware,
+from horizon.backend.middlewares.monitoring import (
+    add_monitoring_metrics_middleware,
+    add_monitoring_stats_middleware,
 )
 from horizon.backend.middlewares.request_id import add_request_id_middleware
 from horizon.backend.providers.auth.base import AuthProvider
@@ -67,9 +67,9 @@ def application_factory(settings: Settings) -> FastAPI:
     if settings.server.cors.enabled:
         add_cors_middleware(application, settings.server.cors)
 
-    if settings.server.prometheus.enabled:
-        add_prometheus_metrics_middleware(application, settings.server.prometheus)
-        add_prometheus_stats_middleware(application)
+    if settings.server.monitoring.enabled:
+        add_monitoring_metrics_middleware(application, settings.server.monitoring)
+        add_monitoring_stats_middleware(application)
 
     if settings.server.request_id.enabled:
         add_request_id_middleware(application, settings.server.request_id)

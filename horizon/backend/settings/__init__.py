@@ -42,9 +42,15 @@ class Settings(BaseSettings):
         HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.dummy.DummyAuthProvider
     """
 
-    database: DatabaseSettings
-    server: ServerSettings = Field(default_factory=ServerSettings)
-    auth: AuthSettings = Field(default_factory=AuthSettings)
+    database: DatabaseSettings = Field(description=":ref:`Database settings <backend-configuration-database>`")
+    server: ServerSettings = Field(
+        default_factory=ServerSettings,
+        description=":ref:`Server settings <backend-configuration>`",
+    )
+    auth: AuthSettings = Field(
+        default_factory=AuthSettings,
+        description=":ref:`Auth setting <backend-auth-providers>`",
+    )
 
     class Config:
         env_prefix = "HORIZON__"

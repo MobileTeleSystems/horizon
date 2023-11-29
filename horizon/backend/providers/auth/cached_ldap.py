@@ -126,7 +126,7 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
         if not user_cache or user_cache.user_id != user_id:
             data["user_id"] = user_id
         if not user_cache or not hasher.verify(password, user_cache.password_hash):
-            data["password_hash"] = hasher.encrypt(password)
+            data["password_hash"] = hasher.hash(password)
 
         # even if nothing is changed in credentials cache, we do perform an update to sync `updated_at` column
         await self._uow.credentials_cache.create_or_update(login=login, data=data)

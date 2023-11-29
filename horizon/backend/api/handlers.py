@@ -36,7 +36,7 @@ async def unknown_exception_handler(request: Request, exc: Exception):
 
     server: ServerSettings = request.app.state.settings.server
     details = None
-    if server.debug:
+    if request.app.debug:
         details = exc.args
 
     content = BaseErrorSchema(
@@ -57,7 +57,7 @@ async def service_exception_handler(request: Request, exc: ServiceError):
 
     server: ServerSettings = request.app.state.settings.server
     details = None
-    if server.debug:
+    if request.app.debug:
         details = exc.message
 
     content = BaseErrorSchema(
@@ -99,8 +99,7 @@ async def application_exception_handler(request: Request, exc: ApplicationError)
     if not response:
         return await unknown_exception_handler(request, exc)
 
-    server: ServerSettings = request.app.state.settings.server
-    logger.error("%s", exc, exc_info=server.debug)
+    logger.error("%s", exc, exc_info=logger.isEnabledFor(logging.DEBUG))
 
     # code is set within class implementation
     content = response.schema(  # type: ignore[call-arg]

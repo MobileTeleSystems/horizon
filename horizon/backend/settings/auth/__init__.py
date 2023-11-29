@@ -16,8 +16,6 @@ class AuthSettings(BaseModel):
 
     Here you can set auth provider class along with its options.
 
-    See :ref:`auth-providers` for more details.
-
     Examples
     --------
 

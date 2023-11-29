@@ -18,6 +18,8 @@ from horizon.commons.schemas.v1 import (
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, HWMHistory, Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_paginate_hwm_history(
     namespace: Namespace,

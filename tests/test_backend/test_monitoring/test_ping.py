@@ -3,7 +3,7 @@
 import pytest
 from httpx import AsyncClient
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 async def test_ping(test_client: AsyncClient):

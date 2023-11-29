@@ -7,6 +7,8 @@ from jose import ExpiredSignatureError, JWTError
 
 from horizon.client.auth import AccessToken
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_access_token_constructor_expired(access_token_expired: AccessToken):
     with pytest.raises(ExpiredSignatureError):

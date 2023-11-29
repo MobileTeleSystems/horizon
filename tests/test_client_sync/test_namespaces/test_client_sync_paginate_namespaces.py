@@ -18,6 +18,8 @@ from horizon.commons.schemas.v1 import (
 if TYPE_CHECKING:
     from horizon.backend.db.models import Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_paginate_namespaces(namespaces: list[Namespace], sync_client: HorizonClientSync):
     namespaces = sorted(namespaces, key=lambda item: item.name)

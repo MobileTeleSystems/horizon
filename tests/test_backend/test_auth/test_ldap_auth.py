@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 LDAP = "horizon.backend.providers.auth.ldap.LDAPAuthProvider"
-pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth]
+pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth, pytest.mark.backend]
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}], indirect=True)

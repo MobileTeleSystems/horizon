@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 DUMMY = "horizon.backend.providers.auth.dummy.DummyAuthProvider"
-pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth]
+pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth, pytest.mark.backend]
 
 
 @pytest.mark.parametrize("settings", [{"auth": {"provider": DUMMY}}], indirect=True)

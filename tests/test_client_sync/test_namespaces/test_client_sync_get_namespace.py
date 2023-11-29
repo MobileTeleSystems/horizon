@@ -16,6 +16,8 @@ from horizon.commons.schemas.v1 import NamespaceResponseV1
 if TYPE_CHECKING:
     from horizon.backend.db.models import Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_get_namespace(namespace: Namespace, sync_client: HorizonClientSync):
     response = sync_client.get_namespace(namespace.name)

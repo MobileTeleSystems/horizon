@@ -225,7 +225,7 @@ test-backend:
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - python -m horizon.backend.db.migrations upgrade head
-    - python -m coverage run -m pytest -v -s -k "not client" --junitxml=reports/junit-backend.xml
+    - python -m coverage run -m pytest -v -s -m "not client" --junitxml=reports/junit-backend.xml
   artifacts:
     when: always
     paths:
@@ -267,7 +267,7 @@ test-client:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - python -m horizon.backend.db.migrations upgrade head
-    - python -m coverage run -m pytest -k 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
+    - python -m coverage run -m pytest -m 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
     - wget http://backend:8000/openapi.json -O reports/openapi.json
     - wget http://backend:8000/monitoring/metrics -O reports/metrics.prom
     - wget http://backend:8000/monitoring/stats -O reports/stats.prom

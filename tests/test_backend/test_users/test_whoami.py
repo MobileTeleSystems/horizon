@@ -5,7 +5,7 @@ from httpx import AsyncClient
 
 from horizon.backend.db.models import User
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 # other negative tests can be found in DummyAuthProvider & LDAPAuthProvider tests

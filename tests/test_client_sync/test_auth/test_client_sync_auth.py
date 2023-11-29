@@ -11,6 +11,8 @@ from horizon.client.auth import AccessToken, LoginPassword
 from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions.auth import AuthorizationError
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client, pytest.mark.auth]
+
 
 def test_sync_client_authorize_with_login_password(external_app_url: str, user: User):
     sync_client = HorizonClientSync(

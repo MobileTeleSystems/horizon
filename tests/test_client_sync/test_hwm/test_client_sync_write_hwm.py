@@ -16,6 +16,8 @@ from horizon.commons.schemas.v1 import HWMResponseV1, HWMWriteRequestV1
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_write_hwm_create_new_full(
     namespace: Namespace,

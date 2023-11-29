@@ -14,6 +14,8 @@ from horizon.commons.exceptions.entity import EntityNotFoundError
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_delete_hwm(namespace: Namespace, hwm: HWM, sync_client: HorizonClientSync):
     response = sync_client.delete_hwm(namespace.name, hwm.name)

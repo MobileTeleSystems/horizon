@@ -16,6 +16,8 @@ from horizon.commons.schemas.v1 import HWMResponseV1
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, Namespace
 
+pytestmark = [pytest.mark.client_sync, pytest.mark.client]
+
 
 def test_sync_client_get_hwm(namespace: Namespace, hwm: HWM, sync_client: HorizonClientSync):
     response = sync_client.get_hwm(namespace.name, hwm.name)

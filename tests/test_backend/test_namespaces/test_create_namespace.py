@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 async def test_create_namespace_anonymous_user(

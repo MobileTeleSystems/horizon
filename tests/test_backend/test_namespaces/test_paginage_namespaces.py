@@ -12,7 +12,7 @@ from horizon.backend.db.models import Namespace
 if TYPE_CHECKING:
     from httpx import AsyncClient
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 async def test_paginate_namespaces_anonymous_user(

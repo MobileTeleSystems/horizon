@@ -11,7 +11,7 @@ from horizon.backend.db.models.hwm import HWM
 from horizon.backend.db.models.namespace import Namespace
 from horizon.backend.db.models.user import User
 
-pytestmark = [pytest.mark.asyncio]
+pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 async def test_stats_empty(test_client: AsyncClient):

@@ -4,13 +4,6 @@ default:
     - dmz
     - docker
 
-stages:
-  - static analysis
-  - tests
-  - post tests
-  - artifacts
-  - deploy
-
 include:
   # VAULT
   - project: DevOps/cicd-store/gitlabci/vault
@@ -113,7 +106,14 @@ build_backend_image:
 
 get_version:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
-  stage: static analysis
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $DEFAULT_PYDANTIC
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   script:
@@ -150,7 +150,14 @@ get_version:
 
 mypy:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
-  stage: static analysis
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $DEFAULT_PYDANTIC
   script:
     - python -m mypy ./horizon --config-file ./pyproject.toml
   rules:
@@ -161,7 +168,14 @@ mypy:
 
 flake8:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
-  stage: static analysis
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $DEFAULT_PYDANTIC
   script:
     - python -m flake8 --max-line-length 120 --format=default ./horizon 2>&1 | tee flake8.txt
   artifacts:
@@ -175,7 +189,14 @@ flake8:
 
 black:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
-  stage: static analysis
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $DEFAULT_PYDANTIC
   script:
     - python -m black ./horizon --check
   rules:
@@ -186,7 +207,14 @@ black:
 
 bandit:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
-  stage: static analysis
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $DEFAULT_PYDANTIC
   script:
     - python -m bandit -ll -iii -r ./horizon -f json -o ./bandit.json
   artifacts:
@@ -200,7 +228,14 @@ bandit:
 
 test_backend:
   image: ${IMAGE_PREFIX}/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:${CI_COMMIT_REF_SLUG}
-  stage: tests
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $PYTHON_VERSION
+      #      PYDANTIC_VERSION: $PYDANTIC_VERSION
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
@@ -242,7 +277,20 @@ test_backend:
 
 test_client:
   image: ${IMAGE_PREFIX}/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:${CI_COMMIT_REF_SLUG}
-  stage: tests
+  stage: test
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $PYTHON_VERSION
+      #      PYDANTIC_VERSION: $PYDANTIC_VERSION
+    - job: build_backend_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $PYTHON_VERSION
+      #      PYDANTIC_VERSION: $PYDANTIC_VERSION
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
@@ -282,9 +330,50 @@ test_client:
     - when: on_success
   interruptible: true
 
+coverage:
+  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
+  stage: test
+  needs:
+    - job: test_backend
+      artifacts: true
+    - job: test_client
+      artifacts: true
+  script:
+    - python -m coverage combine
+    - python -m coverage xml -o ./reports/coverage.xml -i
+    - python -m coverage html -d ./reports/coverage.html -i
+    - python -m coverage report -i
+  coverage: /TOTAL.*?(\d+\.?\d+)?%/
+  artifacts:
+    when: always
+    paths:
+      - ${CI_PROJECT_DIR}/reports/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: ${CI_PROJECT_DIR}/reports/coverage.xml
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: on_success
+  interruptible: true
+
 generate_openapi:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
-  stage: tests
+  stage: deploy
+  needs:
+    - job: backend_test_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $PYDANTIC_VERSION
+    - job: build_backend_image
+      # TODO: uncomment after upgrade to Gitlab 16.3+
+      #parallel:
+      #  matrix:
+      #    - PYTHON_VERSION: $DEFAULT_PYTHON
+      #      PYDANTIC_VERSION: $PYDANTIC_VERSION
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
@@ -330,39 +419,14 @@ generate_openapi:
     - when: on_success
   interruptible: true
 
-coverage:
-  image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${CI_COMMIT_REF_SLUG}
-  stage: post tests
-  dependencies:
-    - test_backend
-    - test_client
-  script:
-    - python -m coverage combine
-    - python -m coverage xml -o ./reports/coverage.xml -i
-    - python -m coverage html -d ./reports/coverage.html -i
-    - python -m coverage report -i
-  coverage: /TOTAL.*?(\d+\.?\d+)?%/
-  artifacts:
-    when: always
-    paths:
-      - ${CI_PROJECT_DIR}/reports/
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: ${CI_PROJECT_DIR}/reports/coverage.xml
-  rules:
-    - if: $CI_COMMIT_TAG
-      when: never
-    - when: on_success
-  interruptible: true
-
-### --------------- Build and publish docs --------------- ###
 build_docs:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
-  stage: post tests
-  dependencies:
-    - get_version
-    - generate_openapi
+  stage: deploy
+  needs:
+    - job: get_version
+      artifacts: true
+    - job: generate_openapi
+      artifacts: true
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
   before_script:
@@ -381,8 +445,6 @@ build_docs:
   artifacts:
     paths:
       - docs/html-*.tar.gz
-    reports:
-      dotenv: deploy.env
   rules:
     - if: $CI_COMMIT_TAG
       variables:
@@ -393,26 +455,30 @@ build_docs:
 
 publish_docs:
   extends: .base_rt_upload
-  stage: artifacts
+  stage: deploy
+  needs:
+    - job: devops_get_techuser_secrets
+      artifacts: true
+    - job: build_docs
+      artifacts: true
   variables:
     CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
     CICD_ARTIFACTORY__USER: $CICD_USER_NAME
     CICD_ARTIFACTORY__PASSWORD: $CICD_USER_PASSWORD
     CICD_ARTIFACTORY__ARTIFACTS_PATTERN: docs/html-*.tar.gz
     CICD_ARTIFACTORY__UPLOAD_PATH: docs-onetl-generic-local/${CI_PROJECT_NAME}/
-  dependencies:
-    - devops_get_techuser_secrets
-    - build_docs
   interruptible: true
 
 ## --------------- DEPLOY --------------- ###
 pip:
   extends: .base_pip_poetry_pkg_build_and_deploy_to_jfrog
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}
-  stage: artifacts
-  dependencies:
-    - devops_get_techuser_secrets
-    - get_version
+  stage: deploy
+  needs:
+    - job: devops_get_techuser_secrets
+      artifacts: true
+    - job: get_version
+      artifacts: true
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     CICD_PYTHON__REPO_URL: https://artifactory.mts.ru/artifactory/api/pypi/own-onetl-pypi-local/
@@ -431,9 +497,12 @@ pip:
 
 remove_dev_versions:
   extends: .base_rt_cli
-  stage: artifacts
-  dependencies:
-    - devops_get_techuser_secrets
+  stage: deploy
+  needs:
+    - job: devops_get_techuser_secrets
+      artifacts: true
+    - job: pip
+      artifacts: false
   variables:
     CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
     CICD_ARTIFACTORY__USER: $CICD_USER_NAME
@@ -453,6 +522,11 @@ remove_dev_versions:
 pages:
   extends: .base_pages_deploy_sphinx
   stage: deploy
+  needs:
+    - job: devops_get_techuser_secrets
+      artifacts: true
+    - job: publish_docs
+      artifacts: false
   variables:
     CICD_PAGES__ARTIFACTORY_USER: $CICD_USER_NAME
     CICD_PAGES__ARTIFACTORY_PASSWORD: $CICD_USER_PASSWORD
@@ -460,10 +534,13 @@ pages:
   interruptible: true
 
 ## --------------- Remove artifacts after remove feature/bug branch --------------- ###
-init_docs:
+review_docs:
   stage: .post
-  dependencies:
-    - get_version
+  needs:
+    - job: get_version
+      artifacts: true
+    - job: publish_docs
+      artifacts: false
   environment:
     name: docs/$CI_COMMIT_REF_SLUG
     url: ${CI_PAGES_URL}/${VERSION}/
@@ -482,8 +559,11 @@ init_docs:
 cleanup_docs:
   extends: .base_rt_cli
   stage: .post
-  dependencies:
-    - devops_get_techuser_secrets
+  needs:
+    - job: devops_get_techuser_secrets
+      artifacts: true
+    - job: review_docs
+      artifacts: false
   variables:
     CICD_ARTIFACTORY__URL: https://artifactory.mts.ru/artifactory
     CICD_ARTIFACTORY__USER: $CICD_USER_NAME
@@ -508,8 +588,11 @@ cleanup_docs:
 
 develop_docs:
   stage: .post
-  dependencies:
-    - get_version
+  needs:
+    - job: get_version
+      artifacts: true
+    - job: publish_docs
+      artifacts: false
   environment:
     name: docs/develop
     url: ${CI_PAGES_URL}/${VERSION}/
@@ -521,8 +604,13 @@ develop_docs:
       when: on_success
     - when: never
 
-init_docker:
+review_docker:
   stage: .post
+  needs:
+    - job: backend_test_image
+      artifacts: false
+    - job: build_backend_image
+      artifacts: false
   environment:
     name: docker/$CI_COMMIT_REF_SLUG
     on_stop: cleanup_docker
@@ -538,9 +626,11 @@ init_docker:
     - when: on_success
 
 cleanup_docker:
-  extends: .base_docker_cleaner
   stage: .post
-  dependencies: []
+  extends: .base_docker_cleaner
+  needs:
+    - job: review_docker
+      artifacts: false
   variables:
     CICD_DOCKER__IMAGE_TAGS: ${CI_COMMIT_REF_SLUG}
   script:

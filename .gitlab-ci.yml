@@ -290,10 +290,6 @@ generate_openapi:
   variables:
     DOCKER_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
-    HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
-    HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
-    HORIZON__SERVER__DEBUG: 'true'
-    HORIZON__SERVER__LOGGING__PRESET: colored
     # Enables creation of a Docker network per build with the docker executor
     FF_NETWORK_PER_BUILD: 1
   services:
@@ -305,10 +301,15 @@ generate_openapi:
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
     - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${BACKEND_IMAGE_TAG}
       alias: backend
+      variables:
+        HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+        HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+        HORIZON__SERVER__DEBUG: 'true'
+        HORIZON__SERVER__LOGGING__PRESET: colored
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
-    - python -m horizon.backend.db.migrations upgrade head
+    - mkdir reports
     # fetch OPenAPI schema
     - wget http://backend:8000/openapi.json -O reports/openapi.json
     # make few requests to backend to fill up some metrics

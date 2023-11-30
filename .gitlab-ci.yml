@@ -268,9 +268,6 @@ test_client:
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - python -m horizon.backend.db.migrations upgrade head
     - python -m coverage run -m pytest -m 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
-    - wget http://backend:8000/openapi.json -O reports/openapi.json
-    - wget http://backend:8000/monitoring/metrics -O reports/metrics.prom
-    - wget http://backend:8000/monitoring/stats -O reports/stats.prom
   artifacts:
     when: always
     paths:
@@ -313,10 +310,9 @@ generate_openapi:
     # fetch OPenAPI schema
     - wget http://backend:8000/openapi.json -O reports/openapi.json
     # make few requests to backend to fill up some metrics
-    - >
-      curl -X POST http://backend:8000/v1/namespaces/ || true
-      curl -X GET http://backend:8000/v1/namespaces/ || true
-      curl -X GET http://backend:8000/v1/namespaces/123 || true
+    - curl -X POST http://backend:8000/v1/namespaces/ || true
+    - curl -X GET http://backend:8000/v1/namespaces/ || true
+    - curl -X GET http://backend:8000/v1/namespaces/123 || true
     # fetch monitoring endpoint data
     - wget http://backend:8000/monitoring/metrics -O reports/metrics.prom
     - wget http://backend:8000/monitoring/stats -O reports/stats.prom

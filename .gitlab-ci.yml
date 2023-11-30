@@ -5,7 +5,6 @@ default:
     - docker
 
 stages:
-  - build test image
   - static analysis
   - tests
   - post tests
@@ -73,7 +72,7 @@ devops_get_techuser_secrets:
 ### --------------- Build docker images --------------- ###
 backend_test_image:
   extends: .base_docker_build
-  stage: build test image
+  stage: .pre
   parallel:
     matrix:
       - PYTHON_VERSION: ['3.7', '3.11']
@@ -93,7 +92,7 @@ backend_test_image:
 
 build_backend_image:
   extends: .base_docker_build
-  stage: build test image
+  stage: .pre
   variables:
     CICD_DOCKER__FILE_PATH: ./docker/Dockerfile.backend
     CICD_DOCKER__IMAGE_NAME: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend

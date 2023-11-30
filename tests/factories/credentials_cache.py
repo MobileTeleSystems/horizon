@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from random import randint
 
 import pytest
 import pytest_asyncio
@@ -17,6 +18,7 @@ from tests.factories.base import random_string
 
 def credentials_cache_factory(**kwargs):
     data = {
+        "id": randint(0, 10000000),
         "login": random_string(),
         "password_hash": argon2.hash(random_string()),
     }

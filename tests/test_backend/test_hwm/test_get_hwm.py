@@ -19,11 +19,10 @@ pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 async def test_get_hwm_anonymous_user(
     test_client: AsyncClient,
-    namespace: Namespace,
     hwm: HWM,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
+        f"v1/hwm/{hwm.id}",
     )
     assert response.status_code == 401
     assert response.json() == {
@@ -35,49 +34,24 @@ async def test_get_hwm_anonymous_user(
     }
 
 
-async def test_get_hwm_missing_namespace(
-    test_client: AsyncClient,
-    new_namespace: Namespace,
-    access_token: str,
-    new_hwm: HWM,
-):
-    response = await test_client.get(
-        f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    assert response.status_code == 404
-    assert response.json() == {
-        "error": {
-            "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
-            "details": {
-                "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
-            },
-        },
-    }
-
-
 async def test_get_hwm_missing_hwm(
     test_client: AsyncClient,
-    namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+        f"v1/hwm/{new_hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 404
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"HWM with name='{new_hwm.name}' not found",
+            "message": f"HWM with id={new_hwm.id!r} not found",
             "details": {
                 "entity_type": "HWM",
-                "field": "name",
-                "value": new_hwm.name,
+                "field": "id",
+                "value": new_hwm.id,
             },
         },
     }
@@ -85,7 +59,6 @@ async def test_get_hwm_missing_hwm(
 
 async def test_get_hwm(
     test_client: AsyncClient,
-    namespace: Namespace,
     access_token: str,
     hwm: HWM,
     async_session: AsyncSession,
@@ -95,7 +68,7 @@ async def test_get_hwm(
     real_hwm = query_result.one()
 
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
+        f"v1/hwm/{hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
@@ -104,6 +77,7 @@ async def test_get_hwm(
     response_dict["changed_at"] = datetime.fromisoformat(response_dict["changed_at"].replace("Z", "+00:00"))
     assert response_dict == {
         "id": real_hwm.id,
+        "namespace_id": real_hwm.namespace_id,
         "name": real_hwm.name,
         "description": real_hwm.description,
         "type": real_hwm.type,

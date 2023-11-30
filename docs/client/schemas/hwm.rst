@@ -13,5 +13,8 @@ HWM-related schemas
     :inherited-members: BaseModel
     :model-show-field-summary: false
 
-.. autopydantic_model:: HWMWriteRequestV1
+.. autopydantic_model:: HWMCreateRequestV1
+    :model-show-field-summary: false
+
+.. autopydantic_model:: HWMUpdateRequestV1
     :model-show-field-summary: false

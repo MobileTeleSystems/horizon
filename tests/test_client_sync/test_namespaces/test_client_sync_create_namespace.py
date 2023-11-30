@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -32,7 +33,10 @@ def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync
 
 def test_sync_client_create_namespace_already_exists(namespace: Namespace, sync_client: HorizonClientSync):
     to_create = NamespaceCreateRequestV1(name=namespace.name, description="abc")
-    with pytest.raises(EntityAlreadyExistsError, match=f"Namespace with name='{namespace.name}' already exists") as e:
+    with pytest.raises(
+        EntityAlreadyExistsError,
+        match=re.escape(f"Namespace with name={namespace.name!r} already exists"),
+    ) as e:
         sync_client.create_namespace(to_create)
 
     assert e.value.details == {

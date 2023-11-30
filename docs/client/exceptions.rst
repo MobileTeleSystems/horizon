@@ -34,10 +34,6 @@ Entity
     :members: message, details, entity_type, field, value
     :member-order: bysource
 
-.. autoclass:: EntityInvalidError
-    :members: message, details, entity_type, field, value
-    :member-order: bysource
-
 Service
 -------
 

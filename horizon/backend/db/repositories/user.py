@@ -13,7 +13,7 @@ from horizon.commons.exceptions.entity import (
 
 class UserRepository(Repository[User]):
     async def count(self) -> int:
-        return await self._count(where=[User.is_deleted.is_(False)])
+        return await self._count(where=[User.is_deleted.is_(False), User.is_active.is_(True)])
 
     async def get_by_id(self, user_id: int) -> User:
         result = await self._get_by_id(user_id, User.is_deleted.is_(False))

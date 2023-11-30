@@ -20,11 +20,10 @@ pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 async def test_delete_hwm_anonymous_user(
     test_client: AsyncClient,
-    namespace: Namespace,
     new_hwm: HWM,
 ):
     response = await test_client.delete(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+        f"v1/hwm/{new_hwm.id}",
     )
     assert response.status_code == 401
     assert response.json() == {
@@ -36,49 +35,24 @@ async def test_delete_hwm_anonymous_user(
     }
 
 
-async def test_delete_hwm_missing_namespace(
+async def test_delete_hwm_missing(
     test_client: AsyncClient,
-    new_namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
     response = await test_client.delete(
-        f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
+        f"v1/hwm/{new_hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 404
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
-            "details": {
-                "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
-            },
-        },
-    }
-
-
-async def test_delete_hwm_missing_hwm(
-    test_client: AsyncClient,
-    namespace: Namespace,
-    access_token: str,
-    new_hwm: HWM,
-):
-    response = await test_client.delete(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    assert response.status_code == 404
-    assert response.json() == {
-        "error": {
-            "code": "not_found",
-            "message": f"HWM with name='{new_hwm.name}' not found",
+            "message": f"HWM with id={new_hwm.id!r} not found",
             "details": {
                 "entity_type": "HWM",
-                "field": "name",
-                "value": new_hwm.name,
+                "field": "id",
+                "value": new_hwm.id,
             },
         },
     }
@@ -86,7 +60,6 @@ async def test_delete_hwm_missing_hwm(
 
 async def test_delete_hwm(
     test_client: AsyncClient,
-    namespace: Namespace,
     access_token: str,
     user: User,
     hwm: HWM,
@@ -95,7 +68,7 @@ async def test_delete_hwm(
     current_dt = datetime.now(tz=timezone.utc)
 
     response = await test_client.delete(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
+        f"v1/hwm/{hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 204
@@ -107,6 +80,7 @@ async def test_delete_hwm(
 
     # Field values are left intact
     assert hwm_after.name == hwm.name
+    assert hwm_after.namespace_id == hwm.namespace_id
     assert hwm_after.description == hwm.description
     assert hwm_after.type == hwm.type
     assert hwm_after.value == hwm.value
@@ -123,12 +97,13 @@ async def test_delete_hwm(
 
     # Row is same as in body
     assert created_hwm_history.name == hwm.name
+    assert created_hwm_history.namespace_id == hwm.namespace_id
     assert created_hwm_history.description == hwm.description
     assert created_hwm_history.type == hwm.type
     assert created_hwm_history.value == hwm.value
     assert created_hwm_history.entity == hwm.entity
     assert created_hwm_history.expression == hwm.expression
     # Internal fields are updated
-    assert created_hwm_history.changed_at >= current_dt
+    assert created_hwm_history.changed_at == hwm_after.changed_at
     assert created_hwm_history.changed_by_user_id == user.id
     assert created_hwm_history.is_deleted

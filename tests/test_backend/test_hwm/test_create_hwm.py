@@ -6,11 +6,10 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
+from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
-from horizon.backend.settings import Settings
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -19,14 +18,16 @@ if TYPE_CHECKING:
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
-async def test_write_hwm_anonymous_user(
+async def test_create_hwm_anonymous_user(
     test_client: AsyncClient,
     namespace: Namespace,
     new_hwm: HWM,
 ):
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         json={
+            "namespace_id": namespace.id,
+            "name": new_hwm.name,
             "description": new_hwm.description,
             "type": new_hwm.type,
             "value": new_hwm.value,
@@ -44,16 +45,18 @@ async def test_write_hwm_anonymous_user(
     }
 
 
-async def test_write_hwm_missing_namespace(
+async def test_create_hwm_missing_namespace(
     test_client: AsyncClient,
     new_namespace: Namespace,
     access_token: str,
     new_hwm: HWM,
 ):
-    response = await test_client.patch(
-        f"v1/namespaces/{new_namespace.name}/hwm/{new_hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": new_namespace.id,
+            "name": new_hwm.name,
             "description": new_hwm.description,
             "type": new_hwm.type,
             "value": new_hwm.value,
@@ -65,17 +68,17 @@ async def test_write_hwm_missing_namespace(
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
+            "message": f"Namespace with id={new_namespace.id!r} not found",
             "details": {
                 "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
+                "field": "id",
+                "value": new_namespace.id,
             },
         },
     }
 
 
-async def test_write_hwm_create_new(
+async def test_create_hwm_create_new(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
@@ -85,10 +88,12 @@ async def test_write_hwm_create_new(
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace.id,
+            "name": new_hwm.name,
             "description": new_hwm.description,
             "type": new_hwm.type,
             "value": new_hwm.value,
@@ -143,7 +148,7 @@ async def test_write_hwm_create_new(
     assert not created_hwm_history.is_deleted
 
 
-async def test_write_hwm_create_new_minimal(
+async def test_create_hwm_create_new_minimal(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
@@ -153,10 +158,12 @@ async def test_write_hwm_create_new_minimal(
 ):
     current_dt = datetime.now(tz=timezone.utc)
 
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace.id,
+            "name": new_hwm.name,
             "type": new_hwm.type,
             "value": None,
         },
@@ -193,60 +200,33 @@ async def test_write_hwm_create_new_minimal(
     assert not created_hwm.is_deleted
 
 
-@pytest.mark.parametrize(
-    "json, missing",
-    [
-        ({"value": None}, "type"),
-        ({"type": "str"}, "value"),
-    ],
-)
-async def test_write_hwm_create_new_not_enough_arguments(
-    test_client: AsyncClient,
-    namespace: Namespace,
-    access_token: str,
-    new_hwm: HWM,
-    json: dict,
-    missing: str,
-):
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json=json,
-    )
-    assert response.status_code == 417
-    assert response.json() == {
-        "error": {
-            "code": "invalid_value",
-            "message": f"HWM has wrong '{missing}' value <unset>",
-            "details": {"entity_type": "HWM", "field": missing, "value": "<unset>"},
-        },
-    }
-
-
-async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
+async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
     test_client: AsyncClient,
     namespaces: list[Namespace],
     access_token: str,
-    user: User,
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
     namespace1, namespace2, *_ = namespaces
 
-    response1 = await test_client.patch(
-        f"v1/namespaces/{namespace1.name}/hwm/{new_hwm.name}",
+    response1 = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace1.id,
+            "name": new_hwm.name,
             "type": "abc",
             "value": 123,
         },
     )
     assert response1.status_code == 200
 
-    response2 = await test_client.patch(
-        f"v1/namespaces/{namespace2.name}/hwm/{new_hwm.name}",
+    response2 = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace2.id,
+            "name": new_hwm.name,
             "type": "bcd",
             "value": 234,
         },
@@ -272,21 +252,20 @@ async def test_write_hwm_create_new_with_same_name_in_different_namespaces(
     assert created_hwm2.value == 234
 
 
-async def test_write_hwm_replace_existing(
+async def test_create_hwm_already_exist(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
-    user: User,
     hwm: HWM,
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
-    current_dt = datetime.now(tz=timezone.utc)
-
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace.id,
+            "name": hwm.name,
             "description": new_hwm.description,
             "type": new_hwm.type,
             "value": new_hwm.value,
@@ -294,183 +273,25 @@ async def test_write_hwm_replace_existing(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 200
-
-    content = response.json()
-    assert content["id"] == hwm.id
-    assert content["name"] == hwm.name  # name cannot be changed
-    assert content["description"] == new_hwm.description
-    assert content["type"] == new_hwm.type
-    assert content["value"] == new_hwm.value
-    assert content["entity"] == new_hwm.entity
-    assert content["expression"] == new_hwm.expression
-    assert content["changed_by"] == user.username
-
-    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
-    assert changed_at >= current_dt >= hwm.changed_at
-
-    query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await async_session.scalars(query)
-    updated_hwm = query_result.one()
-
-    # Row is same as in body
-    assert updated_hwm.name == content["name"]
-    assert updated_hwm.description == content["description"]
-    assert updated_hwm.type == content["type"]
-    assert updated_hwm.value == content["value"]
-    assert updated_hwm.entity == content["entity"]
-    assert updated_hwm.expression == content["expression"]
-    assert updated_hwm.changed_at == changed_at
-    assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
-
-    query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    query_result = await async_session.scalars(query)
-    created_hwm_history = query_result.one()
-
-    # Row is same as in body
-    assert created_hwm_history.name == content["name"]
-    assert created_hwm_history.description == content["description"]
-    assert created_hwm_history.type == content["type"]
-    assert created_hwm_history.value == content["value"]
-    assert created_hwm_history.entity == content["entity"]
-    assert created_hwm_history.expression == content["expression"]
-    assert created_hwm_history.changed_at == changed_at
-    assert created_hwm_history.changed_by_user_id == user.id
-    assert not created_hwm_history.is_deleted
-
-
-@pytest.mark.parametrize(
-    "field, is_none",
-    [
-        ("type", False),
-        ("description", False),
-        ("value", False),
-        ("value", True),
-        ("entity", False),
-        ("entity", True),
-        ("expression", False),
-        ("expression", True),
-    ],
-)
-async def test_write_hwm_replace_existing_partial(
-    test_client: AsyncClient,
-    namespace: Namespace,
-    access_token: str,
-    user: User,
-    hwm: HWM,
-    new_hwm: HWM,
-    async_session: AsyncSession,
-    field: str,
-    is_none: bool,
-):
-    current_dt = datetime.now(tz=timezone.utc)
-    value = None if is_none else getattr(new_hwm, field)
-
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json={
-            field: value,
-        },
-    )
-    assert response.status_code == 200
-
-    content = response.json()
-    assert content["id"] == hwm.id
-    assert content["name"] == hwm.name  # name cannot be changed
-    assert content["changed_by"] == user.username
-    # if attribute is passed to endpoint, it will be updated
-    assert content[field] == value
-
-    for attribute, attr_value in content.items():
-        if attribute != field and not attribute.startswith("changed_"):
-            # if attribute was not passed, it is left intact
-            assert attr_value == getattr(hwm, attribute)
-
-    changed_at = datetime.fromisoformat(content["changed_at"].replace("Z", "+00:00"))
-    assert changed_at >= current_dt >= hwm.changed_at
-
-    query = select(HWM).where(HWM.id == hwm.id)
-    query_result = await async_session.scalars(query)
-    updated_hwm = query_result.one()
-
-    # Row is same as in body
-    assert updated_hwm.name == content["name"]
-    assert updated_hwm.description == content["description"]
-    assert updated_hwm.type == content["type"]
-    assert updated_hwm.value == content["value"]
-    assert updated_hwm.entity == content["entity"]
-    assert updated_hwm.expression == content["expression"]
-    assert updated_hwm.changed_at == changed_at
-    assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
-
-    query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    query_result = await async_session.scalars(query)
-    created_hwm_history = query_result.one()
-
-    # Row is same as in body
-    assert created_hwm_history.name == content["name"]
-    assert created_hwm_history.description == content["description"]
-    assert created_hwm_history.type == content["type"]
-    assert created_hwm_history.value == content["value"]
-    assert created_hwm_history.entity == content["entity"]
-    assert created_hwm_history.expression == content["expression"]
-    assert created_hwm_history.changed_at == changed_at
-    assert created_hwm_history.changed_by_user_id == user.id
-    assert not created_hwm_history.is_deleted
-
-
-@pytest.mark.parametrize(
-    "settings",
-    [
-        {"server": {"debug": True}},
-        {"server": {"debug": False}},
-    ],
-    indirect=True,
-)
-async def test_write_hwm_replace_existing_no_data(
-    test_client: AsyncClient,
-    access_token: str,
-    namespace: Namespace,
-    hwm: HWM,
-):
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{hwm.name}",
-        headers={"Authorization": f"Bearer {access_token}"},
-        json={"unexpected": "value"},
-    )
-    assert response.status_code == 422
-
-    details: list[dict[str, Any]]
-    if pydantic_version < "2":
-        details = [
-            {
-                "location": ["body", "__root__"],
-                "code": "value_error",
-                "message": "At least one field must be set.",
-            }
-        ]
-    else:
-        details = [
-            {
-                "code": "value_error",
-                "location": ["body"],
-                "message": "Value error, At least one field must be set.",
-                "context": {},
-                "input": {"unexpected": "value"},
-                "url": "https://errors.pydantic.dev/2.5/v/value_error",
-            }
-        ]
-
+    assert response.status_code == 409
     assert response.json() == {
         "error": {
-            "code": "invalid_request",
-            "message": "Invalid request",
-            "details": details,
+            "code": "already_exists",
+            "message": f"HWM with name={hwm.name!r} already exists",
+            "details": {
+                "entity_type": "HWM",
+                "field": "name",
+                "value": hwm.name,
+            },
         }
     }
+
+    query = select(HWM).where(HWM.id == hwm.id)
+    query_result = await async_session.scalars(query)
+    hwm_after = query_result.one()
+
+    # Nothing is changed
+    assert naturally_equivalent(hwm_after, hwm)
 
 
 @pytest.mark.parametrize(
@@ -489,7 +310,7 @@ async def test_write_hwm_replace_existing_no_data(
         pytest.param([{"key1": 123}, {"key2": 234.567}, {"key3": "abc"}], id="list[dict]"),
     ],
 )
-async def test_write_hwm_value_can_be_any_valid_json(
+async def test_create_hwm_value_can_be_any_valid_json(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
@@ -497,10 +318,12 @@ async def test_write_hwm_value_can_be_any_valid_json(
     async_session: AsyncSession,
     value: Any,
 ):
-    response = await test_client.patch(
-        f"v1/namespaces/{namespace.name}/hwm/{new_hwm.name}",
+    response = await test_client.post(
+        "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
         json={
+            "namespace_id": namespace.id,
+            "name": new_hwm.name,
             "type": new_hwm.type,
             "value": value,
         },

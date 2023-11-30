@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -18,21 +19,24 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
 
 def test_sync_client_delete_namespace(namespace: Namespace, sync_client: HorizonClientSync):
-    response = sync_client.delete_namespace(namespace.name)
+    response = sync_client.delete_namespace(namespace.id)
     assert response is None
 
     with pytest.raises(EntityNotFoundError):
-        sync_client.get_namespace(namespace.name)
+        sync_client.get_namespace(namespace.id)
 
 
 def test_sync_client_delete_namespace_missing(new_namespace: Namespace, sync_client: HorizonClientSync):
-    with pytest.raises(EntityNotFoundError, match=f"Namespace with name='{new_namespace.name}' not found") as e:
-        sync_client.delete_namespace(new_namespace.name)
+    with pytest.raises(
+        EntityNotFoundError,
+        match=re.escape(f"Namespace with id={new_namespace.id!r} not found"),
+    ) as e:
+        sync_client.delete_namespace(new_namespace.id)
 
     assert e.value.details == {
         "entity_type": "Namespace",
-        "field": "name",
-        "value": new_namespace.name,
+        "field": "id",
+        "value": new_namespace.id,
     }
 
     # original HTTP exception is attached as reason

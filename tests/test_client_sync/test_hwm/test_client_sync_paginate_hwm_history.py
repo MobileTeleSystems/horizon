@@ -16,13 +16,12 @@ from horizon.commons.schemas.v1 import (
 )
 
 if TYPE_CHECKING:
-    from horizon.backend.db.models import HWM, HWMHistory, Namespace
+    from horizon.backend.db.models import HWM, HWMHistory
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
 
 def test_sync_client_paginate_hwm_history(
-    namespace: Namespace,
     hwm: HWM,
     hwm_history_items: list[HWMHistory],
     sync_client: HorizonClientSync,
@@ -32,6 +31,7 @@ def test_sync_client_paginate_hwm_history(
         HWMHistoryResponseV1(
             id=item.id,
             hwm_id=item.hwm_id,
+            namespace_id=item.namespace_id,
             name=item.name,
             type=item.type,
             value=item.value,
@@ -44,7 +44,7 @@ def test_sync_client_paginate_hwm_history(
         for item in hwm_history_items
     ]
 
-    response = sync_client.paginate_hwm_history(namespace.name, hwm.name)
+    response = sync_client.paginate_hwm_history(HWMHistoryPaginateQueryV1(hwm_id=hwm.id))
     assert response == PageResponseV1[HWMHistoryResponseV1](
         meta=PageMetaResponseV1(
             page=1,
@@ -61,8 +61,7 @@ def test_sync_client_paginate_hwm_history(
 
 
 @pytest.mark.parametrize("hwm_history_items", [(10, {})], indirect=True)
-def test_sync_client_paginate_hwm_with_params(
-    namespace: Namespace,
+def test_sync_client_paginate_hwm_history_page_options(
     hwm: HWM,
     hwm_history_items: list[HWMHistory],
     sync_client: HorizonClientSync,
@@ -72,6 +71,7 @@ def test_sync_client_paginate_hwm_with_params(
         HWMHistoryResponseV1(
             id=item.id,
             hwm_id=item.hwm_id,
+            namespace_id=item.namespace_id,
             name=item.name,
             type=item.type,
             value=item.value,
@@ -85,9 +85,7 @@ def test_sync_client_paginate_hwm_with_params(
     ]
 
     page1 = sync_client.paginate_hwm_history(
-        namespace.name,
-        hwm.name,
-        query=HWMHistoryPaginateQueryV1(page=1, page_size=8),
+        HWMHistoryPaginateQueryV1(hwm_id=hwm.id, page=1, page_size=8),
     )
     assert page1 == PageResponseV1[HWMHistoryResponseV1](
         meta=PageMetaResponseV1(
@@ -104,9 +102,7 @@ def test_sync_client_paginate_hwm_with_params(
     )
 
     page2 = sync_client.paginate_hwm_history(
-        namespace.name,
-        hwm.name,
-        query=HWMHistoryPaginateQueryV1(page=2, page_size=8),
+        HWMHistoryPaginateQueryV1(hwm_id=hwm.id, page=2, page_size=8),
     )
     assert page2 == PageResponseV1[HWMHistoryResponseV1](
         meta=PageMetaResponseV1(

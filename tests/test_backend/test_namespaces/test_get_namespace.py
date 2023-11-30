@@ -22,7 +22,7 @@ async def test_get_namespace_anonymous_user(
     namespace: Namespace,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
     )
     assert response.status_code == 401
     assert response.json() == {
@@ -40,18 +40,18 @@ async def test_get_namespace_missing(
     new_namespace: Namespace,
 ):
     response = await test_client.get(
-        f"v1/namespaces/{new_namespace.name}",
+        f"v1/namespaces/{new_namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 404
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"Namespace with name='{new_namespace.name}' not found",
+            "message": f"Namespace with id={new_namespace.id!r} not found",
             "details": {
                 "entity_type": "Namespace",
-                "field": "name",
-                "value": new_namespace.name,
+                "field": "id",
+                "value": new_namespace.id,
             },
         },
     }
@@ -68,7 +68,7 @@ async def test_get_namespace(
     real_namespace = query_result.one()
 
     response = await test_client.get(
-        f"v1/namespaces/{namespace.name}",
+        f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -25,7 +26,7 @@ def test_sync_client_update_namespace_name(
     sync_client: HorizonClientSync,
 ):
     to_update = NamespaceUpdateRequestV1(name=new_namespace.name)
-    response = sync_client.update_namespace(namespace.name, to_update)
+    response = sync_client.update_namespace(namespace.id, to_update)
 
     assert isinstance(response, NamespaceResponseV1)
     assert response.dict(exclude={"changed_at"}) == dict(
@@ -43,7 +44,7 @@ def test_sync_client_update_namespace_description(
     sync_client: HorizonClientSync,
 ):
     to_update = NamespaceUpdateRequestV1(description=new_namespace.description)
-    response = sync_client.update_namespace(namespace.name, to_update)
+    response = sync_client.update_namespace(namespace.id, to_update)
 
     assert isinstance(response, NamespaceResponseV1)
     assert response.dict(exclude={"changed_at"}) == dict(
@@ -57,13 +58,16 @@ def test_sync_client_update_namespace_description(
 def test_sync_client_update_namespace_missing(new_namespace: Namespace, sync_client: HorizonClientSync):
     to_update = NamespaceUpdateRequestV1(name=new_namespace.name, description=new_namespace.description)
 
-    with pytest.raises(EntityNotFoundError, match=f"Namespace with name='{new_namespace.name}' not found") as e:
-        sync_client.update_namespace(new_namespace.name, to_update)
+    with pytest.raises(
+        EntityNotFoundError,
+        match=re.escape(f"Namespace with id={new_namespace.id!r} not found"),
+    ) as e:
+        sync_client.update_namespace(new_namespace.id, to_update)
 
     assert e.value.details == {
         "entity_type": "Namespace",
-        "field": "name",
-        "value": new_namespace.name,
+        "field": "id",
+        "value": new_namespace.id,
     }
 
     # original HTTP exception is attached as reason

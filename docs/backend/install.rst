@@ -42,11 +42,11 @@ Requirements
 Installation process
 ~~~~~~~~~~~~~~~~~~~~
 
-Install horizon package with following *extra* dependencies:
+Install ``data-horizon`` package with following *extra* dependencies:
 
 .. code-block:: bash
 
-    pip install horizon[backend,postgres,ldap]
+    pip install data-horizon[backend,postgres,ldap]
 
 Available *extras* are:
 

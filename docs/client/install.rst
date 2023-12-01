@@ -12,11 +12,11 @@ Requirements
 Installation process
 ~~~~~~~~~~~~~~~~~~~~
 
-Install horizon package with following *extra* dependencies:
+Install ``data-horizon`` package with following *extra* dependencies:
 
 .. code-block:: bash
 
-    pip install horizon[client-sync]
+    pip install data-horizon[client-sync]
 
 Available *extras* are:
 

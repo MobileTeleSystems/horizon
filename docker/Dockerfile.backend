@@ -35,5 +35,6 @@ COPY ./docker/entrypoint.sh ./docker/
 RUN chmod +x ./docker/*.sh
 
 COPY ./horizon/ ./horizon/
+EXPOSE 8000
 CMD ["/app/docker/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]

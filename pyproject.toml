@@ -28,6 +28,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 keywords = ["Horizon", "REST", "API", "HWM"]
+packages = [
+    { include = "horizon" },
+]
 include = [
     {path = "horizon/py.typed"},
     {path = "horizon/**/*.yml"},

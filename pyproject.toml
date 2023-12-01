@@ -3,8 +3,8 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "horizon"
-version = "0.0.2"
+name = "data-horizon"
+version = "0.0.1"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]

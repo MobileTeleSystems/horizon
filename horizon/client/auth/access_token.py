@@ -40,6 +40,7 @@ class AccessToken(BaseAuth, BaseModel):
         if session.token:
             return session
 
+        # https://github.com/lepture/authlib/issues/600
         token_decoded = jwt.decode(self.token, key="NONE", options={"verify_signature": False})
         session.token = AuthlibToken.from_dict(
             {

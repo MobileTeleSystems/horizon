@@ -442,7 +442,7 @@ remove_dev_versions:
   # Remove artifacts for feature/bug branch
     - export CI_COMMIT_REF_SLUG=$(echo $CI_COMMIT_REF_SLUG | tr '-' '.')
     - jf rt delete docs-onetl-generic-local/${CI_PROJECT_NAME}/docs/html-${CI_COMMIT_TAG}.dev*
-    - jf rt delete own-onetl-pypi-local/${CI_PROJECT_NAME}/${CI_COMMIT_TAG}.dev*
+    - jf rt delete own-onetl-pypi-local/data-horizon/${CI_COMMIT_TAG}.dev*
   rules:
   # run only if release
     - if: $CI_COMMIT_TAG
@@ -492,7 +492,7 @@ cleanup_docs:
   # Remove artifacts for feature/bug branch
     - export CI_COMMIT_REF_SLUG=$(echo $CI_COMMIT_REF_SLUG | tr '-' '.')
     - jf rt delete docs-onetl-generic-local/${CI_PROJECT_NAME}/docs/*+${CI_COMMIT_REF_SLUG}*
-    - jf rt delete own-onetl-pypi-local/${CI_PROJECT_NAME}/*+${CI_COMMIT_REF_SLUG}
+    - jf rt delete own-onetl-pypi-local/data-horizon/*+${CI_COMMIT_REF_SLUG}
   environment:
     name: docs/$CI_COMMIT_REF_SLUG
     action: stop

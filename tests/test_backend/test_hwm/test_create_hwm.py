@@ -101,7 +101,7 @@ async def test_create_hwm_create_new(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     content = response.json()
     hmw_id = content["id"]
@@ -168,7 +168,7 @@ async def test_create_hwm_create_new_minimal(
             "value": None,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     content = response.json()
     hmw_id = content["id"]
@@ -219,7 +219,7 @@ async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
             "value": 123,
         },
     )
-    assert response1.status_code == 200
+    assert response1.status_code == 201
 
     response2 = await test_client.post(
         "v1/hwm/",
@@ -231,7 +231,7 @@ async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
             "value": 234,
         },
     )
-    assert response2.status_code == 200
+    assert response2.status_code == 201
 
     hmw1_id = response1.json()["id"]
     hmw2_id = response2.json()["id"]
@@ -328,7 +328,7 @@ async def test_create_hwm_value_can_be_any_valid_json(
             "value": value,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
 
     content = response.json()
     hmw_id = content["id"]

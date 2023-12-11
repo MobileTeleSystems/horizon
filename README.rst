@@ -16,6 +16,13 @@ Horizon
 .. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
     :target: https://artifactory.mts.ru/artifactory/own-onetl-pypi-local/horizon/
 
+|Logo|
+
+.. |Logo| image:: docs/_static/logo.svg
+    :width: 400
+    :alt: Horizon logo
+    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon
+
 What is Horizon?
 ----------------
 

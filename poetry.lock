@@ -3197,6 +3197,30 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "sphinx-favicon"
+version = "1.0.1"
+description = "Sphinx Extension adding support for custom favicons"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "sphinx-favicon-1.0.1.tar.gz", hash = "sha256:df796de32125609c1b4a8964db74270ebf4502089c27cd53f542354dc0b57e8e"},
+    {file = "sphinx_favicon-1.0.1-py3-none-any.whl", hash = "sha256:7c93d6b634cb4c9687ceab67a8526f05d3b02679df94e273e51a43282e6b034c"},
+]
+
+[package.dependencies]
+sphinx = ">=3.4"
+
+[package.extras]
+dev = ["nox", "pre-commit"]
+doc = ["pydata-sphinx-theme", "sphinx (<6)", "sphinx-copybutton", "sphinx-design"]
+test = ["beautifulsoup4", "pytest", "pytest-cov"]
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "sphinx-issues"
 version = "3.0.1"
 description = "A Sphinx extension for linking to your project's issue tracker"
@@ -3984,4 +4008,4 @@ postgres = ["asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "e091254331ca224deb223b19d636fd8d13e637067a54726f14ad2e1368c5ecbe"
+content-hash = "313fc6e50b1a8a1a7005baa489366d01ed97ff214c0d0e7b14d0c764ea238542"

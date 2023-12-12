@@ -9,13 +9,13 @@ Backend provides 2 endpoints with Prometheus compatible metrics:
 
 .. dropdown:: Example
 
-    .. literalinclude:: ../../static/metrics.prom
+    .. literalinclude:: ../../_static/metrics.prom
 
 * ``GET /monitoring/stats`` - usage statistics, like number of users, namespaces, HWMs.
 
 .. dropdown:: Example
 
-    .. literalinclude:: ../../static/stats.prom
+    .. literalinclude:: ../../_static/stats.prom
 
 These endpoints are enabled and configured using settings below:
 

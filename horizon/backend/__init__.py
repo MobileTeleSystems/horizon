@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+from functools import partial
 from typing import Type
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
 from sqlalchemy.ext.asyncio import AsyncSession, async_engine_from_config
 
 import horizon
@@ -27,6 +29,25 @@ from horizon.backend.middlewares.request_id import add_request_id_middleware
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.settings import Settings
 from horizon.commons.exceptions import ApplicationError, ServiceError
+
+
+def custom_openapi(application: FastAPI) -> dict:
+    if application.openapi_schema:
+        return application.openapi_schema
+
+    openapi_schema = get_openapi(
+        title=application.title,
+        version=application.version,
+        summary=application.summary,
+        description=application.description,
+        routes=application.routes,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://bigdata.pages.mts.ru/platform/onetools/horizon/latest/_static/logo.svg",
+        "altText": "Horizon logo",
+    }
+    application.openapi_schema = openapi_schema
+    return application.openapi_schema
 
 
 def application_factory(settings: Settings) -> FastAPI:
@@ -74,6 +95,7 @@ def application_factory(settings: Settings) -> FastAPI:
     if settings.server.request_id.enabled:
         add_request_id_middleware(application, settings.server.request_id)
 
+    application.openapi = partial(custom_openapi, application=application)  # type: ignore[method-assign]
     return application
 
 

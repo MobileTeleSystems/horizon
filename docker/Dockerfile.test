@@ -1,5 +1,6 @@
 ARG PYTHON_VERSION=3.11
 FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as test
+ARG PYTHON_VERSION
 
 RUN microdnf -y install \
         krb5-libs \

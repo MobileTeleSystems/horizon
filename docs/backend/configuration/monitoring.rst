@@ -19,4 +19,4 @@ Backend provides 2 endpoints with Prometheus compatible metrics:
 
 These endpoints are enabled and configured using settings below:
 
-.. autopydantic_model:: horizon.backend.settings.server.MonitoringSettings
+.. autopydantic_model:: horizon.backend.settings.server.monitoring.MonitoringSettings

@@ -7,8 +7,11 @@ from uuid6 import uuid8
 from horizon.backend.settings.server import RequestIDSettings
 
 
-def add_request_id_middleware(app: FastAPI, settings: RequestIDSettings) -> FastAPI:
+def apply_request_id_middleware(app: FastAPI, settings: RequestIDSettings) -> FastAPI:
     """Add X-Request-ID middleware to the application."""
+    if not settings.enabled:
+        return app
+
     app.add_middleware(
         CorrelationIdMiddleware,
         generator=lambda: uuid8().hex,

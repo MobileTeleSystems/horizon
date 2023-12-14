@@ -55,7 +55,7 @@ Server can add ``X-Request-ID`` header to responses, which allows to match reque
 
 This is done by ``request_id`` middleware, which is enabled by default and can configured as described below:
 
-.. autopydantic_model:: horizon.backend.settings.server.RequestIDSettings
+.. autopydantic_model:: horizon.backend.settings.server.request_id.RequestIDSettings
 
 Print request ID  to backend logs
 ---------------------------------
@@ -64,7 +64,7 @@ This is done by adding a specific filter to logging handler:
 
 .. dropdown:: ``logging.yml``
 
-    .. literalinclude:: ../../../horizon/backend/settings/log/plain.yml
+    .. literalinclude:: ../../../horizon/backend/settings/server/log/plain.yml
         :emphasize-lines: 6-12,17-18,25
 
 

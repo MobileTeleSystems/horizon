@@ -264,10 +264,13 @@ test_client:
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
     - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${CI_COMMIT_REF_SLUG}
       alias: backend
+      # Gitlab cannot wait for DB availability, so backend could not run migrations and fails
+      # avoid this by overriding entrypoint
+      entrypoint: [python, -m, horizon.backend, --host, 0.0.0.0, --port, '8000']
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
-    - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - python -m horizon.backend.db.migrations upgrade head
+    - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - python -m coverage run -m pytest -m 'client' -v -s --junitxml=reports/junit-client-${PYTHON_VERSION}.xml
   artifacts:
     when: always
@@ -290,6 +293,10 @@ generate_openapi:
     BACKEND_IMAGE_TAG: ${CI_COMMIT_REF_SLUG}
     # Enables creation of a Docker network per build with the docker executor
     FF_NETWORK_PER_BUILD: 1
+    HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
+    HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
+    HORIZON__SERVER__DEBUG: 'true'
+    HORIZON__SERVER__LOGGING__PRESET: colored
   services:
     - name: central-mirror.services.mts.ru/postgres:15-alpine
       alias: db
@@ -299,22 +306,21 @@ generate_openapi:
         POSTGRES_PASSWORD: Aeviphai6juo3ooY7iecaivieX5OoMai
     - name: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/backend:${BACKEND_IMAGE_TAG}
       alias: backend
-      variables:
-        HORIZON__DATABASE__URL: postgresql+asyncpg://horizon:Aeviphai6juo3ooY7iecaivieX5OoMai@db:5432/horizon
-        HORIZON__AUTH__ACCESS_TOKEN__SECRET_KEY: bae1thahr8Iyaisai0kohvoh1aeg5quu
-        HORIZON__SERVER__DEBUG: 'true'
-        HORIZON__SERVER__LOGGING__PRESET: colored
+      # Gitlab cannot wait for DB availability, so backend could not run migrations and fails
+      # avoid this by overriding entrypoint
+      entrypoint: [python, -m, horizon.backend, --host, 0.0.0.0, --port, '8000']
   script:
     - ./docker/wait-for-it.sh -h db -p 5432 -t 60
+    - python -m horizon.backend.db.migrations upgrade head
     - ./docker/wait-for-it.sh -h backend -p 8000 -t 60
     - mkdir reports
-    # fetch OPenAPI schema
+    # Fetch OpenAPI schema
     - wget http://backend:8000/openapi.json -O reports/openapi.json
-    # make few requests to backend to fill up some metrics
+    # Make few requests to backend to fill up some metrics
     - curl -X POST http://backend:8000/v1/namespaces/ || true
     - curl -X GET http://backend:8000/v1/namespaces/ || true
     - curl -X GET http://backend:8000/v1/namespaces/123 || true
-    # fetch monitoring endpoint data
+    # Fetch monitoring endpoint data
     - wget http://backend:8000/monitoring/metrics -O reports/metrics.prom
     - wget http://backend:8000/monitoring/stats -O reports/stats.prom
   artifacts:
@@ -368,8 +374,12 @@ build_docs:
   before_script:
     # update version number in docs
     - poetry version "${VERSION}"
-    - cp reports/openapi.json docs/static/
-    - cp reports/*.prom docs/static/
+    - cp reports/openapi.json docs/_static/
+    - cp reports/*.prom docs/_static/
+    - mkdir -p docs/_static/swagger docs/_static/redoc
+    - wget https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui-bundle.js -O docs/_static/swagger/swagger-ui-bundle.js
+    - wget https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui.css -O docs/_static/swagger/swagger-ui.css
+    - wget https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/redoc/redoc.standalone.js -O docs/_static/redoc/redoc.standalone.js
   script:
     - cd docs
     - make html

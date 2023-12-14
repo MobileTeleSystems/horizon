@@ -35,6 +35,16 @@ COPY ./docker/entrypoint.sh ./docker/
 RUN chmod +x ./docker/*.sh
 
 COPY ./horizon/ ./horizon/
+COPY docs/_static/*.svg /app/horizon/backend/static/
+ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui-bundle.js /app/horizon/backend/static/swagger/swagger-ui-bundle.js
+ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui.css /app/horizon/backend/static/swagger/swagger-ui.css
+ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/redoc/redoc.standalone.js /app/horizon/backend/static/redoc/redoc.standalone.js
+
+ENV HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/static/swagger/swagger-ui-bundle.js \
+    HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/static/swagger/swagger-ui.css \
+    HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/static/redoc/redoc.standalone.js \
+    HORIZON__SERVER__STATIC_FILES__DIRECTORY=/app/horizon/backend/static
+
 EXPOSE 8000
-CMD ["/app/docker/entrypoint.sh"]
+ENTRYPOINT ["/app/docker/entrypoint.sh"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]

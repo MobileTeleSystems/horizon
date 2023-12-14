@@ -56,21 +56,21 @@ class LoggingSettings(BaseModel):
                 This preset is recommended to use in environment which do not support colored output,
                 e.g. CI jobs
 
-                .. literalinclude:: ../../../horizon/backend/settings/log/plain.yml
+                .. literalinclude:: ../../../horizon/backend/settings/server/log/plain.yml
 
             .. dropdown:: ``colored`` preset
 
                 This preset is recommended to use in development environment,
                 as it simplifies debugging. Each log record is output with color specific for a log level
 
-                .. literalinclude:: ../../../horizon/backend/settings/log/colored.yml
+                .. literalinclude:: ../../../horizon/backend/settings/server/log/colored.yml
 
             .. dropdown:: ``json`` preset
 
                 This preset is recommended to use in production environment,
                 as it allows to avoid writing complex log parsing configs. Each log record is output as JSON line
 
-                .. literalinclude:: ../../../horizon/backend/settings/log/json.yml
+                .. literalinclude:: ../../../horizon/backend/settings/server/log/json.yml
             """,
         ),
     )

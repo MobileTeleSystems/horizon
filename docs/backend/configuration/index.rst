@@ -12,7 +12,9 @@ Configuration
     logging
     monitoring
     cors
+    static_files
+    openapi
     debug
 
 .. autopydantic_settings:: horizon.backend.settings.Settings
-.. autopydantic_settings:: horizon.backend.settings.ServerSettings
+.. autopydantic_settings:: horizon.backend.settings.server.ServerSettings

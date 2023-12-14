@@ -1,5 +1,6 @@
 ARG PYTHON_VERSION=3.11
 FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as test
+ARG PYTHON_VERSION
 
 RUN microdnf -y install \
         krb5-libs \
@@ -30,7 +31,9 @@ RUN set +x\
     && cd $POETRY_CONFIG \
     && poetry init --name poetry-instance \
     && poetry source add --priority=default nexus https://nexus.services.mts.ru/repository/pip/simple \
-    && poetry self add poetry-bumpversion
+    && if [[ "x${PYTHON_VERSION}" != "x3.7" ]]; then \
+        poetry self add poetry-bumpversion; \
+       fi
 
 COPY ./pyproject.toml ./poetry.lock* ./
 

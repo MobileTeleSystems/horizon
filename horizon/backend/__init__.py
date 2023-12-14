@@ -17,13 +17,7 @@ from horizon.backend.api.handlers import (
 )
 from horizon.backend.api.router import api_router
 from horizon.backend.db.factory import create_session_factory
-from horizon.backend.middlewares.cors import add_cors_middleware
-from horizon.backend.middlewares.logging import setup_logging
-from horizon.backend.middlewares.monitoring import (
-    add_monitoring_metrics_middleware,
-    add_monitoring_stats_middleware,
-)
-from horizon.backend.middlewares.request_id import add_request_id_middleware
+from horizon.backend.middlewares import apply_middlewares
 from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.settings import Settings
 from horizon.commons.exceptions import ApplicationError, ServiceError
@@ -31,10 +25,16 @@ from horizon.commons.exceptions import ApplicationError, ServiceError
 
 def application_factory(settings: Settings) -> FastAPI:
     application = FastAPI(
-        title="horizon",
+        title="Horizon",
+        description="Horizon is an application that implements simple HWM Store",
         version=horizon.__version__,
         debug=settings.server.debug,
+        # will be set up by middlewares
+        openapi_url=None,
+        docs_url=None,
+        redoc_url=None,
     )
+
     application.state.settings = settings
     application.include_router(api_router)
 
@@ -61,19 +61,7 @@ def application_factory(settings: Settings) -> FastAPI:
     auth_class: Type[AuthProvider] = settings.auth.provider  # type: ignore[assignment]
     auth_class.setup(application)
 
-    if settings.server.logging.setup:
-        setup_logging(settings.server.logging.get_log_config_path())
-
-    if settings.server.cors.enabled:
-        add_cors_middleware(application, settings.server.cors)
-
-    if settings.server.monitoring.enabled:
-        add_monitoring_metrics_middleware(application, settings.server.monitoring)
-        add_monitoring_stats_middleware(application)
-
-    if settings.server.request_id.enabled:
-        add_request_id_middleware(application, settings.server.request_id)
-
+    apply_middlewares(application, settings)
     return application
 
 

@@ -37,7 +37,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("0.0.3")
+ver = Version.parse("0.0.4")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public

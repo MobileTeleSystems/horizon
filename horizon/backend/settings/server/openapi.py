@@ -10,26 +10,19 @@ from pydantic import AnyHttpUrl, BaseModel, Field
 class SwaggerSettings(BaseModel):
     """Swagger UI settings.
 
+    SwaggerUI is served at ``/docs`` endpoint.
+
     Examples
     --------
 
     .. code-block:: bash
 
         HORIZON__SERVER__OPENAPI__SWAGGER__ENABLED=True
-        HORIZON__SERVER__OPENAPI__SWAGGER__ENDPOINT=/docs
         HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/app/horizon/backend/static/swagger/swagger-ui-bundle.js
         HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/app/horizon/backend/static/swagger/swagger-ui.css
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable Swagger UI endpoint")
-    endpoint: str = Field(
-        default="/docs",
-        description="Swagger UI endpoint",
-    )
-    oauth2_redirect_endpoint: str = Field(
-        default="/docs/oauth2-redirect",
-        description="Endpoint used for OAuth2 redirects in Swagger UI",
-    )
     js_url: str = Field(
         default="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
         description="URL for Swagger UI JS",
@@ -50,7 +43,9 @@ class SwaggerSettings(BaseModel):
 
 
 class RedocSettings(BaseModel):
-    """ReDoc UI settings.
+    """ReDoc settings.
+
+    ReDOc is served at ``/redoc`` endpoint.
 
     Examples
     --------
@@ -58,16 +53,11 @@ class RedocSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__SERVER__OPENAPI__REDOC__ENABLED=True
-        HORIZON__SERVER__OPENAPI__REDOC__ENDPOINT=/redoc
         HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/app/horizon/backend/static/redoc/redoc.standalone.js
         HORIZON__SERVER__OPENAPI__REDOC__FAVICON_URL=/app/horizon/backend/static/icon.svg
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable Redoc UI endpoint")
-    endpoint: str = Field(
-        default="/redoc",
-        description="Swagger UI endpoint",
-    )
     js_url: str = Field(
         default="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js",
         description="URL for Redoc UI JS, ``None`` to use default CDN URL",
@@ -129,6 +119,8 @@ class FaviconSettings(BaseModel):
 class OpenAPISettings(BaseModel):
     """OpenAPI Settings.
 
+    OpenAPI.json is served at ``/openapi.json`` endpoint.
+
     Examples
     --------
 
@@ -140,10 +132,6 @@ class OpenAPISettings(BaseModel):
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable OpenAPI.json endpoint")
-    endpoint: str = Field(
-        default="/openapi.json",
-        description="OpenAPI.json endpoint",
-    )
     swagger: SwaggerSettings = Field(
         default_factory=SwaggerSettings,
         description="Swagger UI settings",

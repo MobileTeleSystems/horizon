@@ -14,5 +14,5 @@ def apply_static_files(app: FastAPI, settings: StaticFilesSettings) -> FastAPI:
         return app
 
     # https://fastapi.tiangolo.com/how-to/custom-docs-ui-assets/#serve-the-static-files
-    app.mount(settings.endpoint, StaticFiles(directory=settings.directory), name="static")
+    app.mount("/static", StaticFiles(directory=settings.directory), name="static")
     return app

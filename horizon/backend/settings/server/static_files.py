@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field, validator
 class StaticFilesSettings(BaseModel):
     """Static files serving settings.
 
+    Files are served at ``/static`` endpoint.
+
     Examples
     --------
 
@@ -16,17 +18,12 @@ class StaticFilesSettings(BaseModel):
 
         HORIZON__SERVER__STATIC_FILES__ENABLED=True
         HORIZON__SERVER__STATIC_FILES__DIRECTORY=/app/horizon/backend/static
-        HORIZON__SERVER__STATIC_FILES__ENDPOINT=/static
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable static file serving")
     directory: Path = Field(
         default=Path("docs/_static"),
         description="Directory containing static files",
-    )
-    endpoint: str = Field(
-        default="/static",
-        description="Static files endpoint",
     )
 
     @validator("directory")

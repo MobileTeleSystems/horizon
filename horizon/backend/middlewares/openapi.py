@@ -88,18 +88,18 @@ def apply_openapi_middleware(app: FastAPI, settings: OpenAPISettings) -> FastAPI
         return app
 
     # https://fastapi.tiangolo.com/how-to/custom-docs-ui-assets/#include-the-custom-docs
-    app.openapi_url = settings.endpoint
-    app.add_route(settings.endpoint, custom_openapi, include_in_schema=False)
+    app.openapi_url = "/openapi.json"
+    app.add_route(app.openapi_url, custom_openapi, include_in_schema=False)
 
     if settings.swagger.enabled:
-        app.docs_url = settings.swagger.endpoint
-        app.swagger_ui_oauth2_redirect_url = settings.swagger.oauth2_redirect_endpoint
-        app.add_route(settings.swagger.endpoint, custom_swagger_ui_html, include_in_schema=False)
-        app.add_route(settings.swagger.oauth2_redirect_endpoint, custom_swagger_ui_redirect, include_in_schema=False)
+        app.docs_url = "/docs"
+        app.swagger_ui_oauth2_redirect_url = "/docs/oauth2-redirect"
+        app.add_route(app.docs_url, custom_swagger_ui_html, include_in_schema=False)
+        app.add_route(app.swagger_ui_oauth2_redirect_url, custom_swagger_ui_redirect, include_in_schema=False)
 
     if settings.redoc.enabled:
-        app.redoc_url = settings.redoc.endpoint
-        app.add_route(settings.redoc.endpoint, custom_redoc_html, include_in_schema=False)
+        app.redoc_url = "/redoc"
+        app.add_route(app.redoc_url, custom_redoc_html, include_in_schema=False)
 
     app.openapi = partial(custom_openapi_schema, application=app, settings=settings)  # type: ignore[method-assign]
     return app

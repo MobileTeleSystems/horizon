@@ -29,8 +29,11 @@ router.get(
 )(handle_metrics)
 
 
-def add_monitoring_metrics_middleware(app: FastAPI, settings: MonitoringSettings) -> FastAPI:
+def apply_monitoring_metrics_middleware(app: FastAPI, settings: MonitoringSettings) -> FastAPI:
     """Add monitoring metrics middleware & endpoint to the application."""
+    if not settings.enabled:
+        return app
+
     skip_paths = DEFAULT_SKIP_PATHS | settings.skip_paths
     app.add_middleware(
         PrometheusMiddleware,

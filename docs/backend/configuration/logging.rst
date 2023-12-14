@@ -3,4 +3,4 @@
 Logging settings
 ================
 
-.. autopydantic_model:: horizon.backend.settings.log.LoggingSettings
+.. autopydantic_model:: horizon.backend.settings.server.log.LoggingSettings

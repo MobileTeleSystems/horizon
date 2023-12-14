@@ -13,6 +13,7 @@ from typing_extensions import Annotated
 from horizon.backend.dependencies.stub import Stub
 from horizon.backend.services.uow import UnitOfWork
 from horizon.backend.settings import Settings
+from horizon.backend.settings.server import MonitoringSettings
 from horizon.backend.utils.slug import slugify
 
 router = APIRouter(tags=["Monitoring"], prefix="/monitoring")
@@ -74,7 +75,10 @@ async def stats(
     return PlainTextResponse(generate_latest(registry), headers=headers)
 
 
-def add_monitoring_stats_middleware(app: FastAPI) -> FastAPI:
+def apply_monitoring_stats_middleware(app: FastAPI, settings: MonitoringSettings) -> FastAPI:
     """Add monitoring stats endpoint to the application."""
+    if not settings.enabled:
+        return app
+
     app.include_router(router)
     return app

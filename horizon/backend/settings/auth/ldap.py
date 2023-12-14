@@ -138,7 +138,7 @@ class LDAPLookupSettings(BaseModel):
             """
             Lookup scope. Use ``SUBTREE`` for ActiveDirectory.
 
-            See `Bonsai documentation <https://bonsai.readthedocs.io/en/latest/tutorial.html#searching>`_.
+            See `Bonsai documentation <https://bonsai.readthedocs.io/en/latest/api.html#bonsai.LDAPSearchScope.ONE>`_.
             """,
         ),
     )

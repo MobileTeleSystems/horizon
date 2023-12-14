@@ -17,7 +17,7 @@ from horizon.backend.settings.server.openapi import OpenAPISettings
 
 
 async def custom_openapi(request: Request) -> JSONResponse:
-    app = request.app
+    app: FastAPI = request.app
     root_path = request.scope.get("root_path", "").rstrip("/")
     server_urls = set(filter(None, (server_data.get("url") for server_data in app.servers)))
 
@@ -29,16 +29,24 @@ async def custom_openapi(request: Request) -> JSONResponse:
     return JSONResponse(app.openapi())
 
 
-def custom_openapi_schema(application: FastAPI, settings: OpenAPISettings) -> dict:
-    if application.openapi_schema:
-        return application.openapi_schema
+def custom_openapi_schema(app: FastAPI, settings: OpenAPISettings) -> dict:
+    if app.openapi_schema:
+        return app.openapi_schema
 
     openapi_schema = get_openapi(
-        title=application.title,
-        version=application.version,
-        summary=application.summary,
-        description=application.description,
-        routes=application.routes,
+        title=app.title,
+        version=app.version,
+        openapi_version=app.openapi_version,
+        summary=app.summary,
+        description=app.description,
+        terms_of_service=app.terms_of_service,
+        contact=app.contact,
+        license_info=app.license_info,
+        routes=app.routes,
+        webhooks=app.webhooks.routes,
+        tags=app.openapi_tags,
+        servers=app.servers,
+        separate_input_output_schemas=app.separate_input_output_schemas,
     )
     # https://redocly.com/docs/api-reference-docs/specification-extensions/x-logo/
     openapi_schema["info"]["x-logo"] = {
@@ -47,13 +55,13 @@ def custom_openapi_schema(application: FastAPI, settings: OpenAPISettings) -> di
         "backgroundColor": f"#{settings.logo.background_color}",  # noqa: WPS237
         "href": str(settings.logo.href),
     }
-    application.openapi_schema = openapi_schema
-    return application.openapi_schema
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
 
 async def custom_swagger_ui_html(request: Request):
-    app = request.app
-    openapi = app.state.settings.server.openapi
+    app: FastAPI = request.app
+    openapi: OpenAPISettings = app.state.settings.server.openapi
     return get_swagger_ui_html(
         openapi_url=openapi.url,
         title=f"{app.title} - Swagger UI",
@@ -69,8 +77,8 @@ async def custom_swagger_ui_redirect():
 
 
 async def custom_redoc_html(request: Request):
-    app = request.app
-    openapi = app.state.settings.server.openapi
+    app: FastAPI = request.app
+    openapi: OpenAPISettings = app.state.settings.server.openapi
     return get_redoc_html(
         openapi_url=openapi.url,
         title=f"{app.title} - ReDoc",
@@ -97,5 +105,5 @@ def apply_openapi_middleware(app: FastAPI, settings: OpenAPISettings) -> FastAPI
         app.redoc_url = "/redoc"
         app.add_route(app.redoc_url, custom_redoc_html, include_in_schema=False)
 
-    app.openapi = partial(custom_openapi_schema, application=app, settings=settings)  # type: ignore[method-assign]
+    app.openapi = partial(custom_openapi_schema, app=app, settings=settings)  # type: ignore[method-assign]
     return app

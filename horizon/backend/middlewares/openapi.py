@@ -76,6 +76,7 @@ async def custom_redoc_html(request: Request):
         title=f"{app.title} - ReDoc",
         redoc_js_url=openapi.redoc.js_url,
         redoc_favicon_url=openapi.favicon.url,
+        with_google_fonts=False,
     )
 
 

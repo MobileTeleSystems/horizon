@@ -61,14 +61,16 @@ def custom_openapi_schema(app: FastAPI, settings: OpenAPISettings) -> dict:
 
 async def custom_swagger_ui_html(request: Request):
     app: FastAPI = request.app
-    openapi: OpenAPISettings = app.state.settings.server.openapi
+    settings: OpenAPISettings = app.state.settings.server.openapi
+    root_path = request.scope.get("root_path", "").rstrip("/")
+    openapi_url = root_path + request.app.openapi_url  # type: ignore[arg-type]
     return get_swagger_ui_html(
-        openapi_url=openapi.url,
+        openapi_url=openapi_url,
         title=f"{app.title} - Swagger UI",
         oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-        swagger_js_url=str(openapi.swagger.js_url),
-        swagger_css_url=str(openapi.swagger.css_url),
-        swagger_favicon_url=str(openapi.favicon.url),
+        swagger_js_url=str(settings.swagger.js_url),
+        swagger_css_url=str(settings.swagger.css_url),
+        swagger_favicon_url=str(settings.favicon.url),
     )
 
 
@@ -78,12 +80,14 @@ async def custom_swagger_ui_redirect():
 
 async def custom_redoc_html(request: Request):
     app: FastAPI = request.app
-    openapi: OpenAPISettings = app.state.settings.server.openapi
+    settings: OpenAPISettings = app.state.settings.server.openapi
+    root_path = request.scope.get("root_path", "").rstrip("/")
+    openapi_url = root_path + request.app.openapi_url  # type: ignore[arg-type]
     return get_redoc_html(
-        openapi_url=openapi.url,
+        openapi_url=openapi_url,
         title=f"{app.title} - ReDoc",
-        redoc_js_url=openapi.redoc.js_url,
-        redoc_favicon_url=openapi.favicon.url,
+        redoc_js_url=settings.redoc.js_url,
+        redoc_favicon_url=settings.favicon.url,
         with_google_fonts=False,
     )
 

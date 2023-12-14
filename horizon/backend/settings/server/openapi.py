@@ -132,10 +132,6 @@ class OpenAPISettings(BaseModel):
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable OpenAPI.json endpoint")
-    url: str = Field(
-        default="/openapi.json",
-        description="URL for OpenAPI.json",
-    )
     swagger: SwaggerSettings = Field(
         default_factory=SwaggerSettings,
         description="Swagger UI settings",

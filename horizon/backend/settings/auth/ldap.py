@@ -8,11 +8,12 @@ Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com
 """
 
 import textwrap
-from typing import TYPE_CHECKING, Optional, Type
+from typing import TYPE_CHECKING, Optional, Type, Union
 
 from bonsai import LDAPSearchScope
 from pydantic import AnyUrl, BaseModel, Field, SecretStr
 from pydantic import __version__ as pydantic_version
+from pydantic import validator
 from typing_extensions import Annotated, Literal
 
 from horizon.backend.settings.auth.jwt import JWTSettings
@@ -141,6 +142,12 @@ class LDAPLookupSettings(BaseModel):
             """,
         ),
     )
+
+    @validator("scope", pre=True)
+    def _convert_scope_to_enum(cls, value: Union[str, int, LDAPSearchScope]) -> LDAPSearchScope:
+        if isinstance(value, str):
+            return LDAPSearchScope[value.upper()]
+        return LDAPSearchScope(value)
 
 
 class LDAPSettings(BaseModel):

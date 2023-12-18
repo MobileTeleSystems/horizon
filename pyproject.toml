@@ -125,6 +125,7 @@ flake8-pyproject = {version = "^1.2.3", python = ">=3.11"}
 types-python-jose = {version = "^3.3.4.8", python = ">=3.11"}
 types-pyyaml = {version = "^6.0.12.12", python = ">=3.11"}
 types-passlib = {version = "^1.7.7.13", python = ">=3.11"}
+types-requests = {version = "^2.31.0.10", python = ">=3.11"}
 
 [tool.poetry.group.docs.dependencies]
 setuptools-git-versioning = {version = "^1.13.5", python = ">=3.11"}
@@ -141,6 +142,9 @@ sphinx-favicon = {version = "^1.0.1", python = ">=3.11"}
 # uncomment after https://github.com/zqmillet/sphinx-plantuml/pull/4
 # sphinx-plantuml = {version = "^1.0.0", python = ">=3.11"}
 
+[tool.poetry.plugins."tricoder_package_spy.register"]
+"data-horizon" = "horizon"
+
 [[tool.poetry.source]]
 name = "nexus"
 url = "https://nexus.services.mts.ru/repository/pip/simple"
@@ -152,8 +156,8 @@ url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
 priority = "primary"
 
 [tool.poetry_bumpversion.file."horizon/__init__.py"]
-search = '__version__ = "{current_version}"'
-replace = '__version__ = "{new_version}"'
+search = '_raw_version = "{current_version}"'
+replace = '_raw_version = "{new_version}"'
 
 [tool.poetry_bumpversion.file."docs/conf.py"]
 search = 'ver = Version.parse("{current_version}")'
@@ -184,6 +188,7 @@ omit = [
 data_file = "reports/.coverage"
 
 [tool.coverage.report]
+precision = 2
 exclude_lines = [
   "pragma: no cover",
   "def __repr__",

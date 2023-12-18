@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import http
 import logging
-from typing import Any, Generic, Optional, TypeVar
+import warnings
+from typing import Any, Generic, Optional, Tuple, TypeVar
 from urllib.parse import urlparse
 
-from pydantic import AnyHttpUrl, BaseModel, ValidationError
+from pydantic import AnyHttpUrl, BaseModel, PrivateAttr, ValidationError
 from pydantic import __version__ as pydantic_version
 from pydantic import parse_obj_as, validator
 from pydantic.generics import GenericModel
 from typing_extensions import Protocol
 
+import horizon
 from horizon.client.auth.base import BaseAuth
 from horizon.commons.errors import get_response_for_status_code
 from horizon.commons.errors.base import APIErrorSchema
@@ -52,6 +54,8 @@ class BaseClient(GenericModel, Generic[SessionClass]):
     auth: BaseAuth
     session: Optional[SessionClass] = None
 
+    _backend_version_tuple: Tuple[int, ...] = PrivateAttr(default_factory=tuple)
+
     class Config:
         arbitrary_types_allowed = True
 
@@ -63,18 +67,17 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         return cls.model_fields["session"].annotation.__args__[0]
 
     @validator("base_url")
-    def _validate_url(cls, value: AnyHttpUrl, values: dict):
+    def _validate_url(cls, value: AnyHttpUrl):
         """``http://localhost:8000/`` -> ``http://localhost:8000``"""
         if value.path:
             return urlparse(str(value))._replace(path=value.path.rstrip("/")).geturl()  # noqa: WPS437
         return value
 
     @validator("session", always=True)
-    def _default_session(cls, session: SessionClass | None, values: dict):
+    def _default_session(cls, session: SessionClass | None):
         """If session is not passed, create it automatically"""
         if session:
             return session
-
         RealSessionClass = cls.session_class()  # noqa: N806
         return RealSessionClass()
 
@@ -92,6 +95,18 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             # ValidationError does not contain body, so we attaching it to response.
             raise e from ValueError(body)
 
+    def _handle_backend_version(self, backend_version: str | None):
+        if self._backend_version_tuple or not backend_version:
+            return
+
+        self._backend_version_tuple = tuple(map(int, backend_version.split(".")))  # noqa: WPS601
+        if self._backend_version_tuple > horizon.__version_tuple__:
+            message = (
+                f"Horizon client version {horizon.__version__!r} does not match backend version {backend_version!r}. "
+                "Please upgrade."
+            )
+            warnings.warn(message, UserWarning, stacklevel=5)
+
     def _handle_response(  # noqa: WPS238
         self,
         response: BaseResponse,
@@ -101,6 +116,9 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         request_id: str | None = response.headers.get("X-Request-ID", None)
         if request_id:
             logger.debug("Request ID: %r", request_id)
+
+        backend_version = response.headers.get("X-Application-Version", None)
+        self._handle_backend_version(backend_version)
 
         if response.status_code == http.HTTPStatus.NO_CONTENT.value:
             return None

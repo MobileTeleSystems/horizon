@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import http
 import logging
+import pprint
 import warnings
 from typing import Any, Generic, Optional, Tuple, TypeVar
 from urllib.parse import urlparse
@@ -107,7 +108,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             )
             warnings.warn(message, UserWarning, stacklevel=5)
 
-    def _handle_response(  # noqa: WPS238
+    def _handle_response(  # noqa: WPS238, WPS231
         self,
         response: BaseResponse,
         response_class: type[ResponseSchema] | None,
@@ -135,8 +136,22 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             http_exception = e
 
         if request_id and hasattr(http_exception, "add_note"):
-            # Python 3.11+ https://docs.python.org/3/library/exceptions.html#BaseException.add_note
+            # add_note is only available in Python 3.11+
+            # https://docs.python.org/3/library/exceptions.html#BaseException.add_note
             http_exception.add_note(f"Request ID: {request_id!r}")
+
+        try:
+            body = response.json()
+            if hasattr(http_exception, "add_note"):
+                http_exception.add_note(f"Response body:\n{pprint.pformat(body)}")  # noqa: WPS237
+
+        except Exception as format_err:  # noqa: WPS329
+            if hasattr(http_exception, "add_note"):
+                http_exception.add_note(f"Response body:\n{response.content!r}")
+            else:
+                logger.error("Response body:\n%r", response.content)
+
+            raise format_err from http_exception
 
         error_response = get_response_for_status_code(response.status_code)
         if not error_response:
@@ -144,12 +159,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             raise http_exception
 
         try:
-            error_body = response.json()
-        except Exception as format_err:  # noqa: WPS329
-            raise format_err from http_exception
-
-        try:
-            error_value = parse_obj_as(APIErrorSchema[error_response.schema], error_body)  # type: ignore[name-defined]
+            error_value = parse_obj_as(APIErrorSchema[error_response.schema], body)  # type: ignore[name-defined]
         except ValidationError:  # noqa: WPS329
             # Something wrong with API response, probably wrong URL
             raise http_exception

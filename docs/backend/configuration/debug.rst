@@ -31,13 +31,12 @@ You can change this by setting:
     >>> # start backend
     >>> curl -XPOST http://localhost:8000/failing/endpoint ...
 
-    {
-        "error": {
-            "code": "unknown",
-            "message": "Got unhandled exception. Please contact support",
-            "details": ["Some exception data", "more data"],
-        },
-    }
+    Traceback (most recent call last):
+    File ".../uvicorn/protocols/http/h11_impl.py", line 408, in run_asgi
+        result = await app(  # type: ignore[func-returns-value]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File ".../site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+        return await self.app(scope, receive, send)
 
 .. warning::
 

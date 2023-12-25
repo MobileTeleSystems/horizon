@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field, root_validator
 from horizon.commons.dto import Unset
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 
+MAX_NAME_LENGTH = 256
+
 
 class NamespaceResponseV1(BaseModel):
     """Namespace response."""
@@ -28,7 +30,7 @@ class NamespaceResponseV1(BaseModel):
 class NamespacePaginateQueryV1(PaginateQueryV1):
     """Query params for namespace pagination request."""
 
-    name: Optional[str] = Field(default=None, min_length=1)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=MAX_NAME_LENGTH)
 
     # more arguments can be added in future
 
@@ -36,7 +38,7 @@ class NamespacePaginateQueryV1(PaginateQueryV1):
 class NamespaceCreateRequestV1(BaseModel):
     """Request body for namespace creation request."""
 
-    name: str = Field(min_length=1)
+    name: str = Field(min_length=1, max_length=MAX_NAME_LENGTH)
     description: str = ""
 
 
@@ -46,7 +48,7 @@ class NamespaceUpdateRequestV1(BaseModel):
     If field value is not set, it will not be updated.
     """
 
-    name: Union[str, Unset] = Field(default=Unset(), min_length=1)
+    name: Union[str, Unset] = Field(default=Unset(), min_length=1, max_length=MAX_NAME_LENGTH)
     description: Union[str, Unset] = Unset()
 
     class Config:

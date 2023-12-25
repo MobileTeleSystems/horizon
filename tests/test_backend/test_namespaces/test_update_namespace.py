@@ -66,6 +66,13 @@ async def test_update_namespace_missing(
     }
 
 
+@pytest.mark.parametrize(
+    "new_namespace",
+    [
+        pytest.param({"name": "a" * 256}, id="max-name"),
+    ],
+    indirect=True,
+)
 async def test_update_namespace_name(
     test_client: AsyncClient,
     access_token: str,
@@ -229,3 +236,95 @@ async def test_update_namespace_duplicated_name(
 
     # Nothing is changed
     assert naturally_equivalent(namespace1_after, namespace1)
+
+
+@pytest.mark.parametrize(
+    "new_namespace",
+    [
+        pytest.param({"name": ""}, id="empty-name"),
+        pytest.param({"name": "a" * 257}, id="too-long-name"),
+    ],
+    indirect=True,
+)
+async def test_update_namespace_invalid_name_length(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace: Namespace,
+    new_namespace: Namespace,
+    async_session: AsyncSession,
+):
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"name": new_namespace.name},
+    )
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        if len(new_namespace.name) > 256:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at most 256 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+                {
+                    "location": ["body", "name"],
+                    "message": "instance of Unset expected",
+                    "code": "type_error.arbitrary_type",
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at least 1 characters",
+                    "code": "value_error.any_str.min_length",
+                },
+                {
+                    "location": ["body", "name"],
+                    "message": "instance of Unset expected",
+                    "code": "type_error.arbitrary_type",
+                },
+            ]
+    else:
+        if len(new_namespace.name) > 256:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "Value should have at most 256 items after validation, not 257",
+                    "code": "too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
+                    "context": {"max_length": 256, "actual_length": 257, "field_type": "Value"},
+                    "input": new_namespace.name,
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "Value should have at least 1 item after validation, not 0",
+                    "code": "too_short",
+                    "url": "https://errors.pydantic.dev/2.5/v/too_short",
+                    "context": {"min_length": 1, "actual_length": 0, "field_type": "Value"},
+                    "input": "",
+                },
+            ]
+
+    expected = {
+        "error": {
+            "code": "invalid_request",
+            "message": "Invalid request",
+            "details": details,
+        },
+    }
+
+    assert response.status_code == 422
+    assert response.json() == expected
+
+    query = select(Namespace).where(Namespace.id == namespace.id)
+    query_result = await async_session.scalars(query)
+    namespace_after = query_result.one()
+
+    # Nothing is changed
+    assert naturally_equivalent(namespace_after, namespace)

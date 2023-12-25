@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
@@ -38,6 +39,13 @@ async def test_create_namespace_anonymous_user(
     }
 
 
+@pytest.mark.parametrize(
+    "new_namespace",
+    [
+        pytest.param({"name": "a" * 256}, id="max-name"),
+    ],
+    indirect=True,
+)
 async def test_create_namespace(
     test_client: AsyncClient,
     access_token: str,
@@ -112,3 +120,86 @@ async def test_create_namespace_duplicated_name(
 
     # Nothing is changed
     assert naturally_equivalent(namespace_after, namespace)
+
+
+@pytest.mark.parametrize(
+    "new_namespace",
+    [
+        pytest.param({"name": ""}, id="empty-name"),
+        pytest.param({"name": "a" * 2049}, id="too-long-name"),
+    ],
+    indirect=True,
+)
+async def test_create_namespace_invalid_name_length(
+    test_client: AsyncClient,
+    new_namespace: Namespace,
+    access_token: str,
+    async_session: AsyncSession,
+):
+    response = await test_client.post(
+        "v1/namespaces/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "name": new_namespace.name,
+        },
+    )
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        if len(new_namespace.name) > 256:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at most 256 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at least 1 characters",
+                    "code": "value_error.any_str.min_length",
+                },
+            ]
+    else:
+        if len(new_namespace.name) > 256:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "String should have at most 256 characters",
+                    "code": "string_too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
+                    "context": {"max_length": 256},
+                    "input": new_namespace.name,
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "String should have at least 1 character",
+                    "code": "string_too_short",
+                    "url": "https://errors.pydantic.dev/2.5/v/string_too_short",
+                    "context": {"min_length": 1},
+                    "input": "",
+                },
+            ]
+
+    expected = {
+        "error": {
+            "code": "invalid_request",
+            "message": "Invalid request",
+            "details": details,
+        },
+    }
+
+    assert response.status_code == 422
+    assert response.json() == expected
+
+    # HWM is not created
+    query = select(User).where(Namespace.name == new_namespace.name)
+    result = await async_session.scalars(query)
+    created_namespace = result.one_or_none()
+
+    assert not created_namespace

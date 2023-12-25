@@ -5,6 +5,9 @@ import textwrap
 
 from pydantic import BaseModel, Field
 
+from horizon.backend.settings.server.application_version import (
+    ApplicationVersionSettings,
+)
 from horizon.backend.settings.server.cors import CORSSettings
 from horizon.backend.settings.server.log import LoggingSettings
 from horizon.backend.settings.server.monitoring import MonitoringSettings
@@ -55,6 +58,10 @@ class ServerSettings(BaseModel):
     request_id: RequestIDSettings = Field(
         default_factory=RequestIDSettings,
         description=":ref:`RequestID settings <backend-configuration-debug>`",
+    )
+    application_version: ApplicationVersionSettings = Field(
+        default_factory=ApplicationVersionSettings,
+        description=":ref:`Application version settings <backend-configuration-debug>`",
     )
     static_files: StaticFilesSettings = Field(
         default_factory=StaticFilesSettings,

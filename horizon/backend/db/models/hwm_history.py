@@ -28,7 +28,7 @@ class HWMHistory(Base, ChangedByMixin, DeletableMixin):
         nullable=True,
     )
 
-    name: Mapped[str] = mapped_column(String(256), nullable=False)  # noqa: WPS432
+    name: Mapped[str] = mapped_column(String(2048), nullable=False)  # noqa: WPS432
     description: Mapped[str] = mapped_column(Text(), nullable=False)
     type: Mapped[str] = mapped_column(String(64), nullable=False)  # noqa: WPS432
     value: Mapped[str] = mapped_column(JSON(), nullable=False)

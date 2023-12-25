@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TypeVar
 
 from authlib.integrations.requests_client import OAuth2Session
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
+from horizon import __version__ as horizon_version
 from horizon.client.base import BaseClient
 from horizon.commons.schemas import PingResponse
 from horizon.commons.schemas.v1 import (
@@ -667,6 +668,12 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             response_class=PageResponseV1[HWMHistoryResponseV1],
             params=query.dict(exclude_unset=True),
         )
+
+    @validator("session", always=True)
+    def _set_client_info(cls, session: OAuth2Session):
+        session.headers["X-Client-Name"] = "python-horizon[sync]"
+        session.headers["X-Client-Version"] = horizon_version
+        return session
 
     def _request(
         self,

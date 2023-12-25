@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
@@ -78,7 +79,15 @@ async def test_create_hwm_missing_namespace(
     }
 
 
-async def test_create_hwm_create_new(
+@pytest.mark.parametrize(
+    "new_hwm",
+    [
+        pytest.param({"name": "a" * 2048}, id="max-name"),
+        pytest.param({"type": "a" * 64}, id="max-type"),
+    ],
+    indirect=True,
+)
+async def test_create_hwm(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
@@ -148,7 +157,7 @@ async def test_create_hwm_create_new(
     assert not created_hwm_history.is_deleted
 
 
-async def test_create_hwm_create_new_minimal(
+async def test_create_hwm_only_mandatory_fields(
     test_client: AsyncClient,
     namespace: Namespace,
     access_token: str,
@@ -345,3 +354,111 @@ async def test_create_hwm_value_can_be_any_valid_json(
     assert created_hwm.name == content["name"]
     assert created_hwm.type == content["type"]
     assert created_hwm.value == content["value"]
+
+
+@pytest.mark.parametrize(
+    "new_hwm",
+    [
+        pytest.param({"name": ""}, id="empty-name"),
+        pytest.param({"name": "a" * 2049}, id="too-long-name"),
+        pytest.param({"type": ""}, id="empty-type"),
+        pytest.param({"type": "a" * 65}, id="too-long-type"),
+    ],
+    indirect=True,
+)
+async def test_create_hwm_invalid_field_length(
+    test_client: AsyncClient,
+    namespace: Namespace,
+    access_token: str,
+    new_hwm: HWM,
+    async_session: AsyncSession,
+):
+    response = await test_client.post(
+        "v1/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "namespace_id": namespace.id,
+            "name": new_hwm.name,
+            "type": new_hwm.type,
+            "value": None,
+        },
+    )
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        if len(new_hwm.name) > 2048:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at most 2048 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+            ]
+        elif len(new_hwm.type) > 64:
+            details = [
+                {
+                    "location": ["body", "type"],
+                    "message": "ensure this value has at most 64 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "type" if not new_hwm.type else "name"],
+                    "message": "ensure this value has at least 1 characters",
+                    "code": "value_error.any_str.min_length",
+                },
+            ]
+    else:
+        if len(new_hwm.name) > 2048:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "String should have at most 2048 characters",
+                    "code": "string_too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
+                    "context": {"max_length": 2048},
+                    "input": new_hwm.name,
+                },
+            ]
+        elif len(new_hwm.type) > 64:
+            details = [
+                {
+                    "location": ["body", "type"],
+                    "message": "String should have at most 64 characters",
+                    "code": "string_too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
+                    "context": {"max_length": 64},
+                    "input": new_hwm.type,
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "type" if not new_hwm.type else "name"],
+                    "message": "String should have at least 1 character",
+                    "code": "string_too_short",
+                    "url": "https://errors.pydantic.dev/2.5/v/string_too_short",
+                    "context": {"min_length": 1},
+                    "input": "",
+                },
+            ]
+
+    expected = {
+        "error": {
+            "code": "invalid_request",
+            "message": "Invalid request",
+            "details": details,
+        },
+    }
+
+    assert response.status_code == 422
+    assert response.json() == expected
+
+    # HWM is not created
+    query = select(User).where(HWM.name == new_hwm.name)
+    result = await async_session.scalars(query)
+    created_hwm = result.one_or_none()
+
+    assert not created_hwm

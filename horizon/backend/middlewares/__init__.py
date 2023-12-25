@@ -3,6 +3,9 @@
 
 from fastapi import FastAPI
 
+from horizon.backend.middlewares.application_version import (
+    apply_application_version_middleware,
+)
 from horizon.backend.middlewares.cors import apply_cors_middleware
 from horizon.backend.middlewares.logging import setup_logging
 from horizon.backend.middlewares.monitoring import (
@@ -28,6 +31,7 @@ def apply_middlewares(
     apply_monitoring_metrics_middleware(application, settings.server.monitoring)
     apply_monitoring_stats_middleware(application, settings.server.monitoring)
     apply_request_id_middleware(application, settings.server.request_id)
+    apply_application_version_middleware(application, settings.server.application_version)
     apply_openapi_middleware(application, settings.server.openapi)
     apply_static_files(application, settings.server.static_files)
 

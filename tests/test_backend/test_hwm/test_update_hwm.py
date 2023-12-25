@@ -65,6 +65,14 @@ async def test_update_hwm_missing(
     }
 
 
+@pytest.mark.parametrize(
+    "new_hwm",
+    [
+        pytest.param({"name": "a" * 2048}, id="max-name"),
+        pytest.param({"type": "a" * 64}, id="max-type"),
+    ],
+    indirect=True,
+)
 async def test_update_hwm(
     test_client: AsyncClient,
     access_token: str,
@@ -354,3 +362,124 @@ async def test_update_hwm_value_can_be_any_valid_json(
     assert updated_hwm.value == content["value"]
     assert updated_hwm.entity == content["entity"]
     assert updated_hwm.expression == content["expression"]
+
+
+@pytest.mark.parametrize(
+    "new_hwm",
+    [
+        pytest.param({"name": ""}, id="empty-name"),
+        pytest.param({"name": "a" * 2049}, id="too-long-name"),
+        pytest.param({"type": ""}, id="empty-type"),
+        pytest.param({"type": "a" * 65}, id="too-long-type"),
+    ],
+    indirect=True,
+)
+async def test_update_hwm_invalid_field_length(
+    test_client: AsyncClient,
+    access_token: str,
+    hwm: HWM,
+    new_hwm: HWM,
+    async_session: AsyncSession,
+):
+    response = await test_client.patch(
+        f"v1/hwm/{hwm.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "name": new_hwm.name,
+            "type": new_hwm.type,
+        },
+    )
+
+    details: list[dict[str, Any]]
+    if pydantic_version < "2":
+        if len(new_hwm.name) > 2048:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "ensure this value has at most 2048 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+                {
+                    "location": ["body", "name"],
+                    "message": "instance of Unset expected",
+                    "code": "type_error.arbitrary_type",
+                },
+            ]
+        elif len(new_hwm.type) > 64:
+            details = [
+                {
+                    "location": ["body", "type"],
+                    "message": "ensure this value has at most 64 characters",
+                    "code": "value_error.any_str.max_length",
+                },
+                {
+                    "location": ["body", "type"],
+                    "message": "instance of Unset expected",
+                    "code": "type_error.arbitrary_type",
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "type" if not new_hwm.type else "name"],
+                    "message": "ensure this value has at least 1 characters",
+                    "code": "value_error.any_str.min_length",
+                },
+                {
+                    "location": ["body", "type" if not new_hwm.type else "name"],
+                    "message": "instance of Unset expected",
+                    "code": "type_error.arbitrary_type",
+                },
+            ]
+    else:
+        if len(new_hwm.name) > 2048:
+            details = [
+                {
+                    "location": ["body", "name"],
+                    "message": "Value should have at most 2048 items after validation, not 2049",
+                    "code": "too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
+                    "context": {"max_length": 2048, "actual_length": 2049, "field_type": "Value"},
+                    "input": new_hwm.name,
+                },
+            ]
+        elif len(new_hwm.type) > 64:
+            details = [
+                {
+                    "location": ["body", "type"],
+                    "message": "Value should have at most 64 items after validation, not 65",
+                    "code": "too_long",
+                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
+                    "context": {"max_length": 64, "actual_length": 65, "field_type": "Value"},
+                    "input": new_hwm.type,
+                },
+            ]
+        else:
+            details = [
+                {
+                    "location": ["body", "type" if not new_hwm.type else "name"],
+                    "message": "Value should have at least 1 item after validation, not 0",
+                    "code": "too_short",
+                    "url": "https://errors.pydantic.dev/2.5/v/too_short",
+                    "context": {"min_length": 1, "actual_length": 0, "field_type": "Value"},
+                    "input": "",
+                },
+            ]
+
+    expected = {
+        "error": {
+            "code": "invalid_request",
+            "message": "Invalid request",
+            "details": details,
+        },
+    }
+
+    assert response.status_code == 422
+    assert response.json() == expected
+
+    query = select(HWM).where(HWM.id == hwm.id)
+    query_result = await async_session.scalars(query)
+    hwm_after = query_result.one()
+
+    # Nothing is changed
+    assert naturally_equivalent(hwm_after, hwm)

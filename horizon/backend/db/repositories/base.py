@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -42,8 +42,7 @@ class Repository(ABC, Generic[Model]):
         if where:
             query = query.where(*where)
 
-        result = await self._session.scalars(query)
-        return result.one_or_none()
+        return await self._session.scalar(query)
 
     async def _get(
         self,
@@ -51,8 +50,7 @@ class Repository(ABC, Generic[Model]):
     ) -> Model | None:
         model_type = self.model_type()
         query: Select = select(model_type).where(*where)
-        result = await self._session.scalars(query)
-        return result.one_or_none()
+        return await self._session.scalar(query)
 
     async def _create(
         self,
@@ -70,16 +68,14 @@ class Repository(ABC, Generic[Model]):
     ) -> Model | None:
         model_type = self.model_type()
         query: ReturningUpdate[tuple[Model]] = update(model_type).where(*where).values(**changes).returning(model_type)
-        result = await self._session.scalars(query)
-        return result.one_or_none()
+        return await self._session.scalar(query)
 
     async def _delete(self, id: int) -> Model | None:
         model_type = self.model_type()
         query: ReturningDelete[tuple[Model]] = (
             delete(model_type).where(model_type.id == id).returning(model_type)  # type: ignore[attr-defined]
         )
-        result = await self._session.scalars(query)
-        return result.one_or_none()
+        return await self._session.scalar(query)
 
     async def _paginate(
         self,
@@ -115,4 +111,5 @@ class Repository(ABC, Generic[Model]):
         if where:
             query = query.where(*where)
 
-        return await self._session.scalar(query)
+        result = await self._session.scalars(query)
+        return result.one()

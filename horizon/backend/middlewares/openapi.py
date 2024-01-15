@@ -74,7 +74,7 @@ async def custom_swagger_ui_html(request: Request):
     )
 
 
-async def custom_swagger_ui_redirect():
+async def custom_swagger_ui_redirect(request: Request):
     return get_swagger_ui_oauth2_redirect_html()
 
 

@@ -161,7 +161,7 @@ You can pass additional arguments, they will be passed to pytest:
 
 .. code:: bash
 
-    make test PYTEST_ARG="-m client-sync -lsx -vvvv --log-cli-level=INFO"
+    make test PYTEST_ARGS="-m client-sync -lsx -vvvv --log-cli-level=INFO"
 
 Stop all containers and remove created volumes:
 

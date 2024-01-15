@@ -8,3 +8,11 @@ from horizon.commons.exceptions.entity import (
     EntityNotFoundError,
 )
 from horizon.commons.exceptions.service import ServiceError
+
+__all__ = [
+    "AuthorizationError",
+    "ApplicationError",
+    "EntityAlreadyExistsError",
+    "EntityNotFoundError",
+    "ServiceError",
+]

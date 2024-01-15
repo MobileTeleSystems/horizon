@@ -8,3 +8,11 @@ from horizon.commons.errors.registration import (
     get_response_for_exception,
     get_response_for_status_code,
 )
+
+__all__ = [
+    "APIErrorResponse",
+    "BaseErrorSchema",
+    "get_error_responses",
+    "get_response_for_exception",
+    "get_response_for_status_code",
+]

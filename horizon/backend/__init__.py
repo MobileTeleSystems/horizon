@@ -38,13 +38,13 @@ def application_factory(settings: Settings) -> FastAPI:
     application.state.settings = settings
     application.include_router(api_router)
 
-    application.add_exception_handler(ServiceError, service_exception_handler)
-    application.add_exception_handler(ApplicationError, application_exception_handler)
+    application.add_exception_handler(ServiceError, service_exception_handler)  # type: ignore[arg-type]
+    application.add_exception_handler(ApplicationError, application_exception_handler)  # type: ignore[arg-type]
     application.add_exception_handler(
         RequestValidationError,
-        validation_exception_handler,
+        validation_exception_handler,  # type: ignore[arg-type]
     )
-    application.add_exception_handler(HTTPException, http_exception_handler)
+    application.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     application.add_exception_handler(Exception, unknown_exception_handler)
 
     engine = async_engine_from_config(settings.database.dict(), prefix="")

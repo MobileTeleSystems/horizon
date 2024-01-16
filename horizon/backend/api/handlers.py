@@ -18,7 +18,7 @@ from horizon.commons.exceptions import ApplicationError, ServiceError
 logger = logging.getLogger(__name__)
 
 
-async def http_exception_handler(_request: Request, exc: HTTPException):
+def http_exception_handler(_request: Request, exc: HTTPException) -> Response:
     content = BaseErrorSchema(
         code=http.HTTPStatus(exc.status_code).name.lower(),
         message=exc.detail,
@@ -31,7 +31,7 @@ async def http_exception_handler(_request: Request, exc: HTTPException):
     )
 
 
-async def unknown_exception_handler(request: Request, exc: Exception):
+def unknown_exception_handler(request: Request, exc: Exception) -> Response:
     logger.exception("Got unhandled error")
 
     server: ServerSettings = request.app.state.settings.server
@@ -52,7 +52,7 @@ async def unknown_exception_handler(request: Request, exc: Exception):
     )
 
 
-async def service_exception_handler(request: Request, exc: ServiceError):
+def service_exception_handler(request: Request, exc: ServiceError) -> Response:
     logger.exception("Got service error")
 
     server: ServerSettings = request.app.state.settings.server
@@ -73,10 +73,10 @@ async def service_exception_handler(request: Request, exc: ServiceError):
     )
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+def validation_exception_handler(request: Request, exc: RequestValidationError) -> Response:
     response = get_response_for_exception(ValidationError)
     if not response:
-        return await unknown_exception_handler(request, exc)
+        return unknown_exception_handler(request, exc)
 
     # code and message is set within class implementation
     errors = []
@@ -94,10 +94,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
-async def application_exception_handler(request: Request, exc: ApplicationError):
+def application_exception_handler(request: Request, exc: ApplicationError) -> Response:
     response = get_response_for_exception(type(exc))
     if not response:
-        return await unknown_exception_handler(request, exc)
+        return unknown_exception_handler(request, exc)
 
     logger.error("%s", exc, exc_info=logger.isEnabledFor(logging.DEBUG))
 

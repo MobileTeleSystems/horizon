@@ -48,25 +48,59 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.7"
 pydantic = "<3"
-typing-extensions = ">=4.0.0"
+typing-extensions = [
+  {version = ">=4.0.0,<4.8.0", optional = true, python = "<3.8"},
+  {version = ">=4.0.0", optional = true, python = ">=3.8"},
+]
+fastapi = [
+  {version = "^0.103.2", optional = true, python = "<3.8"},
+  {version = ">=0.103.0", optional = true, python = ">=3.8"},
+]
+starlette = [
+  {version = "^0.27.0", optional = true, python = "<3.8"},
+  {version = ">=0.27.0", optional = true, python = ">=3.8"},
+]
+starlette-exporter = [
+  {version = "^0.17.1", optional = true, python = "<3.8"},
+  {version = ">=0.17.1", optional = true, python = ">=3.8"},
+]
+uvicorn = [
+  {version = "^0.22.0", optional = true, python = "<3.8"},
+  {version = ">=0.22.0", optional = true, python = ">=3.8"},
+]
 python-jose = {version = "*", extras=["cryptography"]}
-fastapi = {version = "*", optional = true}
-pydantic-settings = {version = "*", optional = true}
-uvicorn = {version = "*", optional = true}
-alembic = {version = "*", optional = true}
+pydantic-settings = [
+  {version = "^2.0.3", optional = true, python = "<3.8"},
+  {version = ">=2.0.3", optional = true, python = ">=3.8"},
+]
+alembic = [
+  {version = "^1.12.1", optional = true, python = "<3.8"},
+  {version = ">=1.12.1", optional = true, python = ">=3.8"},
+]
 sqlalchemy = {version = ">=2.0", optional = true}
-asyncpg = {version = "*", optional = true}
+asyncpg = [
+  {version = "^0.28.0", optional = true, python = "<3.8"},
+  {version = ">=0.28.0", optional = true, python = ">=3.8"},
+]
 python-multipart = {version = "*", optional = true}
 sqlalchemy-utils = {version = "*", optional = true}
-starlette-exporter = {version = "*", optional = true}
-authlib = {version = "*", optional = true}
+authlib = [
+  {version = "^1.2.1", optional = true, python = "<3.8"},
+  {version = ">=1.2.1", optional = true, python = ">=3.8"},
+]
 requests = {version = "*", optional = true}
 bonsai = {version = "*", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
 pyyaml = {version = "*", optional = true}
-asgi-correlation-id = {version = "*", optional = true}
-uuid6 = {version = "*", optional = true}
+asgi-correlation-id = [
+  {version = "^4.2.0", optional = true, python = "<3.8"},
+  {version = ">=4.2.0", optional = true, python = ">=3.8"},
+]
+uuid6 = [
+  {version = "^2022.10.25", optional = true, python = "<3.8"},
+  {version = ">=2022.10.25", optional = true, python = ">=3.8"},
+]
 devtools = {version = "*", optional = true}
 argon2-cffi = {version = "*", optional = true}
 passlib = {version = "*", optional = true}
@@ -102,45 +136,66 @@ client-sync = [
 ]
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.0"
-httpx = "^0.24.1"
-pytest-asyncio = "^0.21.0"
-pytest-randomly = "^3.12.0"
+pytest = "^7.4.4"
+httpx = [
+  {version = "^0.24.1", python = "<3.8"},
+  {version = "^0.26.0", python = ">=3.8"},
+]
+pytest-asyncio = [
+  {version = "^0.21.1", python = "<3.8"},
+  {version = "^0.23.3", python = ">=3.8"},
+]
+pytest-randomly = [
+  {version = "^3.12.0", python = "<3.8"},
+  {version = "^3.15.0", python = ">=3.8"},
+]
 pytest-deadfixtures = "^2.2.1"
 pytest-lazy-fixture = "^0.6.3"
-coverage = ">=7.2"
+coverage = [
+  {version = "^7.2.7", python = "<3.8"},
+  {version = "^7.4.0", python = ">=3.8"},
+]
 psycopg2-binary = "^2.9.9"
-gevent = ">=22.10"
+gevent = [
+  {version = "^22.10.2", python = "<3.8"},
+  {version = "^23.9.1", python = ">=3.8"},
+]
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = {version = "^3.5.0", python = ">=3.11"}
-mypy = {version = "^1.6.1", python = ">=3.11"}
-black = {version = "^23.3.0", python = ">=3.11"}
-isort = {version = "^5.12.0", python = ">=3.11"}
-flake8 = {version = "^6.0.0", python = ">=3.11"}
-bandit = {version = "^1.7.5", python = ">=3.11"}
-sqlalchemy = {extras = ["mypy"], version = "^2.0.21", python = ">=3.11"}
-wemake-python-styleguide = {version = "^0.18.0", python = ">=3.11"}
-flake8-pyproject = {version = "^1.2.3", python = ">=3.11"}
-types-python-jose = {version = "^3.3.4.8", python = ">=3.11"}
-types-pyyaml = {version = "^6.0.12.12", python = ">=3.11"}
-types-passlib = {version = "^1.7.7.13", python = ">=3.11"}
-types-requests = {version = "^2.31.0.10", python = ">=3.11"}
+pre-commit = [
+  {version = "^3.5.0", python = ">=3.8"},
+  {version = "^3.6.0", python = ">=3.9"},
+]
+mypy = {version = ">=1.8.0", python = ">=3.8"}
+black = {version = "^23.12.1", python = ">=3.8"}
+isort = {version = "^5.13.2", python = ">=3.8"}
+flake8 = {version = "^6.0.0", python = ">=3.8.1"}
+bandit = {version = "^1.7.6", python = ">=3.8"}
+sqlalchemy = {extras = ["mypy"], version = "^2.0.25", python = ">=3.8"}
+wemake-python-styleguide = {version = "^0.18.0", python = ">=3.8.1"}
+flake8-pyproject = {version = "^1.2.3", python = ">=3.8"}
+types-python-jose = {version = "^3.3.4", python = ">=3.8"}
+types-pyyaml = {version = "^6.0.12", python = ">=3.8"}
+types-passlib = {version = "^1.7.7", python = ">=3.8"}
+types-requests = {version = "^2.31.0", python = ">=3.8"}
 
 [tool.poetry.group.docs.dependencies]
-setuptools-git-versioning = {version = "^1.13.5", python = ">=3.11"}
-autodoc-pydantic = {version = "^2.0.1", python = ">=3.11"}
-numpydoc = {version = "^1.6.0", python = ">=3.11"}
-sphinx = {version = "^7.2.6", python = ">=3.11"}
-sphinx-rtd-theme = {version = "^1.3.0", python = ">=3.11"}
-sphinx-copybutton = {version = "^0.5.2", python = ">=3.11"}
-sphinxcontrib-towncrier = {version = "^0.4.0a0", python = ">=3.11"}
-towncrier = {version = "^23.11.0", python = ">=3.11"}
-sphinx-issues = {version = "^3.0.1", python = ">=3.11"}
-sphinx-design = {version = "^0.5.0", python = ">=3.11"}
-sphinx-favicon = {version = "^1.0.1", python = ">=3.11"}
+setuptools-git-versioning = {version = "^1.13.5", python = ">=3.8"}
+autodoc-pydantic = {version = "^2.0.1", python = ">=3.8"}
+numpydoc = {version = "^1.6.0", python = ">=3.8"}
+sphinx = [
+  {version = "^7.1.2", python = ">=3.8"},
+  {version = "^7.2.6", python = ">=3.9"},
+]
+sphinx-rtd-theme = {version = "^2.0.0", python = ">=3.8"}
+sphinx-copybutton = {version = "^0.5.2", python = ">=3.8"}
+sphinxcontrib-towncrier = {version = "^0.4.0a0", python = ">=3.8"}
+towncrier = {version = "^23.11.0", python = ">=3.8"}
+sphinx-issues = {version = "^3.0.1", python = ">=3.8"}
+sphinx-design = {version = "^0.5.0", python = ">=3.8"}
+sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
 # uncomment after https://github.com/zqmillet/sphinx-plantuml/pull/4
-# sphinx-plantuml = {version = "^1.0.0", python = ">=3.11"}
+# sphinx-plantuml = {version = "^1.0.0", python = ">=3.8"}
 
 [tool.poetry.plugins."tricoder_package_spy.register"]
 "data-horizon" = "horizon"
@@ -214,7 +269,7 @@ profile = "black"
 known_first_party = ["horizon", "tests"]
 
 [tool.mypy]
-python_version = "3.7"
+python_version = "3.8"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 
 [[tool.mypy.overrides]]

@@ -160,6 +160,10 @@ gevent = [
   {version = "^22.10.2", python = "<3.8"},
   {version = "^23.9.1", python = ">=3.8"},
 ]
+responses = [
+  {version = "^0.23.2", python = "<3.8"},
+  {version = "^0.24.1", python = ">=3.8"},
+]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = [

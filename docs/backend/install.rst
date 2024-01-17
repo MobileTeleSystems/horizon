@@ -54,6 +54,10 @@ Available *extras* are:
 * ``postgres`` - requirements required to use Postgres as backend data storage.
 * ``ldap`` - requirements used by :ref:`backend-auth-ldap`.
 
+.. note::
+
+      For **macOS** users, an additional step is required. `You need to install the "bonsai" Python library from source code <https://bonsai.readthedocs.io/en/latest/install.html#install-from-source-on-macos>`_. This installation is necessary to work with LDAP.
+
 Run database
 ~~~~~~~~~~~~
 

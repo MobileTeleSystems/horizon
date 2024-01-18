@@ -51,3 +51,7 @@ Reference
 .. autoclass:: RetryConfig
     :members: *
     :member-order: bysource
+
+.. autoclass:: TimeoutConfig
+    :members: *
+    :member-order: bysource

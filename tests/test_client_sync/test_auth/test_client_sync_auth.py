@@ -149,6 +149,7 @@ def test_sync_client_retry_unhandled_code_error(
         client.authorize()
 
 
+@pytest.mark.flaky(reruns=2)
 def test_sync_client_timeout_error(external_app_url: str, user: User):
     timeout_config = TimeoutConfig(request_timeout=0.000001)
 

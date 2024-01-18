@@ -29,6 +29,7 @@
     :hidden:
 
     backend/install
+    backend/architecture
     backend/configuration/index
     backend/auth/index
     backend/openapi

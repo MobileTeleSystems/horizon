@@ -11,7 +11,7 @@ from requests.exceptions import RetryError
 
 from horizon.backend.db.models import User
 from horizon.client.auth import AccessToken, LoginPassword
-from horizon.client.sync import HorizonClientSync, RetryConfig
+from horizon.client.sync import HorizonClientSync, RetryConfig, TimeoutConfig
 from horizon.commons.exceptions.auth import AuthorizationError
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client, pytest.mark.auth]
@@ -146,4 +146,17 @@ def test_sync_client_retry_unhandled_code_error(
     )
 
     with pytest.raises(Exception, match="Fails with first request"):
+        client.authorize()
+
+
+def test_sync_client_timeout_error(external_app_url: str, user: User):
+    timeout_config = TimeoutConfig(request_timeout=0.000001)
+
+    client = HorizonClientSync(
+        base_url=external_app_url,
+        auth=LoginPassword(login=user.username, password="test"),
+        timeout=timeout_config,
+    )
+
+    with pytest.raises(Exception, match=rf"timed out. \(read timeout={timeout_config.request_timeout}\)"):
         client.authorize()

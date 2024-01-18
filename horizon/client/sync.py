@@ -61,6 +61,25 @@ class RetryConfig(BaseModel):
     backoff_jitter: float = 0
 
 
+class TimeoutConfig(BaseModel):
+    """
+    Configuration for connection and request timeouts.
+    If provided, it customizes the timeout behavior for requests made by the client.
+    `requests timeout documentation <https://requests.readthedocs.io/en/latest/user/advanced/#timeouts>`_.
+
+    Parameters
+    ----------
+    connection_timeout : float, default: ``3``
+        The maximum number of seconds to wait for a connection to the server.
+
+    request_timeout : float, default: ``5``
+        The maximum number of seconds to wait for a response from the server.
+    """
+
+    connection_timeout: float = 3
+    request_timeout: float = 5
+
+
 class HorizonClientSync(BaseClient[OAuth2Session]):
     """Sync Horizon client implementation, based on ``authlib`` and ``requests``.
 
@@ -75,6 +94,9 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
     retry : :obj:`RetryConfig <horizon.client.base.RetryConfig>`
         Configuration for request retries.
+
+    timeout : :obj:`TimeoutConfig <TimeoutConfig>`
+        Configuration for request timeouts.
 
     session : :obj:`authlib.integrations.requests_client.OAuth2Session`
         Custom session object. Inherited from :obj:`requests.Session`, so you can pass custom
@@ -91,12 +113,20 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         auth = LoginPassword(login="me", password="12345")
         client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
 
-        # customize retry
+        # customize retry, timeout
         retry_config = RetryConfig(total=2, backoff_factor=10, status_forcelist=[500, 503], backoff_jitter=0.5)
-        client = HorizonClientSync(base_url="https://some.domain.com", auth=auth, retry=retry_config)
+        timeout_config = TimeoutConfig(request_timeout=3.5)
+
+        client = HorizonClientSync(
+            base_url="https://some.domain.com",
+            auth=auth,
+            retry=retry_config,
+            timeout=timeout_config,
+        )
     """
 
     retry: RetryConfig = Field(default_factory=RetryConfig)
+    timeout: TimeoutConfig = Field(default_factory=TimeoutConfig)
 
     def authorize(self) -> None:
         """Fetch and set access token (if required).
@@ -114,7 +144,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         # token will not be verified until we call any endpoint
         # do not call ``self.whoami`` here to avoid recursion
-        response = session.request("GET", f"{self.base_url}/v1/users/me")
+        timeout = (self.timeout.connection_timeout, self.timeout.request_timeout)
+        response = session.request("GET", f"{self.base_url}/v1/users/me", timeout=timeout)
         self._handle_response(response, UserResponseV1)
 
     def close(self) -> None:
@@ -750,5 +781,6 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         if not session.token or session.token.is_expired():
             self.authorize()
 
-        response = session.request(method, url, json=json, params=params)
+        timeout = (self.timeout.connection_timeout, self.timeout.request_timeout)
+        response = session.request(method, url, json=json, params=params, timeout=timeout)
         return self._handle_response(response, response_class)

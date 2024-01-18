@@ -1,0 +1,9 @@
+
+0.0.8 (2024-01-18)
+==================
+
+Features
+--------
+
+- Added retry configuration support to ``HorizonClientSync`` (:issue:`DOP-12454`)
+- Added ``timeout`` config parameter support to ``HorizonClientSync`` (:issue:`DOP-12545`)

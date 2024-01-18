@@ -3,4 +3,3 @@
     :caption: Changelog
 
     DRAFT
-    NEXT_RELEASE

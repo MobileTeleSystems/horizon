@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import pytest
 import responses
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.requests_client import OAuth2Session
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
 from pytest_lazyfixture import lazy_fixture
-from requests.exceptions import RetryError
+from requests.exceptions import ConnectionError, RetryError
+from urllib3.exceptions import ReadTimeoutError
 
 from horizon.backend.db.models import User
 from horizon.client.auth import AccessToken, LoginPassword
@@ -121,7 +123,10 @@ def test_sync_client_retry_max_attempts_error(
     # mock unsuccessful POST requests to /v1/auth/token more than total retries
     for _ in range(retry_config.total + 1):
         mocked_responses.add(
-            responses.POST, f"{external_app_url}/v1/auth/token", json={"error": "Server Error"}, status=503
+            responses.POST,
+            f"{external_app_url}/v1/auth/token",
+            json={"error": "Server Error"},
+            status=503,
         )
 
     with pytest.raises(RetryError, match="Max retries exceeded with url:"):
@@ -142,10 +147,13 @@ def test_sync_client_retry_unhandled_code_error(
 
     # mock unsuccessful POST requests to /v1/auth/token m that unhandled with retry config (there are not retries)
     mocked_responses.add(
-        responses.POST, f"{external_app_url}/v1/auth/token", json={"error": "Fails with first request"}, status=407
+        responses.POST,
+        f"{external_app_url}/v1/auth/token",
+        json={"error": "Fails with first request"},
+        status=407,
     )
 
-    with pytest.raises(Exception, match="Fails with first request"):
+    with pytest.raises(OAuthError, match="Fails with first request"):
         client.authorize()
 
 
@@ -159,5 +167,5 @@ def test_sync_client_timeout_error(external_app_url: str, user: User):
         timeout=timeout_config,
     )
 
-    with pytest.raises(Exception, match=rf"timed out. \(read timeout={timeout_config.request_timeout}\)"):
+    with pytest.raises((ConnectionError, ReadTimeoutError)):
         client.authorize()

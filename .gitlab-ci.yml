@@ -239,6 +239,11 @@ test_backend:
       when: never
     - when: on_success
   interruptible: true
+  retry:
+    max: 1
+    when:
+      - api_failure
+      - runner_system_failure
 
 test_client:
   image: ${IMAGE_PREFIX}/python${PYTHON_VERSION}/pydantic${PYDANTIC_VERSION}:${CI_COMMIT_REF_SLUG}
@@ -284,6 +289,11 @@ test_client:
       when: never
     - when: on_success
   interruptible: true
+  retry:
+    max: 1
+    when:
+      - api_failure
+      - runner_system_failure
 
 generate_openapi:
   image: ${IMAGE_PREFIX}/python${DEFAULT_PYTHON}/pydantic${DEFAULT_PYDANTIC}:${DOCKER_IMAGE_TAG}

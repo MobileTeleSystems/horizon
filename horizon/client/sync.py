@@ -1,11 +1,13 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import List, TypeVar
 
 from authlib.integrations.requests_client import OAuth2Session
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, root_validator, validator
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 from horizon import __version__ as horizon_version
 from horizon.client.base import BaseClient
@@ -28,6 +30,56 @@ from horizon.commons.schemas.v1 import (
 ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
 
 
+class RetryConfig(BaseModel):
+    """
+    Configuration for request retries in case of network errors or specific status codes.
+    If provided, it customizes the retry behavior for requests made by the client.
+    `urllib3 retry documentation <https://urllib3.readthedocs.io/en/stable/reference/urllib3.util.html>`_.
+
+    Parameters
+    ----------
+    total : int, default: ``3``
+        The maximum number of retry attempts to make.
+
+    backoff_factor : float, default: ``0.1``
+        A backoff factor to apply between attempts after the second try.
+
+    status_forcelist : list[int], default: ``[502, 503, 504]``
+        A set of HTTP status codes that we should force a retry on.
+
+    backoff_jitter : float, default: ``0.0``
+        A random jitter amount (between 0 and 1) to add to the backoff delay.
+        Helps to avoid "thundering herd" issues by randomizing the delay
+        times between retries.
+
+
+    """
+
+    total: int = 3
+    backoff_factor: float = 0.1
+    status_forcelist: List[int] = [502, 503, 504]
+    backoff_jitter: float = 0
+
+
+class TimeoutConfig(BaseModel):
+    """
+    Configuration for connection and request timeouts.
+    If provided, it customizes the timeout behavior for requests made by the client.
+    `requests timeout documentation <https://requests.readthedocs.io/en/latest/user/advanced/#timeouts>`_.
+
+    Parameters
+    ----------
+    connection_timeout : float, default: ``3``
+        The maximum number of seconds to wait for a connection to the server.
+
+    request_timeout : float, default: ``5``
+        The maximum number of seconds to wait for a response from the server.
+    """
+
+    connection_timeout: float = 3
+    request_timeout: float = 5
+
+
 class HorizonClientSync(BaseClient[OAuth2Session]):
     """Sync Horizon client implementation, based on ``authlib`` and ``requests``.
 
@@ -40,6 +92,12 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     auth : :obj:`BaseAuth <horizon.client.auth.base.BaseAuth>`
         Authentication class
 
+    retry : :obj:`RetryConfig <horizon.client.base.RetryConfig>`
+        Configuration for request retries.
+
+    timeout : :obj:`TimeoutConfig <TimeoutConfig>`
+        Configuration for request timeouts.
+
     session : :obj:`authlib.integrations.requests_client.OAuth2Session`
         Custom session object. Inherited from :obj:`requests.Session`, so you can pass custom
         session options.
@@ -50,11 +108,25 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     .. code-block:: python
 
         from horizon.client.auth import LoginPassword
-        from horizon.client.sync import HorizonClientSync
+        from horizon.client.sync import HorizonClientSync, RetryConfig
 
         auth = LoginPassword(login="me", password="12345")
         client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
+
+        # customize retry, timeout
+        retry_config = RetryConfig(total=2, backoff_factor=10, status_forcelist=[500, 503], backoff_jitter=0.5)
+        timeout_config = TimeoutConfig(request_timeout=3.5)
+
+        client = HorizonClientSync(
+            base_url="https://some.domain.com",
+            auth=auth,
+            retry=retry_config,
+            timeout=timeout_config,
+        )
     """
+
+    retry: RetryConfig = Field(default_factory=RetryConfig)
+    timeout: TimeoutConfig = Field(default_factory=TimeoutConfig)
 
     def authorize(self) -> None:
         """Fetch and set access token (if required).
@@ -72,7 +144,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         # token will not be verified until we call any endpoint
         # do not call ``self.whoami`` here to avoid recursion
-        response = session.request("GET", f"{self.base_url}/v1/users/me")
+        timeout = (self.timeout.connection_timeout, self.timeout.request_timeout)
+        response = session.request("GET", f"{self.base_url}/v1/users/me", timeout=timeout)
         self._handle_response(response, UserResponseV1)
 
     def close(self) -> None:
@@ -669,6 +742,25 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             params=query.dict(exclude_unset=True),
         )
 
+    # retry validator is called after "session" validators, when session already created by default or passed directly
+    @root_validator(pre=False, skip_on_failure=True)
+    def _configure_retries(cls, values):
+        session = values.get("session")
+        retry_config = values.get("retry")
+
+        retries = Retry(
+            total=retry_config.total,
+            backoff_factor=retry_config.backoff_factor,
+            status_forcelist=retry_config.status_forcelist,
+            backoff_jitter=retry_config.backoff_jitter,
+            allowed_methods=frozenset(("GET", "POST", "PUT", "PATCH", "DELETE")),
+        )
+        adapter = HTTPAdapter(max_retries=retries)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+
+        return values
+
     @validator("session", always=True)
     def _set_client_info(cls, session: OAuth2Session):
         session.headers["X-Client-Name"] = "python-horizon[sync]"
@@ -689,5 +781,6 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         if not session.token or session.token.is_expired():
             self.authorize()
 
-        response = session.request(method, url, json=json, params=params)
+        timeout = (self.timeout.connection_timeout, self.timeout.request_timeout)
+        response = session.request(method, url, json=json, params=params, timeout=timeout)
         return self._handle_response(response, response_class)

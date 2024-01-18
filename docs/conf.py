@@ -1,5 +1,3 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
-# SPDX-License-Identifier: Apache-2.0
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -27,7 +25,7 @@ sys.path.insert(0, os.fspath(PROJECT_ROOT_DIR))
 # -- Project information -----------------------------------------------------
 
 project = "horizon"
-copyright = "2023, DataOps.ETL"
+copyright = "2023-2024, DataOps.ETL"
 author = "DataOps.ETL"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -37,7 +35,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("0.0.7")
+ver = Version.parse("0.0.8")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public

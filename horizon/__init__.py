@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
 # _raw_version could contain pre-release version, like 0.0.1dev123
 # value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-_raw_version = "0.0.7"
+_raw_version = "0.0.8"
 
 # version always contain only release number like 0.0.1
 __version__ = ".".join(_raw_version.split(".")[:3])  # noqa: WPS410

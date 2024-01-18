@@ -161,7 +161,7 @@ You can pass additional arguments, they will be passed to pytest:
 
 .. code:: bash
 
-    make test PYTEST_ARG="-m client-sync -lsx -vvvv --log-cli-level=INFO"
+    make test PYTEST_ARGS="-m client-sync -lsx -vvvv --log-cli-level=INFO"
 
 Stop all containers and remove created volumes:
 
@@ -324,3 +324,81 @@ Examples for adding changelog entries to your Pull Requests
 
 .. _Towncrier philosophy:
     https://towncrier.readthedocs.io/en/stable/#philosophy
+
+Release Process
+^^^^^^^^^^^^^^^
+
+Before making a release from the ``develop`` branch, follow these steps:
+
+1. Backup ``NEXT_RELEASE.rst``
+
+.. code:: bash
+
+    cp "docs/changelog/NEXT_RELEASE.rst" "docs/changelog/temp_NEXT_RELEASE.rst"
+
+2. Build the Release notes with Towncrier
+
+.. code:: bash
+
+    VERSION=$(poetry version -s)
+    towncrier build --version=${VERSION} --yes
+
+3. Update Changelog
+
+.. code:: bash
+
+    mv docs/changelog/NEXT_RELEASE.rst "docs/changelog/${VERSION}.rst"
+
+4. Remove content above the version number heading in the ``${VERSION}.rst`` file
+
+.. code:: bash
+
+    sed "0,/^.*towncrier release notes start/d" -i "docs/changelog/${VERSION}.rst"
+
+5. Update Changelog Index
+
+.. code:: bash
+
+    sed -E "s/DRAFT/DRAFT\n    ${VERSION}/" -i "docs/changelog/index.rst"
+
+6. Reset ``NEXT_RELEASE.rst`` file
+
+.. code:: bash
+
+    mv "docs/changelog/temp_NEXT_RELEASE.rst" "docs/changelog/NEXT_RELEASE.rst"
+
+7. Commit and push changes to ``develop`` branch
+
+.. code:: bash
+
+    git add .
+    git commit -m "Prepare for release ${VERSION}"
+    git push
+
+8. Merge ``develop`` branch to ``master``, **WITHOUT** squashing
+
+.. code:: bash
+
+    git checkout master
+    git merge develop
+    git push
+
+9. Add git tag to the latest commit in ``master`` branch
+
+.. code:: bash
+
+    git tag "$VERSION"
+    git push --tags
+
+10. Update version in ``develop`` branch **after release**:
+
+.. code:: bash
+
+    git checkout develop
+
+    NEXT_VERSION=$(echo "$VERSION" | awk -F. '/[0-9]+\./{$NF++;print}' OFS=.)
+    poetry version "$NEXT_VERSION"
+
+    git add .
+    git commit -m "Bump version"
+    git push

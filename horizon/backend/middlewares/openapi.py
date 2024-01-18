@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
 from functools import partial
@@ -74,7 +74,7 @@ async def custom_swagger_ui_html(request: Request):
     )
 
 
-async def custom_swagger_ui_redirect():
+async def custom_swagger_ui_redirect(request: Request):
     return get_swagger_ui_oauth2_redirect_html()
 
 

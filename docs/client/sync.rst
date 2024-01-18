@@ -45,5 +45,13 @@ Reference
 .. currentmodule:: horizon.client.sync
 
 .. autoclass:: HorizonClientSync
-    :members: authorize, ping, whoami, paginate_namespaces, create_namespace, update_namespace, delete_namespace, paginate_hwm, create_hwm, update_hwm, delete_hwm, paginate_hwm_history
+    :members: authorize, ping, whoami, paginate_namespaces, create_namespace, update_namespace, delete_namespace, paginate_hwm, create_hwm, update_hwm, delete_hwm, paginate_hwm_history, retry
+    :member-order: bysource
+
+.. autoclass:: RetryConfig
+    :members: *
+    :member-order: bysource
+
+.. autoclass:: TimeoutConfig
+    :members: *
     :member-order: bysource

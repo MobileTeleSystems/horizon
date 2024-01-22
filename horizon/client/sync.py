@@ -92,10 +92,10 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     auth : :obj:`BaseAuth <horizon.client.auth.base.BaseAuth>`
         Authentication class
 
-    retry : :obj:`RetryConfig <horizon.client.base.RetryConfig>`
+    retry : :obj:`RetryConfig <horizon.client.sync.RetryConfig>`
         Configuration for request retries.
 
-    timeout : :obj:`TimeoutConfig <TimeoutConfig>`
+    timeout : :obj:`TimeoutConfig <horizon.client.sync.TimeoutConfig>`
         Configuration for request timeouts.
 
     session : :obj:`authlib.integrations.requests_client.OAuth2Session`

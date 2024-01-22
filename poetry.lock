@@ -3314,6 +3314,27 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
+name = "pytest-rerunfailures"
+version = "13.0"
+description = "pytest plugin to re-run tests to eliminate flaky failures"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pytest-rerunfailures-13.0.tar.gz", hash = "sha256:e132dbe420bc476f544b96e7036edd0a69707574209b6677263c950d19b09199"},
+    {file = "pytest_rerunfailures-13.0-py3-none-any.whl", hash = "sha256:34919cb3fcb1f8e5d4b940aa75ccdea9661bade925091873b7c6fa5548333069"},
+]
+
+[package.dependencies]
+importlib-metadata = {version = ">=1", markers = "python_version < \"3.8\""}
+packaging = ">=17.1"
+pytest = ">=7"
+
+[package.source]
+type = "legacy"
+url = "https://nexus.services.mts.ru/repository/pip/simple"
+reference = "nexus"
+
+[[package]]
 name = "python-dotenv"
 version = "0.21.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -4917,7 +4938,7 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [extras]
-backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
+backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
 client-sync = ["authlib", "authlib", "requests"]
 ldap = ["argon2-cffi", "bonsai"]
 postgres = ["asyncpg", "asyncpg"]
@@ -4925,4 +4946,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "a36e3d2c3bc5a9bd7dbdfae0d957b7b6f507ee7557a1000c295f121a2010747e"
+content-hash = "450050b0478a3df30b65f94c6100445a7bd41ffce7c36d9be53fb371748d7497"

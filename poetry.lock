@@ -4816,26 +4816,6 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [[package]]
-name = "zipp"
-version = "3.17.0"
-description = "Backport of pathlib-compatible object wrapper for zip files"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "zipp-3.17.0-py3-none-any.whl", hash = "sha256:0e923e726174922dce09c53c59ad483ff7bbb8e572e00c7f7c46b88556409f31"},
-    {file = "zipp-3.17.0.tar.gz", hash = "sha256:84e64a1c28cf7e91ed2078bb8cc8c259cb19b76942096c8d7b84947690cabaf0"},
-]
-
-[package.extras]
-docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (<7.2.5)", "sphinx (>=3.5)", "sphinx-lint"]
-testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
-
-[package.source]
-type = "legacy"
-url = "https://nexus.services.mts.ru/repository/pip/simple"
-reference = "nexus"
-
-[[package]]
 name = "zope-event"
 version = "5.0"
 description = "Very basic event publishing system"
@@ -4917,7 +4897,7 @@ url = "https://nexus.services.mts.ru/repository/pip/simple"
 reference = "nexus"
 
 [extras]
-backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
+backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
 client-sync = ["authlib", "authlib", "requests"]
 ldap = ["argon2-cffi", "bonsai"]
 postgres = ["asyncpg", "asyncpg"]
@@ -4925,4 +4905,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "a36e3d2c3bc5a9bd7dbdfae0d957b7b6f507ee7557a1000c295f121a2010747e"
+content-hash = "b21ce3c76b1beed0ee149b77e9e06c2610b772b1a98ae6e4eb555269c97ab34b"

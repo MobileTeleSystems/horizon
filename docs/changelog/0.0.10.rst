@@ -1,0 +1,8 @@
+
+0.0.10 (2024-01-22)
+==================
+
+Bug Fixes
+---------
+
+- Update ``starlette-exporter`` and ``uvicorn`` to latest versions

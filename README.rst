@@ -14,7 +14,7 @@ Horizon
 .. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
     :target: https://sregistry.mts.ru/harbor/projects/14/repositories/bigdata%2Fplatform%2Fonetools%2Fhorizon%2Fbackend/artifacts-tab
 .. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
-    :target: https://artifactory.mts.ru/artifactory/own-onetl-pypi-local/horizon/
+    :target: https://artifactory.mts.ru/ui/native/own-onetl-pypi-local/data-horizon/
 
 |Logo|
 

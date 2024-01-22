@@ -49,7 +49,7 @@ class LoggingSettings(BaseModel):
             """
             Name of logging preset to use.
 
-            There are few logging presets bundled to ``horizon[backend]`` package:
+            There are few logging presets bundled to ``data-horizon[backend]`` package:
 
             .. dropdown:: ``plain`` preset
 

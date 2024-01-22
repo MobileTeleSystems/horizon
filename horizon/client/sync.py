@@ -111,14 +111,14 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         from horizon.client.sync import HorizonClientSync, RetryConfig
 
         auth = LoginPassword(login="me", password="12345")
-        client = HorizonClientSync(base_url="https://some.domain.com", auth=auth)
+        client = HorizonClientSync(base_url="https://some.domain.com/api", auth=auth)
 
         # customize retry, timeout
         retry_config = RetryConfig(total=2, backoff_factor=10, status_forcelist=[500, 503], backoff_jitter=0.5)
         timeout_config = TimeoutConfig(request_timeout=3.5)
 
         client = HorizonClientSync(
-            base_url="https://some.domain.com",
+            base_url="https://some.domain.com/api",
             auth=auth,
             retry=retry_config,
             timeout=timeout_config,

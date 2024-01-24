@@ -9,7 +9,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
 from pytest_lazyfixture import lazy_fixture
 from requests.exceptions import ConnectionError, RetryError
-from urllib3 import __version__ as urilib3_version
+from urllib3 import __version__ as urllib3_version
 from urllib3.exceptions import ReadTimeoutError
 
 from horizon.backend.db.models import User
@@ -74,7 +74,7 @@ def test_sync_client_retry(
     retry_config: RetryConfig,
     use_custom_session: bool,
 ):
-    if retry_config.backoff_jitter is not None and urilib3_version.startswith("1."):
+    if retry_config.backoff_jitter is not None and urllib3_version.startswith("1."):
         pytest.skip(reason="urllib3 1.x does not support backoff_jitter")
 
     session = OAuth2Session() if use_custom_session else None

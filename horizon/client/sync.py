@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from typing import List, TypeVar
+from typing import List, Optional, TypeVar
 
 from authlib.integrations.requests_client import OAuth2Session
 from pydantic import BaseModel, Field, root_validator, validator
@@ -47,18 +47,20 @@ class RetryConfig(BaseModel):
     status_forcelist : list[int], default: ``[502, 503, 504]``
         A set of HTTP status codes that we should force a retry on.
 
-    backoff_jitter : float, default: ``0.0``
+    backoff_jitter : float, default: ``None``
         A random jitter amount (between 0 and 1) to add to the backoff delay.
         Helps to avoid "thundering herd" issues by randomizing the delay
         times between retries.
 
+        .. note::
 
+            Requires ``urllib>2.0``
     """
 
     total: int = 3
     backoff_factor: float = 0.1
     status_forcelist: List[int] = [502, 503, 504]
-    backoff_jitter: float = 0
+    backoff_jitter: Optional[float] = None
 
 
 class TimeoutConfig(BaseModel):
@@ -114,7 +116,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         client = HorizonClientSync(base_url="https://some.domain.com/api", auth=auth)
 
         # customize retry, timeout
-        retry_config = RetryConfig(total=2, backoff_factor=10, status_forcelist=[500, 503], backoff_jitter=0.5)
+        retry_config = RetryConfig(total=2, backoff_factor=10, status_forcelist=[500, 503])
         timeout_config = TimeoutConfig(request_timeout=3.5)
 
         client = HorizonClientSync(
@@ -748,12 +750,17 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         session = values.get("session")
         retry_config = values.get("retry")
 
+        optional_retry_args = {}
+        if retry_config.backoff_jitter is not None:
+            # added to Retry class onlu in urllib3 2.0+
+            optional_retry_args["backoff_jitter"] = retry_config.backoff_jitter
+
         retries = Retry(
             total=retry_config.total,
             backoff_factor=retry_config.backoff_factor,
             status_forcelist=retry_config.status_forcelist,
-            backoff_jitter=retry_config.backoff_jitter,
             allowed_methods=frozenset(("GET", "POST", "PUT", "PATCH", "DELETE")),
+            **optional_retry_args,
         )
         adapter = HTTPAdapter(max_retries=retries)
         session.mount("https://", adapter)

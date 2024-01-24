@@ -47,6 +47,7 @@ RUN pip install sphinx-plantuml && \
 ARG PYDANTIC_VERSION=2
 RUN if [[ "x${PYDANTIC_VERSION}" == "x1" ]]; then \
         # pydantic-settings depends in pydantic>2.3, so delete it
+        # urllib3 v1 lack some options from v2, test it too
         pip uninstall -y "pydantic-settings"; \
-        pip install "pydantic<2" "autodoc-pydantic<2"; \
+        pip install "pydantic<2" "autodoc-pydantic<2" "urilib3<2.0"; \
     fi

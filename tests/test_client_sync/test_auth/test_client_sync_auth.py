@@ -9,6 +9,7 @@ from authlib.integrations.requests_client import OAuth2Session
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
 from pytest_lazyfixture import lazy_fixture
 from requests.exceptions import ConnectionError, RetryError
+from urllib3 import __version__ as urllib3_version
 from urllib3.exceptions import ReadTimeoutError
 
 from horizon.backend.db.models import User
@@ -59,7 +60,7 @@ def test_sync_client_authorize_with_wrong_access_token(external_app_url: str, wr
 
 
 @pytest.mark.parametrize(
-    "custom_retry_config, use_custom_session",
+    "retry_config, use_custom_session",
     [
         (RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2), False),
         (RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2), True),
@@ -67,8 +68,15 @@ def test_sync_client_authorize_with_wrong_access_token(external_app_url: str, wr
     ],
 )
 def test_sync_client_retry(
-    external_app_url: str, user: User, mocked_responses: responses.RequestsMock, custom_retry_config, use_custom_session
+    external_app_url: str,
+    user: User,
+    mocked_responses: responses.RequestsMock,
+    retry_config: RetryConfig,
+    use_custom_session: bool,
 ):
+    if retry_config.backoff_jitter is not None and urllib3_version.startswith("1."):
+        pytest.skip(reason="urllib3 1.x does not support backoff_jitter")
+
     session = OAuth2Session() if use_custom_session else None
     if use_custom_session:
         session.headers.update({"Custom-Header": "HeaderValue"})
@@ -78,7 +86,7 @@ def test_sync_client_retry(
     client = HorizonClientSync(
         base_url=external_app_url,
         auth=LoginPassword(login=user.username, password="test"),
-        retry=custom_retry_config,
+        retry=retry_config,
         session=session,
     )
 
@@ -113,7 +121,7 @@ def test_sync_client_retry_max_attempts_error(
     user: User,
     mocked_responses: responses.RequestsMock,
 ):
-    retry_config = RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2)
+    retry_config = RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504])
     client = HorizonClientSync(
         base_url=external_app_url,
         auth=LoginPassword(login=user.username, password="test"),
@@ -138,7 +146,7 @@ def test_sync_client_retry_unhandled_code_error(
     user: User,
     mocked_responses: responses.RequestsMock,
 ):
-    retry_config = RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2)
+    retry_config = RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504])
     client = HorizonClientSync(
         base_url=external_app_url,
         auth=LoginPassword(login=user.username, password="test"),

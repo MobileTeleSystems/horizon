@@ -38,11 +38,11 @@ RUN set +x\
 COPY ./pyproject.toml ./poetry.lock* ./
 
 # TODO: remove sphinx-plantuml install after solving https://github.com/zqmillet/sphinx-plantuml/pull/4
-RUN pip install sphinx-plantuml && \
-    poetry install \
+RUN poetry install \
         --no-root \
         --all-extras \
-        --with dev,test,docs
+        --with dev,test,docs && \
+    pip install sphinx-plantuml --no-deps
 
 ARG PYDANTIC_VERSION=2
 RUN if [[ "x${PYDANTIC_VERSION}" == "x1" ]]; then \

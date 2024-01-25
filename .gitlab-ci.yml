@@ -58,17 +58,6 @@ variables:
   DEFAULT_PYDANTIC: '2'
   IMAGE_PREFIX: ${HARBOR_HOST}/${HARBOR_PROJECT}/${CI_PROJECT_PATH}/test/backend
 
-### --------------- Get Vault secret --------------- ###
-devops_get_techuser_secrets:
-  extends: .base_vault_get_field
-  variables:
-    VAULT_ROLE_ID: $DEVOPS_VAULT_ROLE_ID
-    VAULT_SECRET_ID: $DEVOPS_VAULT_SECRET_ID
-    VAULT_PATH: platform/onetools/$CICD_USER_NAME
-    VAULT_FIELD: password
-    VARIABLE_NAME: CICD_USER_PASSWORD
-  interruptible: true
-
 ### --------------- Build docker images --------------- ###
 backend_test_image:
   extends: .base_docker_build
@@ -284,6 +273,7 @@ test_client:
     reports:
       junit:
         - ${CI_PROJECT_DIR}/reports/junit*.xml
+    expire_in: 10 minutes
   rules:
     - if: $CI_COMMIT_TAG
       when: never
@@ -337,6 +327,10 @@ generate_openapi:
     when: always
     paths:
       - ${CI_PROJECT_DIR}/reports
+    reports:
+      junit:
+        - ${CI_PROJECT_DIR}/reports/junit*.xml
+    expire_in: 10 minutes
   rules:
     - if: $CI_COMMIT_TAG
       variables:
@@ -403,12 +397,24 @@ build_docs:
       - docs/html-*.tar.gz
     reports:
       dotenv: deploy.env
+    expire_in: 10 minutes
   rules:
     - if: $CI_COMMIT_TAG
       variables:
         DOCKER_IMAGE_TAG: develop
       when: on_success
     - when: on_success
+  interruptible: true
+
+devops_get_techuser_secrets:
+  extends: .base_vault_get_field
+  stage: post tests
+  variables:
+    VAULT_ROLE_ID: $DEVOPS_VAULT_ROLE_ID
+    VAULT_SECRET_ID: $DEVOPS_VAULT_SECRET_ID
+    VAULT_PATH: platform/onetools/$CICD_USER_NAME
+    VAULT_FIELD: password
+    VARIABLE_NAME: CICD_USER_PASSWORD
   interruptible: true
 
 publish_docs:

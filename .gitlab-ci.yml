@@ -20,7 +20,7 @@ include:
 
   # DOCKER
   - project: DevOps/cicd-store/gitlabci/docker
-    ref: v8
+    ref: msmarty5-v8-patch-45518
     file:
       - .base_docker_build.yml
       - .base_docker_cleaner.yml

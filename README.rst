@@ -3,25 +3,32 @@
 Horizon
 =======
 
-|Build Status| |Coverage| |Documentation| |Docker image| |PyPI|
+|Repo Status| |PyPI| |Docker image| |PyPI License| |PyPI Python Version| |Documentation| |Build Status| |Coverage|
 
-.. |Build Status| image:: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/badges/develop/pipeline.svg
-    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/pipelines
-.. |Coverage| image:: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/badges/develop/coverage.svg
-    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/graphs/develop/charts
-.. |Documentation| image:: https://img.shields.io/badge/docs-latest-success
-    :target: https://bigdata.pages.mts.ru/platform/onetools/horizon/
-.. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
-    :target: https://sregistry.mts.ru/harbor/projects/14/repositories/bigdata%2Fplatform%2Fonetools%2Fhorizon%2Fbackend/artifacts-tab
+.. |Repo Status| image:: https://www.repostatus.org/badges/latest/active.svg
+    :target: https://github.com/MobileTeleSystems/horizon
 .. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
-    :target: https://artifactory.mts.ru/ui/native/own-onetl-pypi-local/data-horizon/
+    :target: https://pypi.org/project/data-horizon/
+.. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
+    :target: https://hub.docker.com/u/mtsrus/horizon-backend
+.. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
+    :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
+.. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg
+    :target: https://badge.fury.io/py/data-horizon
+.. |Documentation| image:: https://readthedocs.org/projects/horizon/badge/?version=stable
+    :target: https://data-horizon.readthedocs.io/
+.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
+    :target: https://github.com/MobileTeleSystems/horizon/actions
+.. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/branch/develop/graph/badge.svg?token=RIO8URKNZJ
+    :target: https://codecov.io/gh/MobileTeleSystems/horizon
 
-|Logo|
+.. raw:: html
 
-.. |Logo| image:: docs/_static/logo.svg
-    :width: 400
-    :alt: Horizon logo
-    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon
+    <div align="center">
+        <a href="https://github.com/MobileTeleSystems/horizon">
+            <img width="400" src="_static/logo.svg" alt="Horizon logo">
+        </a>
+    </div>
 
 What is Horizon?
 ----------------
@@ -56,4 +63,4 @@ Limitations
 Documentation
 -------------
 
-See https://bigdata.pages.mts.ru/platform/onetools/horizon/
+See https://data-horizon.readthedocs.io/

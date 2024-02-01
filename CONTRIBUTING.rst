@@ -20,14 +20,14 @@ Initial setup for local development
 Install Git
 ~~~~~~~~~~~
 
-Please follow `instruction <https://docs.gitlab.com/ee/topics/git/>`_.
+Please follow `instruction <https://docs.github.com/en/get-started/quickstart/set-up-git>`_.
 
 Create a fork
 ~~~~~~~~~~~~~
 
 If you are not a member of a development team building horizon, you should create a fork before making any changes.
 
-Please follow `instruction <https://docs.gitlab.com/ee/user/project/repository/forking_workflow.html>`_.
+Please follow `instruction <https://docs.github.com/en/get-started/quickstart/fork-a-repo>`_.
 
 Clone the repo
 ~~~~~~~~~~~~~~
@@ -36,7 +36,7 @@ Open terminal and run these commands:
 
 .. code:: bash
 
-    git clone https://gitlab.services.mts.ru/myuser/horizon.git -b develop
+    git clone https://github.com/MobileTeleSystems/horizon -b develop
 
     cd horizon
 
@@ -222,19 +222,19 @@ If documentation should be build cleanly instead of reusing existing build resul
 Review process
 --------------
 
-Please create a new Jira issue for any significant changes and
+Please create a new GitHub issue for any significant changes and
 enhancements that you wish to make. Provide the feature you would like
 to see, why you need it, and how it will work. Discuss your ideas
 transparently and get community feedback before proceeding.
 
 Significant Changes that you wish to contribute to the project should be
-discussed first in a Jira issue that clearly outlines the changes and
+discussed first in a GitHub issue that clearly outlines the changes and
 benefits of the feature.
 
-Small Changes can directly be crafted and submitted to the Gitlab
-Repository as a Merge Request.
+Small Changes can directly be crafted and submitted to the GitHub
+Repository as a Pull Request.
 
-Create merge request
+Create pull request
 ~~~~~~~~~~~~~~~~~~~~
 
 Commit your changes:
@@ -244,10 +244,10 @@ Commit your changes:
     git commit -m "Commit message"
     git push
 
-Then open Gitlab interface and `create merge request <https://docs.gitlab.com/ee/user/project/merge_requests/>`_.
-Please follow guide from MR body template.
+Then open Github interface and `create pull request <https://docs.github.com/en/get-started/quickstart/contributing-to-projects#making-a-pull-request>`_.
+Please follow guide from PR body template.
 
-After pull request is created, it get a corresponding number, e.g. 123 (``mr_number``).
+After pull request is created, it get a corresponding number, e.g. 123 (``pr_number``).
 
 Write release notes
 ~~~~~~~~~~~~~~~~~~~
@@ -267,11 +267,10 @@ combined with others, it will be a part of the "news digest"
 telling the readers **what changed** in a specific version of
 the library *since the previous version*.
 
-You should also use
 reStructuredText syntax for highlighting code (inline or block),
 linking parts of the docs or external sites.
 If you wish to sign your change, feel free to add ``-- by
-:user:`username``` at the end (replace ``username``
+:user:`github-username``` at the end (replace ``github-username``
 with your own!).
 
 Finally, name your file following the convention that Towncrier
@@ -282,7 +281,7 @@ need to add more than one fragment, you may add an optional
 sequence number (delimited with another period) between the type
 and the suffix.
 
-In general the name will follow ``<mr_number>.<category>.rst`` pattern,
+In general the name will follow ``<pr_number>.<category>.rst`` pattern,
 where the categories are:
 
 - ``feature``: Any new feature
@@ -302,20 +301,20 @@ Examples for adding changelog entries to your Pull Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: rst
-    :caption: docs/changelog/next_release/DOP-1234.doc.1.rst
+    :caption: docs/changelog/next_release/1234.doc.1.rst
 
-    Added a ``:user:`` role to Sphinx config -- by :user:`someuser`
-
-.. code-block:: rst
-    :caption: docs/changelog/next_release/DOP-2345.bugfix.rst
-
-    Fixed behavior of ``backend`` -- by :user:`someuser`
+    Added a ``:github:user:`` role to Sphinx config -- by :github:user:`someuser`
 
 .. code-block:: rst
-    :caption: docs/changelog/next_release/DOP-4567.feature.rst
+    :caption: docs/changelog/next_release/2345.bugfix.rst
+
+    Fixed behavior of ``backend`` -- by :github:user:`someuser`
+
+.. code-block:: rst
+    :caption: docs/changelog/next_release/3456.feature.rst
 
     Added support of ``timeout`` in ``LDAP``
-    -- by :user:`someuser`, :user:`anotheruser` and :user:`otheruser`
+    -- by :github:user:`someuser`, :github:user:`anotheruser` and :github:user:`otheruser`
 
 .. tip::
 
@@ -324,6 +323,11 @@ Examples for adding changelog entries to your Pull Requests
 
 .. _Towncrier philosophy:
     https://towncrier.readthedocs.io/en/stable/#philosophy
+
+How to skip change notes check?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Just add ``ci:skip-changelog`` label to pull request.
 
 Release Process
 ^^^^^^^^^^^^^^^

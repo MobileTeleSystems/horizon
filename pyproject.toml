@@ -39,11 +39,11 @@ include = [
 ]
 
 [tool.poetry.urls]  # Optional
-"Homepage" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon"
-"Documentation" = "https://bigdata.pages.mts.ru/platform/onetools/horizon/"
-"Source" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon"
-"CI/CD" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/pipelines"
-"Tracker" = "https://jira.mts.ru/projects/DOP/issues"
+"Homepage" = "https://github.com/MobileTeleSystems/horizon"
+"Documentation" = "https://data-horizon.readthedocs.io/"
+"Source" = "https://github.com/MobileTeleSystems/horizon"
+"CI/CD" = "https://github.com/MobileTeleSystems/horizon/actions"
+"Tracker" = "https://github.com/MobileTeleSystems/horizon/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -205,16 +205,6 @@ sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
 
 [tool.poetry.plugins."tricoder_package_spy.register"]
 "data-horizon" = "horizon"
-
-[[tool.poetry.source]]
-name = "nexus"
-url = "https://nexus.services.mts.ru/repository/pip/simple"
-priority = "default"
-
-[[tool.poetry.source]]
-name = "artifactory"
-url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
-priority = "primary"
 
 [tool.poetry_bumpversion.file."horizon/__init__.py"]
 search = '_raw_version = "{current_version}"'

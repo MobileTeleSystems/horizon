@@ -94,7 +94,7 @@ class LogoSettings(BaseModel):
         description="Alternative text for ``<img>`` tag",
     )
     href: Optional[AnyHttpUrl] = Field(  # type: ignore[assignment]
-        default="https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon",
+        default="https://github.com/MobileTeleSystems/horizon",
         description="Clicking on logo will redirect to this URL",
     )
 

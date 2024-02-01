@@ -62,7 +62,7 @@ test: db-start ldap-start ##@Test Run tests
 	${POETRY} run pytest $(PYTEST_ARGS)
 
 test-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/test/backend:develop -f ./docker/Dockerfile.test $(ARGS) .
+	docker build --progress=plain --network=host -t mtsrus/horizon-backend:develop -f ./docker/Dockerfile.test $(ARGS) .
 
 check-fixtures: ##@Test Check declared fixtures
 	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
@@ -76,7 +76,7 @@ dev: db-start ##@Application Run development server (without docker)
 	${POETRY} run python -m horizon.backend $(ARGS)
 
 prod-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
+	docker build --progress=plain --network=host -t mtsrus/horizon-backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
 	docker compose up -d

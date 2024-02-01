@@ -1,4 +1,11 @@
 .. include:: ../README.rst
+    :end-before: |Logo|
+
+.. image:: _static/logo.svg
+    :alt: Horizon logo
+
+.. include:: ../README.rst
+    :start-after: |Logo|
     :end-before: documentation
 
 .. toctree::

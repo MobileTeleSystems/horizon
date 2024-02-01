@@ -22,13 +22,13 @@ Horizon
 .. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/branch/develop/graph/badge.svg?token=RIO8URKNZJ
     :target: https://codecov.io/gh/MobileTeleSystems/horizon
 
-.. raw:: html
 
-    <div align="center">
-        <a href="https://github.com/MobileTeleSystems/horizon">
-            <img width="400" src="_static/logo.svg" alt="Horizon logo">
-        </a>
-    </div>
+|Logo|
+
+.. |Logo| image:: docs/_static/logo.svg
+    :width: 400
+    :alt: Horizon logo
+    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon
 
 What is Horizon?
 ----------------

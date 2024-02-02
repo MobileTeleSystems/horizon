@@ -3,6 +3,8 @@
 
 .. image:: _static/logo.svg
     :alt: Horizon logo
+    :align: center
+    :width: 400
 
 .. include:: ../README.rst
     :start-after: |Logo|

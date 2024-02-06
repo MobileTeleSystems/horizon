@@ -1,22 +1,22 @@
-ARG PYTHON_VERSION=3.11
-FROM sregistry.mts.ru/bigdata/platform/docker-images/python:${PYTHON_VERSION}-slim as prod
+FROM python:3.12-slim as prod
+LABEL maintainer="DataOps.ETL"
 
-RUN microdnf -y install \
-        krb5-libs \
-        krb5-workstation \
-        krb5-devel \
-        cyrus-sasl \
-        cyrus-sasl-devel \
-        cyrus-sasl-gssapi \
-        cyrus-sasl-ldap \
-        cyrus-sasl-plain \
-        openldap-devel \
-        openssl-devel \
+RUN apt-get update && apt-get install -y \
+        libkrb5-dev \
+        libsasl2-dev \
+        libsasl2-modules-gssapi-mit \
+        libsasl2-modules-ldap \
+        libsasl2-modules \
+        libssl-dev \
+        libldap2-dev \
         autoconf \
         gcc \
-        gcc-c++ \
+        g++ \
         make \
-        libnghttp2-1.33.0-3.el8_2.1
+        libnghttp2-dev \
+        libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 ENV PYTHONPATH=/app
@@ -36,9 +36,13 @@ RUN chmod +x ./docker/*.sh
 
 COPY ./horizon/ ./horizon/
 COPY docs/_static/*.svg /app/horizon/backend/static/
-ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui-bundle.js /app/horizon/backend/static/swagger/swagger-ui-bundle.js
-ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/swagger/swagger-ui.css /app/horizon/backend/static/swagger/swagger-ui.css
-ADD https://artifactory.mts.ru/artifactory/docs-onetl-generic-local/horizon/static/redoc/redoc.standalone.js /app/horizon/backend/static/redoc/redoc.standalone.js
+
+# Swagger UI
+ADD https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js /app/horizon/backend/static/swagger/swagger-ui-bundle.js
+ADD https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css /app/horizon/backend/static/swagger/swagger-ui.css
+
+# Redoc
+ADD https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js /app/horizon/backend/static/redoc/redoc.standalone.js
 
 ENV HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/static/swagger/swagger-ui-bundle.js \
     HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/static/swagger/swagger-ui.css \

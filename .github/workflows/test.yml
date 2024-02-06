@@ -1,0 +1,155 @@
+name: Tests
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches-ignore:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEFAULT_PYTHON: '3.12'
+
+jobs:
+  tests:
+    name: Run ${{ matrix.mark }} tests (Python ${{ matrix.python-version }}, Pydantic v${{ matrix.pydantic-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.7', '3.12']
+        pydantic-version: [1, 2]
+        os: [ubuntu-latest]
+    env:
+      POETRY_VERSION: ${{ matrix.python-version == '3.7' && '1.5.1' || '1.7.1' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Container
+        uses: docker/build-push-action@v5
+        with:
+          tags: mtsrus/horizon-backend:${{ github.sha }}
+          context: .
+          file: docker/Dockerfile.backend
+          push: false
+          load: true
+          cache-to: type=gha,mode=max
+          cache-from: type=gha
+
+      - name: Start Backend Container
+        run: |
+          docker compose -f docker-compose.test.yml down -v --remove-orphans
+          docker compose -f docker-compose.test.yml up --wait-timeout 5 -d
+        env:
+          COMPOSE_PROJECT_NAME: ${{ github.run_id }}-backend
+          TAG: ${{ github.sha }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+      # this step is needed for successful installation of "bonsai" library in python dependencies
+        run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Cache poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-${{ hashFiles('**/poetry.lock') }}
+            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-
+            ${{ runner.os }}-python
+            ${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-root --all-extras --with test
+          if [ "${{ matrix.pydantic-version }}" == "1" ]; then
+            pip install "pydantic<2.0.0"
+          fi
+
+      - name: Run Tests
+        run: |
+          source .env.local
+          mkdir -p reports/
+          poetry run coverage run -m pytest
+
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
+          path: reports/.coverage*
+
+      - name: Shutdown Backend Container
+        if: always()
+        run: |
+          docker compose -f docker-compose.test.yml down -v --remove-orphans
+        env:
+          COMPOSE_PROJECT_NAME: ${{ github.run_id }}-backend
+
+
+  all_done:
+    name: Tests done
+    runs-on: ubuntu-latest
+    needs: [tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-coverage
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install dependencies
+        run: pip install -I coverage pytest
+
+      - name: Download all raw coverage data
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-data
+
+      - name: Combine Coverage Data
+        run: |
+          coverage combine coverage-data/*
+          coverage xml -o combined_coverage.xml
+
+      - name: Check Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./combined_coverage.xml
+          fail_ci_if_error: true
+
+      - name: All done
+        run: echo 1

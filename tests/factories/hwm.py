@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from random import randint
+from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
@@ -31,14 +32,21 @@ def hwm_factory(**kwargs):
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def new_hwm(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[HWM, None]:
+async def new_hwm(
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[HWM, None]:
     params = request.param
-    hwm = hwm_factory(**params)
-    yield hwm
+    item = hwm_factory(**params)
+    yield item
 
-    query = delete(HWM).where(HWM.name == hwm.name)
-    await async_session.execute(query)
-    await async_session.commit()
+    query = delete(HWM).where(HWM.name == item.name)
+    
+    # do not use the same session in tests and fixture teardown
+    # see https://github.com/MobileTeleSystems/horizon/pull/6
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[{}])
@@ -46,25 +54,28 @@ async def hwm(
     user: User,
     namespace: Namespace,
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[HWM, None]:
     params = request.param
-    hwm = hwm_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params)
-    del hwm.id
-    async_session.add(hwm)
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+    item = hwm_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params)
+    del item.id
+    async with async_session_factory() as async_session:
+        async_session.add(item)
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
 
-    # remove current object from async_session. this is required to compare object against new state fetched
-    # from database, and also to remove it from cache
-    hwm_id = hwm.id
-    await async_session.refresh(hwm, attribute_names=["changed_by_user", "namespace"])
-    async_session.expunge(hwm)
-    yield hwm
+        # remove current object from async_session. this is required to compare object against new state fetched
+        # from database, and also to remove it from cache
+        hwm_id = item.id
+        await async_session.refresh(item, attribute_names=["changed_by_user", "namespace"])
+        async_session.expunge(item)
+
+    yield item
 
     query = delete(HWM).where(HWM.id == hwm_id)
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[(5, {})])
@@ -72,26 +83,28 @@ async def hwms(
     user: User,
     namespace: Namespace,
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[HWM], None]:
     size, params = request.param
     result = [hwm_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params) for _ in range(size)]
-    for item in result:
-        del item.id
-        async_session.add(item)
+    async with async_session_factory() as async_session:
+        for item in result:
+            del item.id
+            async_session.add(item)
 
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
 
-    hwm_ids = []
-    for item in result:
-        hwm_ids.append(item.id)
-        # before removing object from Session load all relationships
-        await async_session.refresh(item, attribute_names=["changed_by_user", "namespace"])
-        async_session.expunge(item)
+        hwm_ids = []
+        for item in result:
+            hwm_ids.append(item.id)
+            # before removing object from Session load all relationships
+            await async_session.refresh(item, attribute_names=["changed_by_user", "namespace"])
+            async_session.expunge(item)
 
     yield result
 
     query = delete(HWM).where(HWM.id.in_(hwm_ids))
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()

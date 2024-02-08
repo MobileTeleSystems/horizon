@@ -10,7 +10,7 @@ build:
       - pip install sphinx-plantuml # remove after https://github.com/zqmillet/sphinx-plantuml/pull/4
       - poetry config virtualenvs.create false
     post_install:
-      - poetry install --no-root --extras backend --extras client-sync --with dev,docs
+      - poetry install --no-root --extras backend --extras client-sync --with dev,docs --without test
 # TODO: add openapi.json schema generation
 
 sphinx:

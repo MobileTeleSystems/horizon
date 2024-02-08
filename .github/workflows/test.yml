@@ -83,7 +83,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --no-root --all-extras --with test
+          poetry install --no-root --all-extras --with test --without dev,docs
           if [ "${{ matrix.pydantic-version }}" == "1" ]; then
             pip install "pydantic<2.0.0"
           fi

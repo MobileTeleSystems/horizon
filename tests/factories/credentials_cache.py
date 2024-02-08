@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from random import randint
+from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
@@ -28,20 +29,28 @@ def credentials_cache_factory(**kwargs):
 
 @pytest_asyncio.fixture(params=[{}])
 async def credentials_cache_item(
-    user: User, request: pytest.FixtureRequest, async_session: AsyncSession
+    user: User,
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[CredentialsCache, None]:
     params = request.param
-    result = credentials_cache_factory(user_id=user.id, **params)
-    async_session.add(result)
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+    item = credentials_cache_factory(user_id=user.id, **params)
 
-    # remove current object from async_session. this is required to compare object against new state fetched
-    # from database, and also to remove it from cache
-    item_id = result.id
-    async_session.expunge(result)
-    yield result
+    # do not use the same session in tests and fixture teardown
+    # see https://github.com/MobileTeleSystems/horizon/pull/6
+    async with async_session_factory() as async_session:
+        async_session.add(item)
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
+
+        # remove current object from async_session. this is required to compare object against new state fetched
+        # from database, and also to remove it from cache
+        item_id = item.id
+        async_session.expunge(item)
+
+    yield item
 
     query = delete(CredentialsCache).where(CredentialsCache.id == item_id)
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()

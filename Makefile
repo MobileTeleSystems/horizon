@@ -61,9 +61,6 @@ ldap-start: ##@LDAP Start LDAP container
 test: db-start ldap-start ##@Test Run tests
 	${POETRY} run pytest $(PYTEST_ARGS)
 
-test-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t mtsrus/horizon-backend:develop -f ./docker/Dockerfile.test $(ARGS) .
-
 check-fixtures: ##@Test Check declared fixtures
 	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
 

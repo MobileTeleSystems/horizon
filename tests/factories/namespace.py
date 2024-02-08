@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from random import randint
+from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
@@ -27,65 +28,78 @@ def namespace_factory(**kwargs):
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def new_namespace(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[Namespace, None]:
+async def new_namespace(
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[Namespace, None]:
     params = request.param
-    namespace = namespace_factory(**params)
-    yield namespace
+    item = namespace_factory(**params)
+    yield item
 
-    query = delete(Namespace).where(Namespace.name == namespace.name)
-    await async_session.execute(query)
-    await async_session.commit()
+    query = delete(Namespace).where(Namespace.name == item.name)
+
+    # do not use the same session in tests and fixture teardown
+    # see https://github.com/MobileTeleSystems/horizon/pull/6
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[{}])
 async def namespace(
     user: User,
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[Namespace, None]:
     params = request.param
-    namespace = namespace_factory(**params, changed_by_user_id=user.id)
-    del namespace.id
-    async_session.add(namespace)
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+    item = namespace_factory(**params, changed_by_user_id=user.id)
+    del item.id
 
-    # remove current object from async_session. this is required to compare object against new state fetched
-    # from database, and also to remove it from cache
-    namespace_id = namespace.id
-    await async_session.refresh(namespace, attribute_names=["changed_by_user"])
-    async_session.expunge(namespace)
-    yield namespace
+    async with async_session_factory() as async_session:
+        async_session.add(item)
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
+
+        # remove current object from async_session. this is required to compare object against new state fetched
+        # from database, and also to remove it from cache
+        namespace_id = item.id
+        await async_session.refresh(item, attribute_names=["changed_by_user"])
+        async_session.expunge(item)
+
+    yield item
 
     query = delete(Namespace).where(Namespace.id == namespace_id)
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[(5, {})])
 async def namespaces(
     user: User,
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[Namespace], None]:
     size, params = request.param
     result = [namespace_factory(changed_by_user_id=user.id, **params) for _ in range(size)]
-    for item in result:
-        del item.id
-        async_session.add(item)
+    async with async_session_factory() as async_session:
+        for item in result:
+            del item.id
+            async_session.add(item)
 
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
 
-    namespace_ids = []
-    for item in result:
-        namespace_ids.append(item.id)
-        # before removing object from Session load all relationships
-        await async_session.refresh(item, attribute_names=["changed_by_user"])
-        async_session.expunge(item)
+        namespace_ids = []
+        for item in result:
+            namespace_ids.append(item.id)
+            # before removing object from Session load all relationships
+            await async_session.refresh(item, attribute_names=["changed_by_user"])
+            async_session.expunge(item)
 
     yield result
 
     query = delete(Namespace).where(Namespace.id.in_(namespace_ids))
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()

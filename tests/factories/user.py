@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from random import randint
+from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
@@ -26,57 +27,72 @@ def user_factory(**kwargs):
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def new_user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
+async def new_user(
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[User, None]:
     params = request.param
     user = user_factory(**params)
     yield user
 
     query = delete(User).where(User.username == user.username)
-    await async_session.execute(query)
-    await async_session.commit()
+
+    # do not use the same session in tests and fixture teardown
+    # see https://github.com/MobileTeleSystems/horizon/pull/6
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[{}])
-async def user(request: pytest.FixtureRequest, async_session: AsyncSession) -> AsyncGenerator[User, None]:
+async def user(
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[User, None]:
     params = request.param
     user = user_factory(**params)
     del user.id
-    async_session.add(user)
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        async_session.add(user)
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
 
-    # remove current object from async_session. this is required to compare object against new state fetched
-    # from database, and also to remove it from cache
-    user_id = user.id
-    async_session.expunge(user)
+        # remove current object from async_session. this is required to compare object against new state fetched
+        # from database, and also to remove it from cache
+        user_id = user.id
+        async_session.expunge(user)
+
     yield user
 
     query = delete(User).where(User.id == user_id)
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()
 
 
 @pytest_asyncio.fixture(params=[(5, {})])
 async def users(
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[User], None]:
     size, params = request.param
     result = [user_factory(**params) for _ in range(size)]
-    for item in result:
-        del item.id
-        async_session.add(item)
+    async with async_session_factory() as async_session:
+        for item in result:
+            del item.id
+            async_session.add(item)
 
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
 
-    user_ids = []
-    for item in result:
-        user_ids.append(item.id)
-        async_session.expunge(item)
+        user_ids = []
+        for item in result:
+            user_ids.append(item.id)
+            async_session.expunge(item)
 
     yield result
 
     query = delete(User).where(User.id.in_(user_ids))
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()

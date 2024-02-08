@@ -19,7 +19,7 @@ Horizon
     :target: https://data-horizon.readthedocs.io/
 .. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
     :target: https://github.com/MobileTeleSystems/horizon/actions
-.. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/branch/develop/graph/badge.svg?token=RIO8URKNZJ
+.. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/graph/badge.svg?token=BIRWPTWEE0
     :target: https://codecov.io/gh/MobileTeleSystems/horizon
 
 

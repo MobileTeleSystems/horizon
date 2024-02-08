@@ -41,7 +41,7 @@ async def new_hwm(
     yield item
 
     query = delete(HWM).where(HWM.name == item.name)
-    
+
     # do not use the same session in tests and fixture teardown
     # see https://github.com/MobileTeleSystems/horizon/pull/6
     async with async_session_factory() as async_session:

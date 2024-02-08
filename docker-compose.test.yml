@@ -34,6 +34,7 @@ services:
 
   ldap:
     image: thoteam/slapd-server-mock
+    platform: linux/amd64
     restart: unless-stopped
     ports:
       - 389:389

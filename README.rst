@@ -28,7 +28,7 @@ Horizon
 .. |Logo| image:: docs/_static/logo.svg
     :width: 400
     :alt: Horizon logo
-    :target: https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon
+    :target: https://github.com/MobileTeleSystems/horizon/
 
 What is Horizon?
 ----------------

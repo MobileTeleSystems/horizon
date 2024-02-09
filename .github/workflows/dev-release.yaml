@@ -1,0 +1,64 @@
+name: Dev release
+
+on:
+  push:
+    branches-ignore:
+      - dependabot/**
+      - pre-commit-ci-update-config
+      - master
+  workflow_dispatch:
+
+env:
+  DEFAULT_PYTHON: '3.12'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wait-code-analysis:
+    name: Release package
+    runs-on: ubuntu-latest
+    if: github.repository == 'MobileTeleSystems/horizon'  # prevent running on forks
+
+    environment:
+      name: test-pypi
+      url: https://test.pypi.org/p/data-horizon
+    permissions:
+      id-token: write # to auth in Test PyPI
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON }}
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Generate unique version and update test version
+        run: |
+          poetry self add poetry-bumpversion
+          version=$(poetry version -s)
+          poetry version "${version}.dev${GITHUB_RUN_ID}"
+
+      - name: Fix logo in Readme
+        run: |
+          sed -i "s#image:: docs/#image:: https://raw.githubusercontent.com/MobileTeleSystems/horizon/$GITHUB_SHA/docs/#g" README.rst
+
+      - name: Build package
+        run: poetry build
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/

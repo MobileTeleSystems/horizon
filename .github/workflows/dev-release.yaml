@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   wait-code-analysis:
-    name: Release package
+    name: Dev release package
     runs-on: ubuntu-latest
     if: github.repository == 'MobileTeleSystems/horizon'  # prevent running on forks
 

@@ -33,11 +33,29 @@ jobs:
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
 
+      - name: Install system dependencies
+        # this step is needed for successful installation of "bonsai" library in python dependencies
+        run: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev
+
       - name: Install poetry
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+
+      - name: Cache poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-root --all-extras --without docs,test,dev
+
+      - name: Generate OpenAPI Schema
+        run: |
+          source .env.local
+          poetry run python -m horizon.backend.export_openapi_schema openapi.json
 
       - name: Fix logo in Readme
         run: |
@@ -105,4 +123,4 @@ jobs:
           body_path: changelog.md
           files: |
             dist/*
-
+            openapi.json

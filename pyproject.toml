@@ -467,6 +467,11 @@ ignore = [
   "WPS462",
 # Found incorrect multi-line string: 3-quoted docstring with just one line
   "WPS322",
+# https://github.com/wemake-services/wemake-python-styleguide/issues/2847
+# E704 multiple statements on one line (def)
+  "E704",
+# WPS220 Found too deep nesting: 34 > 20
+  "WPS220",
 ]
 
 per-file-ignores = [

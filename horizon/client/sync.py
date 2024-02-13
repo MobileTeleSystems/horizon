@@ -250,10 +250,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=None,
                     previous_page=None,
                 ),
-                items=[
-                    NamespaceResponseV1(...),
-                    ...
-                ],
+                items=[NamespaceResponseV1(...), ...],
             )
 
         Get all namespaces starting with a page number and page size:
@@ -272,10 +269,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=3,
                     previous_page=1,
                 ),
-                items=[
-                    NamespaceResponseV1(...),
-                    ...
-                ],
+                items=[NamespaceResponseV1(...), ...],
             )
 
         Search for namespace with specific name:
@@ -283,7 +277,9 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         .. code-block:: python
 
             namespace_query = NamespacePaginateQueryV1(name="my_namespace")
-            assert client.paginate_namespaces(namespace_query) == PageResponseV1[NamespaceResponseV1](
+            assert client.paginate_namespaces(namespace_query) == PageResponseV1[
+                NamespaceResponseV1
+            ](
                 meta=PageMetaResponseV1(
                     page=1,
                     pages_count=1,
@@ -296,7 +292,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                 ),
                 items=[
                     NamespaceResponseV1(name="my_namespace", ...),
-                ]
+                ],
             )
         """
         query = query or NamespacePaginateQueryV1()
@@ -362,7 +358,9 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         .. code-block:: python
 
             to_create = NamespaceCreateRequestV1(name="my_namespace")
-            assert client.create_namespace(to_create) == NamespaceResponseV1(name="my_namespace", ...)
+            assert client.create_namespace(to_create) == NamespaceResponseV1(
+                name="my_namespace", ...
+            )
         """
         return self._request(  # type: ignore[return-value]
             "POST",
@@ -400,7 +398,9 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         .. code-block:: python
 
             to_update = NamespaceCreateRequestV1(name="new_namespace_name")
-            assert client.update_namespace(123, to_update) == NamespaceResponseV1(id=123, name="new_namespace_name", ...)
+            assert client.update_namespace(123, to_update) == NamespaceResponseV1(
+                id=123, name="new_namespace_name", ...
+            )
         """
         return self._request(  # type: ignore[return-value]
             "PATCH",
@@ -470,10 +470,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=2,
                     previous_page=None,
                 ),
-                items=[
-                    HWMResponseV1(namespace_id=123, ...),
-                    ...
-                ]
+                items=[HWMResponseV1(namespace_id=123, ...), ...],
             )
 
         Get all HWM in namespace starting with a page number and page size:
@@ -493,10 +490,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=3,
                     previous_page=1,
                 ),
-                items=[
-                    HWMResponseV1(namespace_id=123, ...),
-                    ...
-                ]
+                items=[HWMResponseV1(namespace_id=123, ...), ...],
             )
 
         Search for HWM with specific namespace and name:
@@ -518,7 +512,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                 ),
                 items=[
                     HWMResponseV1(namespace_id=123, name="my_hwm", ...),
-                ]
+                ],
             )
         """
         return self._request(  # type: ignore[return-value]
@@ -551,7 +545,9 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         .. code-block:: python
 
-            assert client.get_hwm(234) == HWMResponseV1(id=234, namespace_id=123, name="my_hwm", ...)
+            assert client.get_hwm(234) == HWMResponseV1(
+                id=234, namespace_id=123, name="my_hwm", ...
+            )
         """
         return self._request(  # type: ignore[return-value]
             "GET",
@@ -584,9 +580,14 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         .. code-block:: python
 
-            to_create = HWMCreateRequestV1(namespace_id=123, name="my_hwm", type="column_int", value=5678)
+            to_create = HWMCreateRequestV1(
+                namespace_id=123,
+                name="my_hwm",
+                type="column_int",
+                value=5678,
+            )
             response = client.create_hwm(to_create)
-            assert == HWMResponseV1(
+            assert response == HWMResponseV1(
                 namespace_id=123,
                 id=234,
                 name="my_hwm",
@@ -631,7 +632,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
             to_update = HWMUpdateRequestV1(type="column_int", value=5678)
             response = client.update_hwm(234, to_update)
-            assert == HWMResponseV1(
+            assert response == HWMResponseV1(
                 namespace_id=123,
                 id=234,
                 name="my_hwm",
@@ -708,10 +709,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=2,
                     previous_page=None,
                 ),
-                items=[
-                    HWMHistoryResponseV1(hwm_id=234, ...),
-                    ...
-                ]
+                items=[HWMHistoryResponseV1(hwm_id=234, ...), ...],
             )
 
         Get all changes of specific HWM starting with a page number and page size:
@@ -731,10 +729,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                     next_page=3,
                     previous_page=1,
                 ),
-                items=[
-                    HWMHistoryResponseV1(hwm_id=234, ...),
-                    ...
-                ]
+                items=[HWMHistoryResponseV1(hwm_id=234, ...), ...],
             )
         """
         return self._request(  # type: ignore[return-value]

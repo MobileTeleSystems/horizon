@@ -13,7 +13,7 @@ Horizon
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg
     :target: https://badge.fury.io/py/data-horizon
-.. |Docker image| image:: https://img.shields.io/docker/v/mtsrus/horizon-backend
+.. |Docker image| image:: https://img.shields.io/docker/v/mtsrus/horizon-backend?sort=semver&label=docker
     :target: https://hub.docker.com/r/mtsrus/horizon-backend
 .. |Documentation| image:: https://readthedocs.org/projects/data-horizon/badge/?version=stable
     :target: https://data-horizon.readthedocs.io/

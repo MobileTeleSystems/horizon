@@ -10,7 +10,7 @@ Horizon
 .. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
     :target: https://pypi.org/project/data-horizon/
 .. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
-    :target: https://hub.docker.com/u/mtsrus/horizon-backend
+    :target: https://hub.docker.com/r/mtsrus/horizon-backend
 .. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg

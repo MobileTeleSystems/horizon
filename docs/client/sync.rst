@@ -24,7 +24,9 @@ Here is a short example of using sync client to interact with backend.
     client.authorize()
 
     # create namespace with name "my_namespace"
-    created_namespace = client.create_namespace(NamespaceCreateRequestV1(name="my_namespace"))
+    created_namespace = client.create_namespace(
+        NamespaceCreateRequestV1(name="my_namespace"),
+    )
 
     # create HWM with name "my_hwm" in this namespace
     hwm = HWMCreateRequestV1(
@@ -45,7 +47,7 @@ Reference
 .. currentmodule:: horizon.client.sync
 
 .. autoclass:: HorizonClientSync
-    :members: authorize, ping, whoami, paginate_namespaces, create_namespace, update_namespace, delete_namespace, paginate_hwm, create_hwm, update_hwm, delete_hwm, paginate_hwm_history, retry
+    :members: *
     :member-order: bysource
 
 .. autoclass:: RetryConfig

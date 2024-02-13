@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from random import randint
+from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
@@ -36,27 +37,32 @@ async def hwm_history_items(
     namespace: Namespace,
     hwm: HWM,
     request: pytest.FixtureRequest,
-    async_session: AsyncSession,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[HWMHistory], None]:
     size, params = request.param
     result = [
         hwm_history_factory(namespace_id=namespace.id, hwm_id=hwm.id, changed_by_user_id=user.id, **params)
         for _ in range(size)
     ]
-    for item in result:
-        del item.id
-        async_session.add(item)
 
-    # this is not required for backend tests, but needed by client tests
-    await async_session.commit()
+    # do not use the same session in tests and fixture teardown
+    # see https://github.com/MobileTeleSystems/horizon/pull/6
+    async with async_session_factory() as async_session:
+        for item in result:
+            del item.id
+            async_session.add(item)
 
-    for item in result:
-        # before removing object from Session load all relationships
-        await async_session.refresh(item, attribute_names=["changed_by_user"])
-        async_session.expunge(item)
+        # this is not required for backend tests, but needed by client tests
+        await async_session.commit()
+
+        for item in result:
+            # before removing object from Session load all relationships
+            await async_session.refresh(item, attribute_names=["changed_by_user"])
+            async_session.expunge(item)
 
     yield result
 
     query = delete(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
-    await async_session.execute(query)
-    await async_session.commit()
+    async with async_session_factory() as async_session:
+        await async_session.execute(query)
+        await async_session.commit()

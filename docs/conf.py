@@ -35,7 +35,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("0.0.12")
+ver = Version.parse("0.0.13")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public
@@ -164,27 +164,23 @@ on_tag = tag and head_sha is not None and head_sha == tag_sha
 
 
 # which is the equivalent to:
-issues_uri = "https://jira.mts.ru/browse/{issue}"
-issues_prefix = "#"
-issues_pr_uri = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/merge_requests/{pr}"
-issues_pr_prefix = "#"
-issues_commit_uri = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/commit/{commit}"
-issues_commit_prefix = "@"
-issues_user_uri = "https://gitlab.services.mts.ru/{user}"
-issues_user_prefix = "@"
+issues_uri = "https://github.com/MobileTeleSystems/horizon/issues/{issue}"
+issues_pr_uri = "https://github.com/MobileTeleSystems/horizon/pulls/{pr}"
+issues_commit_uri = "https://github.com/MobileTeleSystems/horizon/commit/{commit}"
+issues_user_uri = "https://github.com/{user}"
 
 context = {
     "current_version": release,
     "version_slug": release,
     "versions": versions,
     "single_version": False,
-    "gitlab_host": "gitlab.services.mts.ru",
-    "gitlab_user": "bigdata/platform/onetools",
-    "gitlab_repo": "horizon",
-    "gitlab_version": version if on_tag else "master",
+    "github_host": "github.com",
+    "github_user": "MobileTeleSystems",
+    "github_repo": "horizon",
+    "github_version": version if on_tag else "master",
     "conf_py_path": "/docs/",
-    "display_gitlab": True,
-    "commit": head_sha[:8] if head_sha is not None else None,
+    "display_github": True,
+    "commit": head_sha[:7] if head_sha is not None else None,
 }
 
 if "html_context" in globals():

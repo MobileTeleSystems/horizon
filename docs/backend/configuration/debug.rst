@@ -80,10 +80,12 @@ If client got ``X-Request-ID`` header from backend, it is printed to logs with `
 
 .. code-block:: python
 
-    >>> import logging
+    import logging
 
-    >>> logging.basicConfig(level=logging.DEBUG)
-    >>> client.ping()
+    logging.basicConfig(level=logging.DEBUG)
+    client.ping()
+
+.. code-block:: text
 
     DEBUG:urllib3.connectionpool:http://localhost:8000 "GET /monitoring/ping HTTP/1.1" 200 15
     DEBUG:horizon.client.base:Request ID: '018c15e97a068ae09484f8c25e2799dd'
@@ -92,7 +94,9 @@ Also, if backend response was not successful, ``Request ID`` is added to excepti
 
 .. code-block:: python
 
-    >>> client.get_namespace("unknown")
+    client.get_namespace("unknown")
+
+.. code-block:: text
 
     requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://localhost:8000/v1/namespaces/unknown
     Request ID: '018c15eb80fa81a6b38c9eaa519cd322'
@@ -117,6 +121,8 @@ If versions do not match, a warning is shown:
 
 .. code-block:: python
 
-    >>> client.ping()
+    client.ping()
+
+.. code-block:: text
 
     UserWarning: Horizon client version '0.0.9' does not match backend version '1.0.0'. Please upgrade.

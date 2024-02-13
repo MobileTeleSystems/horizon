@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   db:
-    image: central-mirror.services.mts.ru/postgres:15-alpine
+    image: postgres:15-alpine
     restart: unless-stopped
     env_file: .env.docker
     ports:
@@ -16,16 +16,13 @@ services:
       retries: 3
 
   backend:
-    image: sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:${TAG:-develop}
+    image: mtsrus/horizon-backend:${TAG:-develop}
     restart: unless-stopped
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
       target: prod
       network: host
-      extra_hosts:
-        artifactory.mts.ru: 10.72.54.165
-        nexus.services.mts.ru: 10.72.54.140
     env_file: .env.docker
     depends_on:
       db:
@@ -36,7 +33,8 @@ services:
       - ./:/app
 
   ldap:
-    image: central-mirror.services.mts.ru/thoteam/slapd-server-mock
+    image: thoteam/slapd-server-mock
+    platform: linux/amd64
     restart: unless-stopped
     ports:
       - 389:389

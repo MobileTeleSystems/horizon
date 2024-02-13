@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   db:
-    image: central-mirror.services.mts.ru/postgres:15-alpine
+    image: postgres:15-alpine
     restart: unless-stopped
     env_file: .env.docker
     ports:
@@ -16,7 +16,7 @@ services:
       retries: 3
 
   backend:
-    image: sregistry.mts.ru/onetools/bigdata/platform/onetools/horizon/backend:${TAG:-develop}
+    image: mtsrus/horizon-backend:develop
     restart: unless-stopped
     env_file: .env.docker
     ports:

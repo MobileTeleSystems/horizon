@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "data-horizon"
-version = "0.0.12"
+version = "0.0.13"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
@@ -39,11 +39,11 @@ include = [
 ]
 
 [tool.poetry.urls]  # Optional
-"Homepage" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon"
-"Documentation" = "https://bigdata.pages.mts.ru/platform/onetools/horizon/"
-"Source" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon"
-"CI/CD" = "https://gitlab.services.mts.ru/bigdata/platform/onetools/horizon/-/pipelines"
-"Tracker" = "https://jira.mts.ru/projects/DOP/issues"
+"Homepage" = "https://github.com/MobileTeleSystems/horizon"
+"Documentation" = "https://data-horizon.readthedocs.io/"
+"Source" = "https://github.com/MobileTeleSystems/horizon"
+"CI/CD" = "https://github.com/MobileTeleSystems/horizon/actions"
+"Tracker" = "https://github.com/MobileTeleSystems/horizon/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7"
@@ -76,6 +76,10 @@ pydantic-settings = [
 alembic = [
   {version = "^1.12.1", optional = true, python = "<3.8"},
   {version = ">=1.12.1", optional = true, python = ">=3.8"},
+]
+importlib-resources = [
+  {version = "^5.12.0", optional = true, python = "<3.8"},
+  {version = ">=5.12.0", optional = true, python = ">=3.8"},
 ]
 sqlalchemy = {version = ">=2.0", optional = true}
 asyncpg = [
@@ -111,6 +115,7 @@ backend = [
   "starlette",
   "uvicorn",
   "alembic",
+  "importlib-resources",
   "sqlalchemy",
   "python-multipart",
   "sqlalchemy-utils",
@@ -205,16 +210,6 @@ sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
 
 [tool.poetry.plugins."tricoder_package_spy.register"]
 "data-horizon" = "horizon"
-
-[[tool.poetry.source]]
-name = "nexus"
-url = "https://nexus.services.mts.ru/repository/pip/simple"
-priority = "default"
-
-[[tool.poetry.source]]
-name = "artifactory"
-url = "https://artifactory.mts.ru/artifactory/api/pypi/pip-bigdata/simple/"
-priority = "primary"
 
 [tool.poetry_bumpversion.file."horizon/__init__.py"]
 search = '_raw_version = "{current_version}"'
@@ -472,6 +467,11 @@ ignore = [
   "WPS462",
 # Found incorrect multi-line string: 3-quoted docstring with just one line
   "WPS322",
+# https://github.com/wemake-services/wemake-python-styleguide/issues/2847
+# E704 multiple statements on one line (def)
+  "E704",
+# WPS220 Found too deep nesting: 34 > 20
+  "WPS220",
 ]
 
 per-file-ignores = [

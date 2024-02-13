@@ -14,7 +14,7 @@ build:
       - poetry config virtualenvs.create false
     post_install:
       - poetry install --no-root --all-extras --with docs --without dev,test
-# TODO: add openapi.json schema generation
+      - poetry run python -m horizon.backend.export_openapi_schema docs/_static/openapi.json
 
 sphinx:
   configuration: docs/conf.py

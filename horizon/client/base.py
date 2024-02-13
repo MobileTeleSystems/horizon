@@ -30,7 +30,7 @@ class BaseResponse(Protocol):
     """Response-like object. Same interface is shared between requests.Response and httpx.Response"""
 
     @property
-    def status_code(self) -> int: ...
+    def status_code(self) -> int: ...  # noqa: WPS473
 
     @property
     def content(self) -> Any: ...

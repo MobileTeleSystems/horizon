@@ -3,22 +3,20 @@
 Horizon
 =======
 
-|Repo Status| |PyPI| |Docker image| |PyPI License| |PyPI Python Version| |Documentation| |Build Status| |Coverage|
+|Repo Status| |Build Status| |PyPI License| |PyPI Python Version| |Docker image| |Documentation| |Coverage|
 
 .. |Repo Status| image:: https://www.repostatus.org/badges/latest/active.svg
     :target: https://github.com/MobileTeleSystems/horizon
-.. |PyPI| image:: https://img.shields.io/badge/pypi-download-orange
-    :target: https://pypi.org/project/data-horizon/
-.. |Docker image| image:: https://img.shields.io/badge/docker-pull-yellow
-    :target: https://hub.docker.com/r/mtsrus/horizon-backend
+.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
+    :target: https://github.com/MobileTeleSystems/horizon/actions
 .. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg
     :target: https://badge.fury.io/py/data-horizon
-.. |Documentation| image:: https://readthedocs.org/projects/horizon/badge/?version=stable
+.. |Docker image| image:: https://img.shields.io/docker/v/mtsrus/horizon-backend
+    :target: https://hub.docker.com/r/mtsrus/horizon-backend
+.. |Documentation| image:: https://readthedocs.org/projects/data-horizon/badge/?version=stable
     :target: https://data-horizon.readthedocs.io/
-.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
-    :target: https://github.com/MobileTeleSystems/horizon/actions
 .. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/graph/badge.svg?token=BIRWPTWEE0
     :target: https://codecov.io/gh/MobileTeleSystems/horizon
 

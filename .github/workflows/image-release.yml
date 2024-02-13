@@ -1,4 +1,4 @@
-name: Release
+name: Docker release
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
             echo "TAG=mtsrus/horizon-backend:latest,mtsrus/horizon-backend:${{ github.ref_name }}" >> $GITHUB_ENV
           fi
 
-      - name: Build Backend Container
+      - name: Build Backend image
         uses: docker/build-push-action@v5
         with:
           tags: ${{ env.TAG }}

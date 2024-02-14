@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 
 from packaging import version as Version
-from setuptools_git_versioning import get_all_tags, get_sha, get_tag
 
 PROJECT_ROOT_DIR = Path(__file__).parent.parent.resolve()
 
@@ -47,7 +46,6 @@ release = ver.public
 # ones.
 extensions = [
     "numpydoc",
-    "sphinx_rtd_theme",
     "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
@@ -104,14 +102,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "logo_only": True,
-    "style_nav_header_background": "#68b0bc",
+    "sidebar_hide_name": True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -149,42 +146,8 @@ todo_include_todos = False
 htmlhelp_basename = "horizon-doc"
 
 
-# versioning
-tags = {ver}
-tags.update(Version.parse(tag) for tag in get_all_tags())
-tags = [tag.public for tag in reversed(sorted(list(tags)))]
-
-versions = [("latest", "/latest/")]
-versions.extend([(tag, f"/{tag}/") for tag in tags])
-
-tag = get_tag()
-tag_sha = get_sha(tag)
-head_sha = get_sha("HEAD")
-on_tag = tag and head_sha is not None and head_sha == tag_sha
-
-
 # which is the equivalent to:
 issues_uri = "https://github.com/MobileTeleSystems/horizon/issues/{issue}"
 issues_pr_uri = "https://github.com/MobileTeleSystems/horizon/pulls/{pr}"
 issues_commit_uri = "https://github.com/MobileTeleSystems/horizon/commit/{commit}"
 issues_user_uri = "https://github.com/{user}"
-
-context = {
-    "current_version": release,
-    "version_slug": release,
-    "versions": versions,
-    "single_version": False,
-    "github_host": "github.com",
-    "github_user": "MobileTeleSystems",
-    "github_repo": "horizon",
-    "github_version": version if on_tag else "master",
-    "conf_py_path": "/docs/",
-    "display_github": True,
-    "commit": head_sha[:7] if head_sha is not None else None,
-}
-
-if "html_context" in globals():
-    html_context.update(context)
-
-else:
-    html_context = context

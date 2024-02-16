@@ -1,0 +1,21 @@
+# Set update schedule for GitHub Actions
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    labels:
+      - type:ci
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: daily
+    labels:
+      - type:dependency
+    # https://til.simonwillison.net/github/dependabot-python-setup
+    groups:
+      python-packages:
+        patterns:
+          - '*'

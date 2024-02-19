@@ -16,11 +16,11 @@
 
   - name: component:backend
     description: Backend-related changes
-    color: 5319e7
+    color: '5319e7'
 
   - name: component:client
     description: Client-related changes
-    color: 75F526
+    color: 75f526
 
   - name: kind:bug
     description: Something isn't working
@@ -43,7 +43,7 @@
 
   - name: resolution:duplicate
     description: This issue or pull request already exists
-    color: .inf
+    color: cfd3d7
     from_name: duplicate
 
   - name: resolution:wontfix

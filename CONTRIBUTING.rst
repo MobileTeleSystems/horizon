@@ -364,7 +364,7 @@ Before making a release from the ``develop`` branch, follow these steps:
 
 .. code:: bash
 
-    sed "0,/^.*towncrier release notes start/d" -i "docs/changelog/${VERSION}.rst"
+    awk '!/^.*towncrier release notes start/' "docs/changelog/${VERSION}.rst" > temp && mv temp "docs/changelog/${VERSION}.rst"
 
 5. Update Changelog Index
 

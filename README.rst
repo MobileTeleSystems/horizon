@@ -3,12 +3,11 @@
 Horizon
 =======
 
-|Repo Status| |Build Status| |PyPI License| |PyPI Python Version| |Docker image| |Documentation| |Coverage|
+|Repo Status| |PyPI License| |PyPI Python Version| |Docker image| |Documentation|
+|Build Status| |Coverage|  |pre-commit.ci|
 
 .. |Repo Status| image:: https://www.repostatus.org/badges/latest/active.svg
     :target: https://github.com/MobileTeleSystems/horizon
-.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
-    :target: https://github.com/MobileTeleSystems/horizon/actions
 .. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg
@@ -17,8 +16,12 @@ Horizon
     :target: https://hub.docker.com/r/mtsrus/horizon-backend
 .. |Documentation| image:: https://readthedocs.org/projects/data-horizon/badge/?version=stable
     :target: https://data-horizon.readthedocs.io/
+.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
+    :target: https://github.com/MobileTeleSystems/horizon/actions
 .. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/graph/badge.svg?token=BIRWPTWEE0
     :target: https://codecov.io/gh/MobileTeleSystems/horizon
+.. |pre-commit.ci| image:: https://results.pre-commit.ci/badge/github/MobileTeleSystems/horizon/develop.svg
+    :target: https://results.pre-commit.ci/latest/github/MobileTeleSystems/horizon/develop
 
 
 |Logo|

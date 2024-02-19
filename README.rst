@@ -3,11 +3,13 @@
 Horizon
 =======
 
-|Repo Status| |PyPI License| |PyPI Python Version| |Docker image| |Documentation|
+|Repo Status| |PyPI| |PyPI License| |PyPI Python Version| |Docker image| |Documentation|
 |Build Status| |Coverage|  |pre-commit.ci|
 
 .. |Repo Status| image:: https://www.repostatus.org/badges/latest/active.svg
     :target: https://github.com/MobileTeleSystems/horizon
+.. |PyPI| image:: https://img.shields.io/pypi/v/data-horizon
+    :target: https://pypi.org/project/data-horizon/
 .. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg

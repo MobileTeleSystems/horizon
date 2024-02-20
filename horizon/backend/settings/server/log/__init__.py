@@ -35,8 +35,8 @@ class LoggingSettings(BaseModel):
 
     .. code-block:: bash
 
-        export HORIZON__SERVER__LOGGING__SETUP=False
-        python -m horizon.backend --log-level debug
+        $ export HORIZON__SERVER__LOGGING__SETUP=False
+        $ python -m horizon.backend --log-level debug
     """
 
     setup: bool = Field(

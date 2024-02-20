@@ -32,9 +32,6 @@ jobs:
 
       - name: Install poetry
         uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
 
       - name: Cache poetry
         uses: actions/cache@v4
@@ -59,9 +56,9 @@ jobs:
           fi
 
       - name: Validate changelog
-        run: |-
+        run: |
           # Fetch the pull request' base branch so towncrier will be able to
           # compare the current branch with the base branch.
           git fetch --no-tags origin +refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}
-          towncrier check --compare-with origin/${{ github.base_ref }}
-          towncrier --draft
+          poetry run towncrier check --compare-with origin/${{ github.base_ref }}
+          poetry run towncrier --draft

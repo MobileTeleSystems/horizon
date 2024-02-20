@@ -12,10 +12,10 @@ class AuthorizationError(ApplicationError):
     Examples
     --------
 
-    .. code-block:: python
-
-        raise AuthorizationError("User 'test' is disabled")
-
+    >>> from horizon.commons.exceptions import AuthorizationError
+    >>> raise AuthorizationError("User 'test' is disabled")
+    Traceback (most recent call last):
+    horizon.commons.exceptions.auth.AuthorizationError: User 'test' is disabled
     """
 
     def __init__(self, message: str, details: Any = None) -> None:

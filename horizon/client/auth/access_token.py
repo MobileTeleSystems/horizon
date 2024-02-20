@@ -25,11 +25,8 @@ class AccessToken(BaseAuth, BaseModel):
     Examples
     --------
 
-    .. code-block:: python
-
-        from horizon.client.auth import AccessToken
-
-        auth = AccessToken(token="my.access.token")
+    >>> from horizon.client.auth import AccessToken
+    >>> auth = AccessToken(token="my.access.token")
     """
 
     token: str

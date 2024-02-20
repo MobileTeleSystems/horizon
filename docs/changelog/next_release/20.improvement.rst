@@ -1,0 +1,3 @@
+Fix documentation examples.
+
+Make documentation more user-friendly.

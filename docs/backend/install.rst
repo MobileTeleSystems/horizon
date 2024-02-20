@@ -44,9 +44,9 @@ Installation process
 
 Install ``data-horizon`` package with following *extra* dependencies:
 
-.. code-block:: bash
+.. code-block:: console
 
-    pip install data-horizon[backend,postgres,ldap]
+    $ pip install data-horizon[backend,postgres,ldap]
 
 Available *extras* are:
 
@@ -65,7 +65,7 @@ Start Postgres instance somewhere, and set up database url using environment var
 
 .. code-block:: bash
 
-    export HORIZON__DATABASE__URL=postgresql+asyncpg://user:password@postgres-host:5432/database_name
+    HORIZON__DATABASE__URL=postgresql+asyncpg://user:password@postgres-host:5432/database_name
 
 You can use virtually any database supported by `SQLAlchemy <https://docs.sqlalchemy.org/en/20/core/engines.html#database-urls>`_,
 but the only one we really tested is Postgres.
@@ -77,9 +77,9 @@ Run migrations
 
 To apply migrations (database structure changes) you need to execute following command:
 
-.. code-block:: bash
+.. code-block:: console
 
-    python -m horizon.backend.db.migrations upgrade head
+    $ python -m horizon.backend.db.migrations upgrade head
 
 This is a thin wrapper around `alembic <https://alembic.sqlalchemy.org/en/latest/tutorial.html#running-our-first-migration>`_ cli,
 options and commands are just the same.
@@ -93,9 +93,9 @@ Run backend
 
 To start backend server you need to execute following command:
 
-.. code-block:: bash
+.. code-block:: console
 
-    python -m horizon.backend --host 0.0.0.0 --port 8000
+    $ python -m horizon.backend --host 0.0.0.0 --port 8000
 
 This is a thin wrapper around `uvicorn <https://www.uvicorn.org/#command-line-options>`_ cli,
 options and commands are just the same.

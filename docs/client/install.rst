@@ -14,9 +14,9 @@ Installation process
 
 Install ``data-horizon`` package with following *extra* dependencies:
 
-.. code-block:: bash
+.. code-block:: console
 
-    pip install data-horizon[client-sync]
+    $ pip install data-horizon[client-sync]
 
 Available *extras* are:
 

@@ -11,9 +11,10 @@ class ServiceError(ApplicationError):
     Examples
     --------
 
-    .. code-block:: python
-
-        raise ServiceError("Some server response is invalid")
+    >>> from horizon.commons.exceptions import ServiceError
+    >>> raise ServiceError("Some server response is invalid")
+    Traceback (most recent call last):
+    horizon.commons.exceptions.service.ServiceError: Some server response is invalid
     """
 
     def __init__(self, message: str) -> None:

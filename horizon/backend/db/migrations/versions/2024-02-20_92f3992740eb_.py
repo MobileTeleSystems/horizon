@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-"""empty message
+"""Add action record to HWMHistory
 
 Revision ID: 92f3992740eb
 Revises: 4bc3fffc0209

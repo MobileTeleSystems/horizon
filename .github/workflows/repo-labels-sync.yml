@@ -11,6 +11,7 @@ on:
     paths:
       - .github/labels.yml
       - .github/workflows/repo-labels-sync.yml
+  workflow_dispatch:
 
 jobs:
   labeler:

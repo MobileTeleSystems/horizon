@@ -25,7 +25,6 @@ class HWMRepository(Repository[HWM]):
     ) -> Pagination[HWM]:
         where: list[SQLColumnExpression] = [
             HWM.namespace_id == namespace_id,
-            HWM.is_deleted.is_(False),
         ]
         if name:
             where.append(HWM.name == name)
@@ -38,7 +37,7 @@ class HWMRepository(Repository[HWM]):
         )
 
     async def count(self) -> int:
-        return await self._count(where=[HWM.is_deleted.is_(False)])
+        return await self._count()
 
     async def get(
         self,
@@ -46,7 +45,6 @@ class HWMRepository(Repository[HWM]):
     ) -> HWM:
         result = await self._get(
             HWM.id == hwm_id,
-            HWM.is_deleted.is_(False),
         )
         if not result:
             raise EntityNotFoundError("HWM", "id", hwm_id)
@@ -80,7 +78,7 @@ class HWMRepository(Repository[HWM]):
     ) -> HWM:
         try:
             result = await self._update(
-                where=[HWM.id == hwm_id, HWM.is_deleted.is_(False)],
+                where=[HWM.id == hwm_id],
                 changes={**changes, "changed_by_user_id": user.id},
             )
             if result is None:
@@ -94,14 +92,13 @@ class HWMRepository(Repository[HWM]):
     async def delete(
         self,
         hwm_id: int,
-        user: User,
-    ) -> HWM:
-        result = await self._update(
-            where=[HWM.id == hwm_id, HWM.is_deleted.is_(False)],
-            changes={"is_deleted": True, "changed_by_user_id": user.id},
-        )
-        if result is None:
+    ) -> dict:
+        hwm = await self.get(hwm_id)
+        if hwm is None:
             raise EntityNotFoundError("HWM", "id", hwm_id)
 
+        hwm_data = hwm.to_dict()
+        await self._session.delete(hwm)
         await self._session.flush()
-        return result
+
+        return hwm_data

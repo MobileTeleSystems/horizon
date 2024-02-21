@@ -10,7 +10,7 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import HWM, ActionEnum, HWMHistory, Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -126,7 +126,6 @@ async def test_update_hwm(
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
     assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
     query_result = await async_session.scalars(query)
@@ -142,7 +141,7 @@ async def test_update_hwm(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert not updated_hwm_history.is_deleted
+    assert updated_hwm_history.action == ActionEnum.UPDATED
 
 
 async def test_update_hwm_already_exist(
@@ -246,7 +245,6 @@ async def test_update_hwm_partial(
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
     assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
     query_result = await async_session.scalars(query)
@@ -262,7 +260,7 @@ async def test_update_hwm_partial(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert not updated_hwm_history.is_deleted
+    assert updated_hwm_history.action == ActionEnum.UPDATED
 
 
 @pytest.mark.parametrize(

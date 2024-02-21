@@ -25,7 +25,6 @@ def hwm_factory(**kwargs):
         "entity": random_string(),
         "expression": random_string(),
         "changed_at": random_datetime(),
-        "is_deleted": False,
     }
     data.update(kwargs)
     return HWM(**data)

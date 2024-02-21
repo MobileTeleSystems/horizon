@@ -10,7 +10,7 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import HWM, ActionEnum, HWMHistory, Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -139,7 +139,6 @@ async def test_create_hwm(
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
     assert created_hwm.changed_by_user_id == user.id
-    assert not created_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hmw_id)
     query_result = await async_session.scalars(query)
@@ -154,7 +153,7 @@ async def test_create_hwm(
     assert created_hwm_history.expression == content["expression"]
     assert created_hwm_history.changed_at == changed_at
     assert created_hwm_history.changed_by_user_id == user.id
-    assert not created_hwm_history.is_deleted
+    assert created_hwm_history.action == ActionEnum.CREATED
 
 
 async def test_create_hwm_only_mandatory_fields(
@@ -206,7 +205,6 @@ async def test_create_hwm_only_mandatory_fields(
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
     assert created_hwm.changed_by_user_id == user.id
-    assert not created_hwm.is_deleted
 
 
 async def test_create_hwm_create_new_with_same_name_in_different_namespaces(

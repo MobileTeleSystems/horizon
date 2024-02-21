@@ -11,7 +11,7 @@ import pytest_asyncio
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import HWM, ActionEnum, HWMHistory, Namespace, User
 from tests.factories.base import random_datetime, random_string
 
 
@@ -26,6 +26,7 @@ def hwm_history_factory(**kwargs):
         "expression": random_string(),
         "changed_at": random_datetime(),
         "is_deleted": False,
+        "action": ActionEnum.CREATED.value,
     }
     data.update(kwargs)
     return HWMHistory(**data)

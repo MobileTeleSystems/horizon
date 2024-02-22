@@ -153,7 +153,7 @@ async def test_create_hwm(
     assert created_hwm_history.expression == content["expression"]
     assert created_hwm_history.changed_at == changed_at
     assert created_hwm_history.changed_by_user_id == user.id
-    assert created_hwm_history.action == "CREATED"
+    assert created_hwm_history.action == "Created"
 
 
 async def test_create_hwm_only_mandatory_fields(
@@ -495,7 +495,7 @@ async def test_create_hwm_with_same_name_after_deletion(
         select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id))
     )
     deleted_hwm_history = result.scalars().first()
-    assert deleted_hwm_history.action == "DELETED"
+    assert deleted_hwm_history.action == "Deleted"
 
     recreate_response = await test_client.post(
         "/v1/hwm/",
@@ -519,7 +519,7 @@ async def test_create_hwm_with_same_name_after_deletion(
 
     result = await async_session.execute(select(HWMHistory).where(HWMHistory.hwm_id == new_hwm_id))
     created_hwm_history = result.scalars().first()
-    assert created_hwm_history.action == "CREATED"
+    assert created_hwm_history.action == "Created"
     assert recreated_hwm.name == new_hwm.name
     assert created_hwm_history.name == hwm_data["name"]
     assert created_hwm_history.description == hwm_data["description"]

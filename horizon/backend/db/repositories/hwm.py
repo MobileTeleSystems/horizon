@@ -92,13 +92,9 @@ class HWMRepository(Repository[HWM]):
     async def delete(
         self,
         hwm_id: int,
-    ) -> dict:
+        user: User,
+    ) -> HWM:
         hwm = await self.get(hwm_id)
-        if hwm is None:
-            raise EntityNotFoundError("HWM", "id", hwm_id)
-
-        hwm_data = hwm.to_dict()
         await self._session.delete(hwm)
         await self._session.flush()
-
-        return hwm_data
+        return hwm

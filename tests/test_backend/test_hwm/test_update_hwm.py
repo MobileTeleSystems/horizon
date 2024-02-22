@@ -141,7 +141,7 @@ async def test_update_hwm(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert updated_hwm_history.action == "UPDATED"
+    assert updated_hwm_history.action == "Updated"
 
 
 async def test_update_hwm_already_exist(
@@ -260,7 +260,7 @@ async def test_update_hwm_partial(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert updated_hwm_history.action == "UPDATED"
+    assert updated_hwm_history.action == "Updated"
 
 
 @pytest.mark.parametrize(

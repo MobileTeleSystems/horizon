@@ -6,11 +6,10 @@ from sqlalchemy import JSON, BigInteger, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
-from horizon.backend.db.mixins.deletable import DeletableMixin
 from horizon.backend.db.models.base import Base
 
 
-class HWMHistory(Base, ChangedByMixin, DeletableMixin):
+class HWMHistory(Base, ChangedByMixin):
     __tablename__ = "hwm_history"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

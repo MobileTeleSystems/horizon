@@ -25,8 +25,7 @@ def hwm_history_factory(**kwargs):
         "entity": random_string(),
         "expression": random_string(),
         "changed_at": random_datetime(),
-        "is_deleted": False,
-        "action": "CREATED",
+        "action": "Created",
     }
     data.update(kwargs)
     return HWMHistory(**data)

@@ -88,5 +88,5 @@ async def test_delete_hwm(
     assert created_hwm_history.value == hwm.value
     assert created_hwm_history.entity == hwm.entity
     assert created_hwm_history.expression == hwm.expression
-    assert created_hwm_history.action == "DELETED"
+    assert created_hwm_history.action == "Deleted"
     assert created_hwm_history.changed_by_user_id == user.id

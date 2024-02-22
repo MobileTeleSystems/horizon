@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, status
 from typing_extensions import Annotated
 
-from horizon.backend.db.models import ActionEnum, User
+from horizon.backend.db.models import User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
@@ -86,7 +86,7 @@ async def update_hwm(
             hwm_id=hwm.id,
             data={
                 **hwm.to_dict(exclude={"id"}),
-                "action": ActionEnum.UPDATED.value,
+                "action": "UPDATED",
             },
         )
     return HWMResponseV1.from_orm(hwm)
@@ -110,6 +110,6 @@ async def delete_hwm(
             hwm_id=hwm_id,  # Use hwm_id directly here
             data={
                 **hwm_data,
-                "action": ActionEnum.DELETED.value,
+                "action": "DELETED",
             },
         )

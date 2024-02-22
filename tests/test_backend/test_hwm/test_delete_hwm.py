@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, ActionEnum, User
+from horizon.backend.db.models import HWM, User
 from horizon.backend.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
@@ -64,22 +64,18 @@ async def test_delete_hwm(
     hwm: HWM,
     async_session: AsyncSession,
 ):
-    from sqlalchemy.exc import NoResultFound
-
     response = await test_client.delete(
         f"v1/hwm/{hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 204
-    assert not response.content
 
     assert response.status_code == 204
     assert not response.content
 
     query = select(HWM).where(HWM.id == hwm.id)
     result = await async_session.execute(query)
-    with pytest.raises(NoResultFound):
-        result.scalars().one()
+    hwm_records = result.scalars().all()
+    assert len(hwm_records) == 0
 
     query_history = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
     result_history = await async_session.execute(query_history)
@@ -92,5 +88,5 @@ async def test_delete_hwm(
     assert created_hwm_history.value == hwm.value
     assert created_hwm_history.entity == hwm.entity
     assert created_hwm_history.expression == hwm.expression
-    assert created_hwm_history.action == ActionEnum.DELETED
+    assert created_hwm_history.action == "DELETED"
     assert created_hwm_history.changed_by_user_id == user.id

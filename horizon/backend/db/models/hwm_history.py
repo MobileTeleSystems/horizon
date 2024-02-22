@@ -1,23 +1,13 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-from enum import Enum, unique
 from typing import Optional
 
-from sqlalchemy import JSON, BigInteger, Column
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import JSON, BigInteger, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
 from horizon.backend.db.mixins.deletable import DeletableMixin
 from horizon.backend.db.models.base import Base
-
-
-@unique
-class ActionEnum(Enum):
-    CREATED = "CREATED"
-    UPDATED = "UPDATED"
-    DELETED = "DELETED"
 
 
 class HWMHistory(Base, ChangedByMixin, DeletableMixin):
@@ -39,4 +29,4 @@ class HWMHistory(Base, ChangedByMixin, DeletableMixin):
     value: Mapped[str] = mapped_column(JSON(), nullable=False)
     entity: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     expression: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
-    action: Mapped[ActionEnum] = Column(SQLEnum(ActionEnum), nullable=False)  # type: ignore
+    action: Mapped[str] = mapped_column(String(255), nullable=False)  # noqa: WPS432

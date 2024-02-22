@@ -10,7 +10,7 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import desc, select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, ActionEnum, HWMHistory, Namespace, User
+from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -153,7 +153,7 @@ async def test_create_hwm(
     assert created_hwm_history.expression == content["expression"]
     assert created_hwm_history.changed_at == changed_at
     assert created_hwm_history.changed_by_user_id == user.id
-    assert created_hwm_history.action == ActionEnum.CREATED
+    assert created_hwm_history.action == "CREATED"
 
 
 async def test_create_hwm_only_mandatory_fields(
@@ -495,7 +495,7 @@ async def test_create_hwm_with_same_name_after_deletion(
         select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id))
     )
     deleted_hwm_history = result.scalars().first()
-    assert deleted_hwm_history.action == ActionEnum.DELETED
+    assert deleted_hwm_history.action == "DELETED"
 
     recreate_response = await test_client.post(
         "/v1/hwm/",
@@ -509,8 +509,8 @@ async def test_create_hwm_with_same_name_after_deletion(
 
     query = select(HWM).where(HWM.id == old_hwm_id)
     result = await async_session.execute(query)
-    with pytest.raises(NoResultFound):
-        result.scalars().one()
+    hwm_records = result.scalars().all()
+    assert len(hwm_records) == 0
 
     query = select(HWM).where(HWM.id == new_hwm_id)
     result = await async_session.execute(query)
@@ -519,7 +519,7 @@ async def test_create_hwm_with_same_name_after_deletion(
 
     result = await async_session.execute(select(HWMHistory).where(HWMHistory.hwm_id == new_hwm_id))
     created_hwm_history = result.scalars().first()
-    assert created_hwm_history.action == ActionEnum.CREATED
+    assert created_hwm_history.action == "CREATED"
     assert recreated_hwm.name == new_hwm.name
     assert created_hwm_history.name == hwm_data["name"]
     assert created_hwm_history.description == hwm_data["description"]

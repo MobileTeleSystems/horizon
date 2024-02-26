@@ -84,7 +84,10 @@ async def update_hwm(
         )
         await unit_of_work.hwm_history.create(
             hwm_id=hwm.id,
-            data=hwm.to_dict(exclude={"id"}),
+            data={
+                **hwm.to_dict(exclude={"id"}),
+                "action": "Updated",
+            },
         )
     return HWMResponseV1.from_orm(hwm)
 
@@ -100,11 +103,8 @@ async def delete_hwm(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
     async with unit_of_work:
-        hwm = await unit_of_work.hwm.delete(
-            hwm_id=hwm_id,
-            user=user,
-        )
+        hwm = await unit_of_work.hwm.delete(hwm_id=hwm_id, user=user)
         await unit_of_work.hwm_history.create(
             hwm_id=hwm.id,
-            data=hwm.to_dict(exclude={"id"}),
+            data={**hwm.to_dict(exclude={"id"}), "action": "Deleted"},
         )

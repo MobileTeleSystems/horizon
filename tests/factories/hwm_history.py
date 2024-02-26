@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from random import randint
 from typing import AsyncContextManager, Callable
 
@@ -12,7 +13,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
-from tests.factories.base import random_datetime, random_string
+from tests.factories.base import random_string
 
 
 def hwm_history_factory(**kwargs):
@@ -24,8 +25,8 @@ def hwm_history_factory(**kwargs):
         "type": random_string(),
         "entity": random_string(),
         "expression": random_string(),
-        "changed_at": random_datetime(),
-        "is_deleted": False,
+        "changed_at": datetime.now(timezone.utc),
+        "action": "Created",
     }
     data.update(kwargs)
     return HWMHistory(**data)

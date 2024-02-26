@@ -32,6 +32,7 @@ class HWMHistoryResponseV1(BaseModel):
         default=None,
         description="Expression used to calculate HWM value. Can be any string",
     )
+    action: str = Field(description="Action performed on the HWM record")
     changed_at: datetime = Field(description="Timestamp of a change of the HWM data")
     changed_by: Optional[str] = Field(default=None, description="User who changed the HWM data")
 

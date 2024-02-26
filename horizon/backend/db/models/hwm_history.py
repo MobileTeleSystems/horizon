@@ -6,21 +6,15 @@ from sqlalchemy import JSON, BigInteger, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
-from horizon.backend.db.mixins.deletable import DeletableMixin
 from horizon.backend.db.models.base import Base
 
 
-class HWMHistory(Base, ChangedByMixin, DeletableMixin):
+class HWMHistory(Base, ChangedByMixin):
     __tablename__ = "hwm_history"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    hwm_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("hwm.id", ondelete="CASCADE"),
-        nullable=True,
-        index=True,
-    )
+    hwm_id: Mapped[int] = mapped_column(BigInteger, index=True, nullable=True)
 
     namespace_id: Mapped[int] = mapped_column(
         BigInteger,
@@ -34,3 +28,4 @@ class HWMHistory(Base, ChangedByMixin, DeletableMixin):
     value: Mapped[str] = mapped_column(JSON(), nullable=False)
     entity: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     expression: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    action: Mapped[str] = mapped_column(String(255), nullable=False)  # noqa: WPS432

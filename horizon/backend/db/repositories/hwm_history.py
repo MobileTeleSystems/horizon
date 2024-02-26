@@ -16,7 +16,6 @@ class HWMHistoryRepository(Repository[HWMHistory]):
         return await self._paginate(
             where=[
                 HWMHistory.hwm_id == hwm_id,
-                HWMHistory.is_deleted.is_(False),
             ],
             order_by=[HWMHistory.changed_at.desc()],
             page=page,
@@ -24,10 +23,13 @@ class HWMHistoryRepository(Repository[HWMHistory]):
         )
 
     async def create(self, hwm_id: int, data: dict) -> HWMHistory:
+        action = data.get("action", "Created")
+
         result = await self._create(
             data={
                 **data,
                 "hwm_id": hwm_id,
+                "action": action,
             },
         )
         await self._session.flush()

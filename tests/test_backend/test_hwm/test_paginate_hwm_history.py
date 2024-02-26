@@ -170,6 +170,7 @@ async def test_paginate_hwm_history(
             "value": hwm_history_item.value,
             "entity": hwm_history_item.entity,
             "expression": hwm_history_item.expression,
+            "action": hwm_history_item.action,
             "changed_at": hwm_history_item.changed_at,
             "changed_by": hwm_history_item.changed_by,
         }

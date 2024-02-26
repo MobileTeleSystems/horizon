@@ -38,6 +38,7 @@ def test_sync_client_paginate_hwm_history(
             entity=item.entity,
             expression=item.expression,
             description=item.description,
+            action=item.action,
             changed_at=item.changed_at,
             changed_by=item.changed_by,
         )
@@ -80,6 +81,7 @@ def test_sync_client_paginate_hwm_history_page_options(
             description=item.description,
             changed_at=item.changed_at,
             changed_by=item.changed_by,
+            action=item.action,
         )
         for item in hwm_history_items
     ]
@@ -98,7 +100,7 @@ def test_sync_client_paginate_hwm_history_page_options(
             next_page=2,
             previous_page=None,
         ),
-        items=items[0:8],
+        items=items[:8],
     )
 
     page2 = sync_client.paginate_hwm_history(

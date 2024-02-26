@@ -6,12 +6,11 @@ from sqlalchemy import JSON, BigInteger, ForeignKey, String, Text, UniqueConstra
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
-from horizon.backend.db.mixins.deletable import DeletableMixin
 from horizon.backend.db.models.base import Base
 from horizon.backend.db.models.namespace import Namespace
 
 
-class HWM(Base, ChangedByMixin, DeletableMixin):
+class HWM(Base, ChangedByMixin):
     __tablename__ = "hwm"
     __table_args__ = (UniqueConstraint("namespace_id", "name", name="hwm_name_unique_per_namespace"),)
 

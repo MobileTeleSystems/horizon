@@ -1,0 +1,1 @@
+Add ``Namespace History``. Now it is possible to view paginated history of actions with selected namespaces.

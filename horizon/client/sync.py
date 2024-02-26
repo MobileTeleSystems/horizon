@@ -20,6 +20,8 @@ from horizon.commons.schemas.v1 import (
     HWMResponseV1,
     HWMUpdateRequestV1,
     NamespaceCreateRequestV1,
+    NamespaceHistoryPaginateQueryV1,
+    NamespaceHistoryResponseV1,
     NamespacePaginateQueryV1,
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
@@ -434,6 +436,70 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         self._request(
             "DELETE",
             f"{self.base_url}/v1/namespaces/{namespace_id}",
+        )
+
+    def paginate_namespace_history(
+        self,
+        query: NamespaceHistoryPaginateQueryV1,
+    ) -> PageResponseV1[NamespaceHistoryResponseV1]:
+        """Get page with namespace changes history.
+
+        Parameters
+        ----------
+        query : :obj:`NamespaceHistoryPaginateQueryV1 <horizon.commons.schemas.v1.namespace_history.NamespaceHistoryPaginateQueryV1>`
+            Namespace history query parameters
+
+        Returns
+        -------
+        :obj:`PageResponseV1 <horizon.commons.schemas.v1.pagination.PageResponseV1>` of :obj:`NamespaceHistoryResponseV1 <horizon.commons.schemas.v1.namespace_history.NamespaceHistoryResponseV1>`
+            List of namespace history items, limited and filtered by query parameters.
+
+        Examples
+        --------
+
+        Get all changes of specific namespace:
+
+        >>> from horizon.commons.schemas.v1 import NamespacePaginateQueryV1
+        >>> namespace_query = NamespacePaginateQueryV1(namespace_id=234)
+        >>> client.paginate_namespace(query=namespace_query)
+        PageResponseV1[NamespaceHistoryResponseV1](
+            meta=PageMetaResponseV1(
+                page=1,
+                pages_count=2,
+                total_count=10,
+                page_size=10,
+                has_next=True,
+                has_previous=False,
+                next_page=2,
+                previous_page=None,
+            ),
+            items=[NamespaceHistoryResponseV1(namespace_id=234, ...), ...],
+        )
+
+        Get all changes of specific namespace starting with a page number and page size:
+
+        >>> from horizon.commons.schemas.v1 import NamespacePaginateQueryV1
+        >>> namespace_query = NamespacePaginateQueryV1(namespace_id=234, page=2, page_size=20)
+        >>> client.paginate_namespace(query=namespace_query)
+        PageResponseV1[NamespaceHistoryResponseV1](
+            meta=PageMetaResponseV1(
+                page=2,
+                pages_count=3,
+                total_count=50,
+                page_size=20,
+                has_next=True,
+                has_previous=True,
+                next_page=3,
+                previous_page=1,
+            ),
+            items=[NamespaceHistoryResponseV1(namespace_id=234, ...), ...],
+        )
+        """
+        return self._request(  # type: ignore[return-value]
+            "GET",
+            f"{self.base_url}/v1/namespace-history/",
+            response_class=PageResponseV1[NamespaceHistoryResponseV1],
+            params=query.dict(exclude_unset=True),
         )
 
     def paginate_hwm(

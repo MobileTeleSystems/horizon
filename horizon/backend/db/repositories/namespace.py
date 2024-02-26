@@ -22,9 +22,7 @@ class NamespaceRepository(Repository[Namespace]):
         page_size: int,
         name: str | None = None,
     ) -> Pagination[Namespace]:
-        where: list[SQLColumnExpression] = [Namespace.is_deleted.is_(False)]
-        if name:
-            where.append(Namespace.name == name)
+        where: list[SQLColumnExpression] = [Namespace.name == name] if name else []
 
         return await self._paginate(
             where=where,
@@ -34,7 +32,7 @@ class NamespaceRepository(Repository[Namespace]):
         )
 
     async def count(self) -> int:
-        return await self._count(where=[Namespace.is_deleted.is_(False)])
+        return await self._count()
 
     async def get(
         self,
@@ -42,7 +40,6 @@ class NamespaceRepository(Repository[Namespace]):
     ) -> Namespace:
         result = await self._get(
             Namespace.id == namespace_id,
-            Namespace.is_deleted.is_(False),
         )
         if not result:
             raise EntityNotFoundError("Namespace", "id", namespace_id)
@@ -75,7 +72,7 @@ class NamespaceRepository(Repository[Namespace]):
     ) -> Namespace:
         try:
             result = await self._update(
-                where=[Namespace.id == namespace_id, Namespace.is_deleted.is_(False)],
+                where=[Namespace.id == namespace_id],
                 changes={**changes, "changed_by_user_id": user.id},
             )
             if result is None:
@@ -94,12 +91,8 @@ class NamespaceRepository(Repository[Namespace]):
         self,
         namespace_id: int,
         user: User,
-    ) -> None:
-        result = await self._update(
-            where=[Namespace.id == namespace_id, Namespace.is_deleted.is_(False)],
-            changes={"is_deleted": True, "changed_by_user_id": user.id},
-        )
-        if result is None:
-            raise EntityNotFoundError("Namespace", "id", namespace_id)
-
+    ) -> Namespace:
+        namespace = await self.get(namespace_id)
+        await self._session.delete(namespace)
         await self._session.flush()
+        return namespace

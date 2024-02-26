@@ -469,8 +469,6 @@ async def test_create_hwm_with_same_name_after_deletion(
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
-    from sqlalchemy.exc import NoResultFound
-
     hwm_data = {
         "namespace_id": namespace.id,
         "name": new_hwm.name,

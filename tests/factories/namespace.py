@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from random import randint
 from typing import AsyncContextManager, Callable
 
@@ -12,7 +13,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import Namespace, User
-from tests.factories.base import random_datetime, random_string
+from tests.factories.base import random_string
 
 
 def namespace_factory(**kwargs):
@@ -20,7 +21,7 @@ def namespace_factory(**kwargs):
         "id": randint(0, 10000000),
         "name": random_string(),
         "description": random_string(),
-        "changed_at": random_datetime(),
+        "changed_at": datetime.now(timezone.utc),
         "is_deleted": False,
     }
     data.update(kwargs)

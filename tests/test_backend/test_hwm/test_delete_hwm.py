@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
 import pytest
@@ -64,10 +65,12 @@ async def test_delete_hwm(
     hwm: HWM,
     async_session: AsyncSession,
 ):
+    pre_delete_timestamp = datetime.now(timezone.utc) - timedelta(minutes=1)
     response = await test_client.delete(
         f"v1/hwm/{hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
+    post_delete_timestamp = datetime.now(timezone.utc)
 
     assert response.status_code == 204
     assert not response.content
@@ -90,3 +93,4 @@ async def test_delete_hwm(
     assert created_hwm_history.expression == hwm.expression
     assert created_hwm_history.action == "Deleted"
     assert created_hwm_history.changed_by_user_id == user.id
+    assert pre_delete_timestamp <= created_hwm_history.changed_at <= post_delete_timestamp

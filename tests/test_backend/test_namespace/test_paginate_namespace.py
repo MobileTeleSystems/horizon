@@ -160,29 +160,3 @@ async def test_paginate_namespaces_filter_by_missing_name(
         },
         "items": [],
     }
-
-
-@pytest.mark.parametrize("namespace", [{"is_deleted": True}], indirect=True)
-async def test_paginate_namespaces_deleted_not_included(
-    test_client: AsyncClient,
-    access_token: str,
-    namespace: Namespace,
-):
-    response = await test_client.get(
-        "v1/namespaces/",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    assert response.status_code == 200
-    assert response.json() == {
-        "meta": {
-            "page": 1,
-            "pages_count": 1,
-            "page_size": 20,
-            "total_count": 0,
-            "has_next": False,
-            "has_previous": False,
-            "next_page": None,
-            "previous_page": None,
-        },
-        "items": [],
-    }

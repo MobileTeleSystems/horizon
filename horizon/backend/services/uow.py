@@ -9,6 +9,7 @@ from horizon.backend.db.repositories import (
     CredentialsCacheRepository,
     HWMHistoryRepository,
     HWMRepository,
+    NamespaceHistoryRepository,
     NamespaceRepository,
     UserRepository,
 )
@@ -23,6 +24,7 @@ class UnitOfWork:
         self._session = session
         self.namespace = NamespaceRepository(session=session)
         self.hwm_history = HWMHistoryRepository(session=session)
+        self.namespace_history = NamespaceHistoryRepository(session=session)
         self.user = UserRepository(session=session)
         self.hwm = HWMRepository(session=session)
         self.credentials_cache = CredentialsCacheRepository(session=session)

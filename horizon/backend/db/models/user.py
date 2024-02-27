@@ -3,12 +3,11 @@
 from sqlalchemy import BigInteger, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from horizon.backend.db.mixins.deletable import DeletableMixin
 from horizon.backend.db.mixins.timestamp import TimestampMixin
 from horizon.backend.db.models.base import Base
 
 
-class User(Base, TimestampMixin, DeletableMixin):
+class User(Base, TimestampMixin):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)

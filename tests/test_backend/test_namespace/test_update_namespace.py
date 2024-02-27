@@ -11,7 +11,7 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import Namespace, User
+from horizon.backend.db.models import Namespace, NamespaceHistory, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -110,7 +110,18 @@ async def test_update_namespace_name(
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
     assert namespace_after.changed_by_user_id == user.id
-    assert not namespace_after.is_deleted
+
+    query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace.id)
+    query_result = await async_session.scalars(query)
+    updated_namespace_history = query_result.one()
+
+    # Row is same as in body
+    assert updated_namespace_history.name == content["name"]
+    assert updated_namespace_history.namespace_id == namespace.id
+    assert updated_namespace_history.description == content["description"]
+    assert updated_namespace_history.changed_at == changed_at
+    assert updated_namespace_history.changed_by_user_id == user.id
+    assert updated_namespace_history.action == "Updated"
 
 
 async def test_update_namespace_description(
@@ -149,7 +160,18 @@ async def test_update_namespace_description(
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
     assert namespace_after.changed_by_user_id == user.id
-    assert not namespace_after.is_deleted
+
+    query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace.id)
+    query_result = await async_session.scalars(query)
+    updated_namespace_history = query_result.one()
+
+    # Row is same as in body
+    assert updated_namespace_history.name == content["name"]
+    assert updated_namespace_history.namespace_id == namespace.id
+    assert updated_namespace_history.description == content["description"]
+    assert updated_namespace_history.changed_at == changed_at
+    assert updated_namespace_history.changed_by_user_id == user.id
+    assert updated_namespace_history.action == "Updated"
 
 
 @pytest.mark.parametrize(

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-"""empty message
+"""Add namespace history
 
 Revision ID: 5c7a5c5a193b
 Revises: c2d6da81f9ec
@@ -49,13 +49,6 @@ def upgrade() -> None:
         """
         DELETE FROM namespace WHERE is_deleted = TRUE
     """,
-    )
-    op.execute(
-        """
-            INSERT INTO namespace_history (namespace_id, name, description, action, changed_at, changed_by_user_id)
-            SELECT id, name, description, 'Updated', now(), changed_by_user_id
-            FROM namespace
-        """,
     )
     op.drop_column("namespace", "is_deleted")
 

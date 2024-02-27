@@ -51,11 +51,9 @@ def upgrade() -> None:
     """,
     )
     op.drop_column("namespace", "is_deleted")
-    op.drop_column("user", "is_deleted")
 
 
 def downgrade() -> None:
-    op.add_column("user", sa.Column("is_deleted", sa.BOOLEAN(), autoincrement=False, nullable=False))
     op.add_column(
         "namespace",
         sa.Column("is_deleted", sa.BOOLEAN(), autoincrement=False, nullable=False, server_default="FALSE"),

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
@@ -100,6 +100,13 @@ async def delete_namespace(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
     async with unit_of_work:
+        hwm_records = await unit_of_work.hwm.paginate(namespace_id=namespace_id, page=1, page_size=1)
+        if hwm_records.total_count:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete namespace because it has related HWM records.",
+            )
+
         namespace = await unit_of_work.namespace.delete(namespace_id=namespace_id, user=user)
         await unit_of_work.namespace_history.create(
             namespace_id=namespace_id,

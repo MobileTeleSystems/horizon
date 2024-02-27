@@ -40,7 +40,7 @@ async def new_hwm(
     item = hwm_factory(**params)
     yield item
 
-    query = delete(HWM).where(HWM.name == item.name)
+    query = delete(HWM).where(HWM.name == item.name, HWM.namespace_id == item.namespace_id)
 
     # do not use the same session in tests and fixture teardown
     # see https://github.com/MobileTeleSystems/horizon/pull/6

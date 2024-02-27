@@ -17,6 +17,10 @@ from horizon.commons.schemas.v1.namespace import (
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
 )
+from horizon.commons.schemas.v1.namespace_history import (
+    NamespaceHistoryPaginateQueryV1,
+    NamespaceHistoryResponseV1,
+)
 from horizon.commons.schemas.v1.pagination import (
     PageMetaResponseV1,
     PageResponseV1,
@@ -36,6 +40,8 @@ __all__ = [
     "NamespacePaginateQueryV1",
     "NamespaceResponseV1",
     "NamespaceUpdateRequestV1",
+    "NamespaceHistoryPaginateQueryV1",
+    "NamespaceHistoryResponseV1",
     "PageMetaResponseV1",
     "PageResponseV1",
     "PaginateQueryV1",

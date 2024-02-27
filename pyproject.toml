@@ -257,6 +257,7 @@ exclude_lines = [
   "if sys.version_info",
   "@(abc\\.)?abstractmethod",
   "\\.\\.\\.",
+  "def downgrade\\(\\):",
 ]
 
 [tool.black]

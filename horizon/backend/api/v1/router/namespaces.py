@@ -31,6 +31,19 @@ async def paginate_namespaces(
     return PageResponseV1[NamespaceResponseV1].from_pagination(pagination)
 
 
+@router.get(
+    "/{namespace_id}",
+    summary="Get namespace",
+    dependencies=[Depends(current_user)],
+)
+async def get_namespace(
+    namespace_id: int,
+    unit_of_work: Annotated[UnitOfWork, Depends()],
+) -> NamespaceResponseV1:
+    namespace = await unit_of_work.namespace.get(namespace_id)
+    return NamespaceResponseV1.from_orm(namespace)
+
+
 @router.post(
     "/",
     summary="Create namespace",
@@ -43,19 +56,10 @@ async def create_namespace(
 ) -> NamespaceResponseV1:
     async with unit_of_work:
         namespace = await unit_of_work.namespace.create(**data.dict(), user=user)
-    return NamespaceResponseV1.from_orm(namespace)
-
-
-@router.get(
-    "/{namespace_id}",
-    summary="Get namespace",
-    dependencies=[Depends(current_user)],
-)
-async def get_namespace(
-    namespace_id: int,
-    unit_of_work: Annotated[UnitOfWork, Depends()],
-) -> NamespaceResponseV1:
-    namespace = await unit_of_work.namespace.get(namespace_id)
+        await unit_of_work.namespace_history.create(
+            namespace_id=namespace.id,
+            data=namespace.to_dict(exclude={"id"}),
+        )
     return NamespaceResponseV1.from_orm(namespace)
 
 
@@ -75,6 +79,13 @@ async def update_namespace(
             changes=changes.dict(exclude_defaults=True),
             user=user,
         )
+        await unit_of_work.namespace_history.create(
+            namespace_id=namespace.id,
+            data={
+                **namespace.to_dict(exclude={"id"}),
+                "action": "Updated",
+            },
+        )
     return NamespaceResponseV1.from_orm(namespace)
 
 
@@ -89,7 +100,8 @@ async def delete_namespace(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
     async with unit_of_work:
-        await unit_of_work.namespace.delete(
+        namespace = await unit_of_work.namespace.delete(namespace_id=namespace_id, user=user)
+        await unit_of_work.namespace_history.create(
             namespace_id=namespace_id,
-            user=user,
+            data={**namespace.to_dict(exclude={"id"}), "action": "Deleted"},
         )

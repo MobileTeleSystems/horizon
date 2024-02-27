@@ -20,7 +20,6 @@ def user_factory(**kwargs):
         "id": randint(0, 10000000),
         "username": random_string(),
         "is_active": True,
-        "is_deleted": False,
     }
     data.update(kwargs)
     return User(**data)

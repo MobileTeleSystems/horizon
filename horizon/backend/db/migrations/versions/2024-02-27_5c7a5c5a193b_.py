@@ -4,7 +4,7 @@
 
 Revision ID: 5c7a5c5a193b
 Revises: c2d6da81f9ec
-Create Date: 2024-02-26 12:05:54.273262
+Create Date: 2024-02-27 13:25:07.367475
 
 """
 import sqlalchemy as sa
@@ -40,7 +40,7 @@ def upgrade() -> None:
     op.execute(
         """
         INSERT INTO namespace_history (namespace_id, name, description, action, changed_at, changed_by_user_id)
-        SELECT id, name, description, 'Deleted', now(), changed_by_user_id
+        SELECT id, name, description, 'Deleted', changed_at, changed_by_user_id
         FROM namespace
         WHERE is_deleted = TRUE
     """,
@@ -51,9 +51,11 @@ def upgrade() -> None:
     """,
     )
     op.drop_column("namespace", "is_deleted")
+    op.drop_column("user", "is_deleted")
 
 
 def downgrade() -> None:
+    op.add_column("user", sa.Column("is_deleted", sa.BOOLEAN(), autoincrement=False, nullable=False))
     op.add_column(
         "namespace",
         sa.Column("is_deleted", sa.BOOLEAN(), autoincrement=False, nullable=False, server_default="FALSE"),
@@ -67,4 +69,5 @@ def downgrade() -> None:
         )
     """,
     )
+    op.drop_index(op.f("ix__namespace_history__namespace_id"), table_name="namespace_history")
     op.drop_table("namespace_history")

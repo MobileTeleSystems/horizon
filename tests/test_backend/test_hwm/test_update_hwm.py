@@ -144,7 +144,7 @@ async def test_update_hwm(
     assert updated_hwm_history.action == "Updated"
 
 
-async def test_update_hwm_already_exist(
+async def test_update_hwm_already_exists(
     test_client: AsyncClient,
     access_token: str,
     hwms: list[HWM],

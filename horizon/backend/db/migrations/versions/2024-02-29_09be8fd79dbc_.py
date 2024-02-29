@@ -44,6 +44,13 @@ def upgrade() -> None:
         ["id"],
         ondelete="SET NULL",
     )
+    op.execute(
+        """
+        INSERT INTO namespace_history (namespace_id, name, description, action, owner_id, changed_by_user_id)
+        SELECT id, name, description, 'Set owner (automatic migration)', owner_id, NULL
+        FROM namespace
+        """,
+    )
 
 
 def downgrade() -> None:

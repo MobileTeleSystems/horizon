@@ -57,6 +57,7 @@ class NamespaceRepository(Repository[Namespace]):
                     "name": name,
                     "description": description,
                     "changed_by_user_id": user.id,
+                    "owner_id": user.id,
                 },
             )
             await self._session.flush()

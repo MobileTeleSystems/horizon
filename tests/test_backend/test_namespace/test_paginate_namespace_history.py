@@ -168,4 +168,5 @@ async def test_paginate_namespace_history(
             "action": namespace_history_item.action,
             "changed_at": namespace_history_item.changed_at,
             "changed_by": namespace_history_item.changed_by,
+            "owned_by": namespace_history_item.owned_by,
         }

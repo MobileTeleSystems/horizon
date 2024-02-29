@@ -88,6 +88,7 @@ async def test_delete_namespace(
     assert created_namespace_history.description == namespace.description
     assert created_namespace_history.action == "Deleted"
     assert created_namespace_history.changed_by_user_id == user.id
+    assert created_namespace_history.owner_id == user.id
     assert pre_delete_timestamp <= created_namespace_history.changed_at <= post_delete_timestamp
 
 

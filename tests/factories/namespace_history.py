@@ -22,6 +22,7 @@ def namespace_history_factory(**kwargs):
         "name": random_string(),
         "description": random_string(),
         "changed_at": datetime.now(timezone.utc),
+        "owner_id": randint(0, 10000000),
         "action": "Created",
     }
     data.update(kwargs)
@@ -37,7 +38,8 @@ async def namespace_history_items(
 ) -> AsyncGenerator[list[NamespaceHistory], None]:
     size, params = request.param
     result = [
-        namespace_history_factory(namespace_id=namespace.id, changed_by_user_id=user.id, **params) for _ in range(size)
+        namespace_history_factory(namespace_id=namespace.id, changed_by_user_id=user.id, owner_id=user.id, **params)
+        for _ in range(size)
     ]
 
     # do not use the same session in tests and fixture teardown
@@ -52,7 +54,7 @@ async def namespace_history_items(
 
         for item in result:
             # before removing object from Session load all relationships
-            await async_session.refresh(item, attribute_names=["changed_by_user"])
+            await async_session.refresh(item, attribute_names=["changed_by_user", "owner"])
             async_session.expunge(item)
 
     yield result

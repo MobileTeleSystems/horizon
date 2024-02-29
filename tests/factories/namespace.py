@@ -22,6 +22,7 @@ def namespace_factory(**kwargs):
         "name": random_string(),
         "description": random_string(),
         "changed_at": datetime.now(timezone.utc),
+        "owner_id": randint(0, 10000000),
     }
     data.update(kwargs)
     return Namespace(**data)
@@ -52,7 +53,7 @@ async def namespace(
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[Namespace, None]:
     params = request.param
-    item = namespace_factory(**params, changed_by_user_id=user.id)
+    item = namespace_factory(**params, changed_by_user_id=user.id, owner_id=user.id)
     del item.id
 
     async with async_session_factory() as async_session:
@@ -63,7 +64,7 @@ async def namespace(
         # remove current object from async_session. this is required to compare object against new state fetched
         # from database, and also to remove it from cache
         namespace_id = item.id
-        await async_session.refresh(item, attribute_names=["changed_by_user"])
+        await async_session.refresh(item, attribute_names=["changed_by_user", "owner"])
         async_session.expunge(item)
 
     yield item
@@ -81,7 +82,7 @@ async def namespaces(
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[Namespace], None]:
     size, params = request.param
-    result = [namespace_factory(changed_by_user_id=user.id, **params) for _ in range(size)]
+    result = [namespace_factory(changed_by_user_id=user.id, owner_id=user.id, **params) for _ in range(size)]
     async with async_session_factory() as async_session:
         for item in result:
             del item.id
@@ -94,7 +95,7 @@ async def namespaces(
         for item in result:
             namespace_ids.append(item.id)
             # before removing object from Session load all relationships
-            await async_session.refresh(item, attribute_names=["changed_by_user"])
+            await async_session.refresh(item, attribute_names=["changed_by_user", "owner"])
             async_session.expunge(item)
 
     yield result

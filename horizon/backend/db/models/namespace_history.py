@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from sqlalchemy import BigInteger, ForeignKey, String, Text
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
@@ -23,3 +24,4 @@ class NamespaceHistory(Base, ChangedByMixin):
         nullable=True,
     )
     owner = relationship("User", foreign_keys=[owner_id])
+    owned_by: AssociationProxy[str] = association_proxy("owner", "username")

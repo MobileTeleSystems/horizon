@@ -28,6 +28,7 @@ def test_sync_client_get_namespace(namespace: Namespace, sync_client: HorizonCli
         description=namespace.description,
         changed_at=namespace.changed_at,
         changed_by=namespace.changed_by,
+        owned_by=namespace.owned_by,
     )
 
 

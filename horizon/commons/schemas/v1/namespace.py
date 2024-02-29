@@ -17,6 +17,7 @@ class NamespaceResponseV1(BaseModel):
     id: int = Field(description="Namespace id")
     name: str = Field(description="Namespace name, unique in the entire database")
     description: str = Field(description="Namespace description")
+    owned_by: str = Field(description="The namespace owner")
     changed_at: datetime = Field(description="Timestamp of last change of the namespace data")
     changed_by: Optional[str] = Field(default=None, description="Latest user who changed the namespace data")
 

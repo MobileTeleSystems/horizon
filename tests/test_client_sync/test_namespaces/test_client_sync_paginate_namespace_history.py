@@ -36,6 +36,7 @@ def test_sync_client_paginate_namespace_history(
             action=item.action,
             changed_at=item.changed_at,
             changed_by=item.changed_by,
+            owned_by=item.owned_by,
         )
         for item in namespace_history_items
     ]
@@ -71,6 +72,7 @@ def test_sync_client_paginate_namespace_history_page_options(
             description=item.description,
             changed_at=item.changed_at,
             changed_by=item.changed_by,
+            owned_by=item.owned_by,
             action=item.action,
         )
         for item in namespace_history_items

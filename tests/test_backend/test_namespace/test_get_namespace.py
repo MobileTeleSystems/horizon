@@ -81,4 +81,5 @@ async def test_get_namespace(
         "description": real_namespace.description,
         "changed_at": real_namespace.changed_at,
         "changed_by": real_namespace.changed_by_user.username,
+        "owned_by": real_namespace.owner.username,
     }

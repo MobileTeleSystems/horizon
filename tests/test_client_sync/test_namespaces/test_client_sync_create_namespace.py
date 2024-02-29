@@ -20,7 +20,9 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
 
 def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync_client: HorizonClientSync):
-    to_create = NamespaceCreateRequestV1(name=new_namespace.name, description=new_namespace.description)
+    to_create = NamespaceCreateRequestV1(
+        name=new_namespace.name, description=new_namespace.description, owner_id=user.id
+    )
     response = sync_client.create_namespace(to_create)
 
     assert isinstance(response, NamespaceResponseV1)
@@ -28,6 +30,7 @@ def test_sync_client_create_namespace(new_namespace: Namespace, user: User, sync
         name=to_create.name,
         description=to_create.description,
         changed_by=user.username,
+        owned_by=user.username,
     )
 
 

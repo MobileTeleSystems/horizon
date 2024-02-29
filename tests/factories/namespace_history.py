@@ -22,7 +22,6 @@ def namespace_history_factory(**kwargs):
         "name": random_string(),
         "description": random_string(),
         "changed_at": datetime.now(timezone.utc),
-        "owner_id": randint(0, 10000000),
         "action": "Created",
     }
     data.update(kwargs)

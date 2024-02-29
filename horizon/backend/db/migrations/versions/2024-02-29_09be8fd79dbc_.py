@@ -19,13 +19,21 @@ depends_on = None
 
 def upgrade() -> None:
     op.add_column("namespace", sa.Column("owner_id", sa.BigInteger(), nullable=True))
+    op.execute(
+        """
+        UPDATE namespace
+        SET owner_id = changed_by_user_id
+        WHERE owner_id IS NULL
+        """,
+    )
+    op.alter_column("namespace", "owner_id", nullable=False)
     op.create_foreign_key(
         op.f("fk__namespace__owner_id__user"),
         "namespace",
         "user",
         ["owner_id"],
         ["id"],
-        ondelete="SET NULL",
+        ondelete="RESTRICT",
     )
     op.add_column("namespace_history", sa.Column("owner_id", sa.BigInteger(), nullable=True))
     op.create_foreign_key(
@@ -35,13 +43,6 @@ def upgrade() -> None:
         ["owner_id"],
         ["id"],
         ondelete="SET NULL",
-    )
-    op.execute(
-        """
-        UPDATE namespace
-        SET owner_id = changed_by_user_id
-        WHERE owner_id IS NULL
-        """,
     )
 
 

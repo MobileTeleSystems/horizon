@@ -91,6 +91,7 @@ async def test_paginate_namespaces(
             "description": namespace.description,
             "changed_at": namespace.changed_at,
             "changed_by": namespace.changed_by,
+            "owned_by": namespace.owned_by,
         }
 
 
@@ -132,6 +133,7 @@ async def test_paginate_namespaces_filter_by_name(
             "description": namespace.description,
             "changed_at": namespace.changed_at,
             "changed_by": namespace.changed_by,
+            "owned_by": namespace.owned_by,
         }
     ]
 

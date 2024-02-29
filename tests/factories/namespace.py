@@ -22,7 +22,6 @@ def namespace_factory(**kwargs):
         "name": random_string(),
         "description": random_string(),
         "changed_at": datetime.now(timezone.utc),
-        "owner_id": randint(0, 10000000),
     }
     data.update(kwargs)
     return Namespace(**data)

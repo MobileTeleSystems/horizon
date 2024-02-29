@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from sqlalchemy import BigInteger, ForeignKey, String, Text
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
@@ -23,7 +24,8 @@ class Namespace(Base, ChangedByMixin):
     )
     owner_id: Mapped[int] = mapped_column(
         BigInteger,
-        ForeignKey("user.id", ondelete="SET NULL"),
-        nullable=True,
+        ForeignKey("user.id", ondelete="RESTRICT"),
+        nullable=False,
     )
     owner = relationship("User", foreign_keys=[owner_id])
+    owned_by: AssociationProxy[str] = association_proxy("owner", "username")

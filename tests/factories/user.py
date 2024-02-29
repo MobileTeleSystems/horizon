@@ -11,7 +11,7 @@ import pytest_asyncio
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import User
+from horizon.backend.db.models import Namespace, User
 from tests.factories.base import random_string
 
 
@@ -63,9 +63,11 @@ async def user(
 
     yield user
 
-    query = delete(User).where(User.id == user_id)
+    namespace_query = delete(Namespace).where(Namespace.owner_id == user_id)
+    user_query = delete(User).where(User.id == user_id)
     async with async_session_factory() as async_session:
-        await async_session.execute(query)
+        await async_session.execute(namespace_query)
+        await async_session.execute(user_query)
         await async_session.commit()
 
 

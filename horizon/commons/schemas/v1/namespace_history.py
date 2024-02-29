@@ -24,6 +24,7 @@ class NamespaceHistoryResponseV1(BaseModel):
     namespace_id: int = Field(description="Namespace id history is bound to")
     name: str = Field(description="Namespace name")
     description: str = Field(description="Namespace description")
+    owned_by: Optional[str] = Field(default=None, description="The namespace owner")
     action: str = Field(description="Action performed on the namespace record")
     changed_at: datetime = Field(description="Timestamp of a change of the namespace data")
     changed_by: Optional[str] = Field(default=None, description="User who changed the namespace data")

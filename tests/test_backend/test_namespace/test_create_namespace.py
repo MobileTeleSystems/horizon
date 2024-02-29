@@ -84,6 +84,7 @@ async def test_create_namespace(
     assert created_namespace.description == content["description"]
     assert created_namespace.changed_at == changed_at
     assert created_namespace.changed_by_user_id == user.id
+    assert created_namespace.owner_id == user.id
 
     query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace_id)
     query_result = await async_session.scalars(query)
@@ -94,6 +95,7 @@ async def test_create_namespace(
     assert created_namespace_history.description == content["description"]
     assert created_namespace_history.changed_at == changed_at
     assert created_namespace_history.changed_by_user_id == user.id
+    assert created_namespace_history.owner_id == user.id
     assert created_namespace_history.action == "Created"
 
 

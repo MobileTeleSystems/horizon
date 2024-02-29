@@ -34,6 +34,7 @@ def test_sync_client_update_namespace_name(
         name=new_namespace.name,
         description=namespace.description,
         changed_by=user.username,
+        owned_by=user.username,
     )
 
 
@@ -52,6 +53,7 @@ def test_sync_client_update_namespace_description(
         name=namespace.name,
         description=new_namespace.description,
         changed_by=user.username,
+        owned_by=user.username,
     )
 
 

@@ -3,10 +3,19 @@
 
 from __future__ import annotations
 
-from sqlalchemy import SQLColumnExpression
+from typing import Optional
+
+from fastapi import HTTPException, status
+from sqlalchemy import SQLColumnExpression, select
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import HWM, User
+from horizon.backend.db.models import (
+    HWM,
+    Namespace,
+    NamespaceUser,
+    NamespaceUserRole,
+    User,
+)
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto.pagination import Pagination
 from horizon.commons.exceptions.entity import (
@@ -98,3 +107,34 @@ class HWMRepository(Repository[HWM]):
         await self._session.delete(hwm)
         await self._session.flush()
         return hwm
+
+    async def check_user_permission(
+        self,
+        user: User,
+        required_role: NamespaceUserRole,
+        hwm_id: Optional[int] = None,
+        namespace_id: Optional[int] = None,
+    ) -> None:
+        if hwm_id:
+            hwm_query_result = await self._session.execute(select(HWM.namespace_id).where(HWM.id == hwm_id))
+            namespace_id_from_hwm = hwm_query_result.scalar_one_or_none()
+            if namespace_id_from_hwm is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="HWM not found")
+            namespace_id = namespace_id_from_hwm
+
+        owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
+        owner_id = owner_check.scalar_one_or_none()
+        user_role = NamespaceUserRole.owner if owner_id == user.id else NamespaceUserRole.authorized
+
+        if owner_id != user.id:
+            role_result = await self._session.execute(
+                select(NamespaceUser.role).where(
+                    NamespaceUser.namespace_id == namespace_id,
+                    NamespaceUser.user_id == user.id,
+                ),
+            )
+            user_role_value = role_result.scalars().first()
+            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.authorized
+
+        if user_role < required_role:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Action not allowed")

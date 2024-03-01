@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
-from sqlalchemy import SQLColumnExpression
+from fastapi import HTTPException, status
+from sqlalchemy import SQLColumnExpression, select
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import Namespace, User
+from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
 from horizon.commons.exceptions.entity import (
@@ -97,3 +98,21 @@ class NamespaceRepository(Repository[Namespace]):
         await self._session.delete(namespace)
         await self._session.flush()
         return namespace
+
+    async def check_user_permission(self, user: User, namespace_id: int, required_role: NamespaceUserRole) -> None:
+        owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
+        owner_id = owner_check.scalar_one_or_none()
+        if owner_id == user.id:
+            user_role = NamespaceUserRole.owner
+        else:
+            role_result = await self._session.execute(
+                select(NamespaceUser.role).where(
+                    NamespaceUser.namespace_id == namespace_id,
+                    NamespaceUser.user_id == user.id,
+                ),
+            )
+            user_role_value = role_result.scalars().first()
+            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.authorized
+
+        if user_role < required_role:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Action not allowed")

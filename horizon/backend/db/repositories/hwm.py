@@ -119,12 +119,15 @@ class HWMRepository(Repository[HWM]):
             hwm_query_result = await self._session.execute(select(HWM.namespace_id).where(HWM.id == hwm_id))
             namespace_id_from_hwm = hwm_query_result.scalar_one_or_none()
             if namespace_id_from_hwm is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="HWM not found")
+                raise EntityNotFoundError("HWM", "id", hwm_id)
             namespace_id = namespace_id_from_hwm
 
         owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
         owner_id = owner_check.scalar_one_or_none()
         user_role = NamespaceUserRole.owner if owner_id == user.id else NamespaceUserRole.authorized
+
+        if owner_id is None:
+            raise EntityNotFoundError("Namespace", "owner_id", owner_id)
 
         if owner_id != user.id:
             role_result = await self._session.execute(

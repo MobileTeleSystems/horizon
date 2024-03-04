@@ -102,6 +102,9 @@ class NamespaceRepository(Repository[Namespace]):
     async def check_user_permission(self, user: User, namespace_id: int, required_role: NamespaceUserRole) -> None:
         owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
         owner_id = owner_check.scalar_one_or_none()
+        if owner_id is None:
+            raise EntityNotFoundError("Namespace", "owner_id", owner_id)
+
         if owner_id == user.id:
             user_role = NamespaceUserRole.owner
         else:

@@ -11,7 +11,12 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import Namespace, NamespaceHistory, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceHistory,
+    NamespaceUserRole,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -350,3 +355,44 @@ async def test_update_namespace_invalid_name_length(
 
     # Nothing is changed
     assert naturally_equivalent(namespace_after, namespace)
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            (NamespaceUserRole.owner,),
+            200,
+            None,
+        ),
+        (
+            (NamespaceUserRole.maintainer,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+        (
+            (NamespaceUserRole.developer,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+        (
+            (NamespaceUserRole.authorized,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_update_namespace_role_mode(
+    user_with_role, expected_status, expected_response, test_client: AsyncClient, access_token: str
+):
+    user, namespace = user_with_role
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "name": namespace.name,
+        },
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response if expected_response else True

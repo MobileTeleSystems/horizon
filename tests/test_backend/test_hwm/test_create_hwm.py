@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import secrets
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
@@ -10,7 +11,13 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import desc, select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import (
+    HWM,
+    HWMHistory,
+    Namespace,
+    NamespaceUserRole,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -523,3 +530,47 @@ async def test_create_hwm_with_same_name_after_deletion(
     assert created_hwm_history.description == hwm_data["description"]
     assert created_hwm_history.type == hwm_data["type"]
     assert created_hwm_history.value == hwm_data["value"]
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            (NamespaceUserRole.owner,),
+            201,
+            None,
+        ),
+        (
+            (NamespaceUserRole.maintainer,),
+            201,
+            None,
+        ),
+        (
+            (NamespaceUserRole.developer,),
+            201,
+            None,
+        ),
+        (
+            (NamespaceUserRole.authorized,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_create_hwm_role_mode(
+    user_with_role, expected_status, expected_response, test_client: AsyncClient, access_token: str, hwm: HWM
+):
+    user, namespace = user_with_role
+    response = await test_client.post(
+        "/v1/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "namespace_id": namespace.id,
+            "name": secrets.token_hex(6),
+            "type": "abc",
+            "value": 123,
+        },
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response if expected_response else True

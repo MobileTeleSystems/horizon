@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, Namespace, NamespaceHistory, User
+from horizon.backend.db.models import (
+    HWM,
+    Namespace,
+    NamespaceHistory,
+    NamespaceUserRole,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -146,3 +152,41 @@ async def test_delete_namespace_with_existing_hwm(
     result_hwm = await async_session.execute(query_hwm)
     hwm_records = result_hwm.scalars().all()
     assert len(hwm_records) == 0
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            (NamespaceUserRole.owner,),
+            204,
+            None,
+        ),
+        (
+            (NamespaceUserRole.maintainer,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+        (
+            (NamespaceUserRole.developer,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+        (
+            (NamespaceUserRole.authorized,),
+            403,
+            {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_delete_namespace_role_mode(
+    user_with_role, expected_status, expected_response, test_client: AsyncClient, access_token: str
+):
+    user, namespace = user_with_role
+    response = await test_client.delete(
+        f"v1/namespaces/{namespace.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response if expected_response else True

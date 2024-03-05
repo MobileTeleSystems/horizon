@@ -493,22 +493,22 @@ async def test_update_hwm_invalid_field_length(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.owner,),
+            (NamespaceUserRole.OWNER,),
             200,
             None,
         ),
         (
-            (NamespaceUserRole.maintainer,),
+            (NamespaceUserRole.MAINTAINER,),
             200,
             None,
         ),
         (
-            (NamespaceUserRole.developer,),
+            (NamespaceUserRole.DEVELOPER,),
             200,
             None,
         ),
         (
-            (NamespaceUserRole.authorized,),
+            (NamespaceUserRole.AUTHORIZED,),
             403,
             {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
         ),

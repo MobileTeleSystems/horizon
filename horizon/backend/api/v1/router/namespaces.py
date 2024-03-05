@@ -77,7 +77,7 @@ async def update_namespace(
         await unit_of_work.namespace.check_user_permission(
             user=user,
             namespace_id=namespace_id,
-            required_role=NamespaceUserRole.owner,
+            required_role=NamespaceUserRole.OWNER,
         )
         namespace = await unit_of_work.namespace.update(
             namespace_id=namespace_id,
@@ -108,7 +108,7 @@ async def delete_namespace(
         await unit_of_work.namespace.check_user_permission(
             user=user,
             namespace_id=namespace_id,
-            required_role=NamespaceUserRole.owner,
+            required_role=NamespaceUserRole.OWNER,
         )
         hwm_records = await unit_of_work.hwm.paginate(namespace_id=namespace_id, page=1, page_size=1)
         if hwm_records.total_count:

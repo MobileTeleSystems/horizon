@@ -100,22 +100,22 @@ async def test_delete_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.owner,),
+            (NamespaceUserRole.OWNER,),
             204,
             None,
         ),
         (
-            (NamespaceUserRole.maintainer,),
+            (NamespaceUserRole.MAINTAINER,),
             204,
             None,
         ),
         (
-            (NamespaceUserRole.developer,),
+            (NamespaceUserRole.DEVELOPER,),
             403,
             {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
         ),
         (
-            (NamespaceUserRole.authorized,),
+            (NamespaceUserRole.AUTHORIZED,),
             403,
             {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
         ),

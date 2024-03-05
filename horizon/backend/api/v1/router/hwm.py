@@ -55,9 +55,9 @@ async def create_hwm(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> HWMResponseV1:
     async with unit_of_work:
-        await unit_of_work.hwm.check_user_permission(
+        await unit_of_work.namespace.check_user_permission(
             user=user,
-            required_role=NamespaceUserRole.developer,
+            required_role=NamespaceUserRole.DEVELOPER,
             namespace_id=data.namespace_id,
         )
         hwm = await unit_of_work.hwm.create(
@@ -82,10 +82,11 @@ async def update_hwm(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> HWMResponseV1:
     async with unit_of_work:
-        await unit_of_work.hwm.check_user_permission(
+        hwm = await unit_of_work.hwm.get(hwm_id)
+        await unit_of_work.namespace.check_user_permission(
             user=user,
-            required_role=NamespaceUserRole.developer,
-            hwm_id=hwm_id,
+            required_role=NamespaceUserRole.DEVELOPER,
+            namespace_id=hwm.namespace_id,
         )
         hwm = await unit_of_work.hwm.update(
             hwm_id=hwm_id,
@@ -113,10 +114,11 @@ async def delete_hwm(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
     async with unit_of_work:
-        await unit_of_work.hwm.check_user_permission(
+        hwm = await unit_of_work.hwm.get(hwm_id)
+        await unit_of_work.namespace.check_user_permission(
             user=user,
-            required_role=NamespaceUserRole.maintainer,
-            hwm_id=hwm_id,
+            required_role=NamespaceUserRole.MAINTAINER,
+            namespace_id=hwm.namespace_id,
         )
         hwm = await unit_of_work.hwm.delete(hwm_id=hwm_id, user=user)
         await unit_of_work.hwm_history.create(

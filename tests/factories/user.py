@@ -111,7 +111,7 @@ async def user_with_role(
     role = role_tuple[0]
     fake_owner = None
 
-    if role != NamespaceUserRole.owner:
+    if role != NamespaceUserRole.OWNER:
         async with async_session_factory() as async_session:
             fake_owner = User(
                 username=secrets.token_hex(5),

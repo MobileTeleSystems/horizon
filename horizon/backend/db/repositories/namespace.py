@@ -106,7 +106,7 @@ class NamespaceRepository(Repository[Namespace]):
             raise EntityNotFoundError("Namespace", "owner_id", owner_id)
 
         if owner_id == user.id:
-            user_role = NamespaceUserRole.owner
+            user_role = NamespaceUserRole.OWNER
         else:
             role_result = await self._session.execute(
                 select(NamespaceUser.role).where(
@@ -115,7 +115,7 @@ class NamespaceRepository(Repository[Namespace]):
                 ),
             )
             user_role_value = role_result.scalars().first()
-            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.authorized
+            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.AUTHORIZED
 
         if user_role < required_role:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Action not allowed")

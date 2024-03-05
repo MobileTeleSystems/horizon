@@ -11,10 +11,10 @@ from horizon.backend.db.models.base import Base
 
 
 class NamespaceUserRole(enum.IntEnum):
-    authorized = 0
-    developer = 1
-    maintainer = 2
-    owner = 3
+    AUTHORIZED = 0
+    DEVELOPER = 1
+    MAINTAINER = 2
+    OWNER = 3
 
 
 class Namespace(Base, ChangedByMixin):

@@ -536,22 +536,22 @@ async def test_create_hwm_with_same_name_after_deletion(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.owner,),
+            (NamespaceUserRole.OWNER,),
             201,
             None,
         ),
         (
-            (NamespaceUserRole.maintainer,),
+            (NamespaceUserRole.MAINTAINER,),
             201,
             None,
         ),
         (
-            (NamespaceUserRole.developer,),
+            (NamespaceUserRole.DEVELOPER,),
             201,
             None,
         ),
         (
-            (NamespaceUserRole.authorized,),
+            (NamespaceUserRole.AUTHORIZED,),
             403,
             {"error": {"code": "forbidden", "message": "Action not allowed", "details": None}},
         ),

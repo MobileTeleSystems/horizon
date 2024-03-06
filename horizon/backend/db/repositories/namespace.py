@@ -103,7 +103,7 @@ class NamespaceRepository(Repository[Namespace]):
         owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
         owner_id = owner_check.scalar_one_or_none()
         if owner_id is None:
-            raise EntityNotFoundError("Namespace", "owner_id", owner_id)
+            raise EntityNotFoundError("Namespace", "id", namespace_id)
 
         if owner_id == user.id:
             user_role = NamespaceUserRole.OWNER

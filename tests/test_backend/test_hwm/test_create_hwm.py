@@ -76,11 +76,11 @@ async def test_create_hwm_missing_namespace(
     assert response.json() == {
         "error": {
             "code": "not_found",
-            "message": f"Namespace with owner_id={new_namespace.owner_id!r} not found",
+            "message": f"Namespace with id={new_namespace.id!r} not found",
             "details": {
                 "entity_type": "Namespace",
-                "field": "owner_id",
-                "value": new_namespace.owner_id,
+                "field": "id",
+                "value": new_namespace.id,
             },
         },
     }

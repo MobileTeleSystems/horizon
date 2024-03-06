@@ -62,14 +62,14 @@ def test_sync_client_update_namespace_missing(new_namespace: Namespace, sync_cli
 
     with pytest.raises(
         EntityNotFoundError,
-        match=re.escape(f"Namespace with owner_id={new_namespace.owner_id!r} not found"),
+        match=re.escape(f"Namespace with id={new_namespace.id!r} not found"),
     ) as e:
         sync_client.update_namespace(new_namespace.id, to_update)
 
     assert e.value.details == {
         "entity_type": "Namespace",
-        "field": "owner_id",
-        "value": new_namespace.owner_id,
+        "field": "id",
+        "value": new_namespace.id,
     }
 
     # original HTTP exception is attached as reason

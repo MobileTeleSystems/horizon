@@ -93,14 +93,14 @@ def test_sync_client_create_hwm_namespace_missing(
 
     with pytest.raises(
         EntityNotFoundError,
-        match=re.escape(f"Namespace with owner_id={new_namespace.owner_id!r} not found"),
+        match=re.escape(f"Namespace with id={new_namespace.id!r} not found"),
     ) as e:
         sync_client.create_hwm(to_create)
 
     assert e.value.details == {
         "entity_type": "Namespace",
-        "field": "owner_id",
-        "value": new_namespace.owner_id,
+        "field": "id",
+        "value": new_namespace.id,
     }
 
     # original HTTP exception is attached as reason

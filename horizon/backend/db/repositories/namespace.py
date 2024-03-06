@@ -3,16 +3,16 @@
 
 from __future__ import annotations
 
-from fastapi import HTTPException, status
 from sqlalchemy import SQLColumnExpression, select
 from sqlalchemy.exc import IntegrityError
 
 from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
-from horizon.commons.exceptions.entity import (
+from horizon.commons.exceptions import (
     EntityAlreadyExistsError,
     EntityNotFoundError,
+    PermissionDeniedError,
 )
 
 
@@ -118,4 +118,13 @@ class NamespaceRepository(Repository[Namespace]):
             user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.AUTHORIZED
 
         if user_role < required_role:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Action not allowed")
+            actual_role = (
+                user_role_value
+                if user_role_value
+                else (
+                    NamespaceUserRole.OWNER.name  # noqa:  WPS509
+                    if user.id == owner_id
+                    else NamespaceUserRole.AUTHORIZED.name
+                )
+            )
+            raise PermissionDeniedError(required_role.name, actual_role)

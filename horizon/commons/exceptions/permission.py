@@ -16,9 +16,9 @@ class PermissionDeniedError(ApplicationError):
 
     >>> from horizon.commons.exceptions import PermissionDeniedError
     >>> from horizon.backend.db.models import NamespaceUserRole
-    >>> raise PermissionDeniedError(required_role=NamespaceUserRole.DEVELOPER.name, actual_role=NamespaceUserRole.AUTHORIZED.name)
+    >>> raise PermissionDeniedError(required_role=NamespaceUserRole.DEVELOPER.name, actual_role=NamespaceUserRole.GUEST.name)
     Traceback (most recent call last):
-    horizon.commons.exceptions.PermissionDeniedError: Permission denied. User has role AUTHORIZED but action requires at least DEVELOPER.
+    horizon.commons.exceptions.PermissionDeniedError: Permission denied. User has role GUEST but action requires at least DEVELOPER.
     """
 
     required_role: str

@@ -115,7 +115,7 @@ class NamespaceRepository(Repository[Namespace]):
                 ),
             )
             user_role_value = role_result.scalars().first()
-            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.AUTHORIZED
+            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.GUEST
 
         if user_role < required_role:
             raise PermissionDeniedError(required_role.name, user_role.name)

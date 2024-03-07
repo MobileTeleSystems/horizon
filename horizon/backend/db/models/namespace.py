@@ -11,7 +11,7 @@ from horizon.backend.db.models.base import Base
 
 
 class NamespaceUserRole(enum.IntEnum):
-    AUTHORIZED = 0
+    GUEST = 0
     DEVELOPER = 1
     MAINTAINER = 2
     OWNER = 3

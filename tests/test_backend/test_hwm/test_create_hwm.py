@@ -546,15 +546,15 @@ async def test_create_hwm_with_same_name_after_deletion(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.AUTHORIZED,
+            NamespaceUserRole.GUEST,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least DEVELOPER.",
+                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
                     "details": {
                         "required_role": "DEVELOPER",
-                        "actual_role": "AUTHORIZED",
+                        "actual_role": "GUEST",
                     },
                 }
             },

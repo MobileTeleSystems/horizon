@@ -193,15 +193,15 @@ async def test_delete_namespace_with_existing_hwm(
             },
         ),
         (
-            NamespaceUserRole.AUTHORIZED,
+            NamespaceUserRole.GUEST,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least OWNER.",
+                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
-                        "actual_role": "AUTHORIZED",
+                        "actual_role": "GUEST",
                     },
                 }
             },

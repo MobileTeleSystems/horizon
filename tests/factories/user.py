@@ -119,7 +119,7 @@ async def user_with_role(
             namespace.owner_id = fake_owner.id
             async_session.add(namespace)
 
-            if role != NamespaceUserRole.AUTHORIZED:
+            if role != NamespaceUserRole.GUEST:
                 namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
                 async_session.add(namespace_user)
 

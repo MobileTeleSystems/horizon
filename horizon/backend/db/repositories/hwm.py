@@ -85,6 +85,7 @@ class HWMRepository(Repository[HWM]):
                 raise EntityNotFoundError("HWM", "id", hwm_id)
 
             await self._session.flush()
+            await self._session.refresh(result)
             return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError("HWM", "name", changes["name"]) from e

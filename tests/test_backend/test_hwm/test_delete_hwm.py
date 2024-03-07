@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, User
+from horizon.backend.db.models import HWM, NamespaceUserRole, User
 from horizon.backend.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
@@ -58,10 +58,19 @@ async def test_delete_hwm_missing(
     }
 
 
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRole.OWNER,
+        NamespaceUserRole.MAINTAINER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_delete_hwm(
     test_client: AsyncClient,
     access_token: str,
     user: User,
+    user_with_role: None,
     hwm: HWM,
     async_session: AsyncSession,
 ):
@@ -94,3 +103,53 @@ async def test_delete_hwm(
     assert created_hwm_history.action == "Deleted"
     assert created_hwm_history.changed_by_user_id == user.id
     assert pre_delete_timestamp <= created_hwm_history.changed_at <= post_delete_timestamp
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRole.DEVELOPER,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
+                    "details": {
+                        "required_role": "MAINTAINER",
+                        "actual_role": "DEVELOPER",
+                    },
+                }
+            },
+        ),
+        (
+            NamespaceUserRole.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role GUEST but action requires at least MAINTAINER.",
+                    "details": {
+                        "required_role": "MAINTAINER",
+                        "actual_role": "GUEST",
+                    },
+                }
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_delete_hwm_permission_denied(
+    user_with_role: None,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+    hwm: HWM,
+):
+    response = await test_client.delete(
+        f"v1/hwm/{hwm.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

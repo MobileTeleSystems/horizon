@@ -395,6 +395,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             Namespace not found
         :obj:`EntityAlreadyExistsError <horizon.commons.exceptions.entity.EntityAlreadyExistsError>`
             Namespace with the same name already exists
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
 
         Examples
         --------
@@ -427,6 +429,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         ------
         :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
             Namespace not found
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
 
         Examples
         --------
@@ -641,6 +645,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             Namespace not found
         :obj:`EntityAlreadyExistsError <horizon.commons.exceptions.entity.EntityAlreadyExistsError>`
             HWM with the same name already exists
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
 
         Examples
         --------
@@ -690,6 +696,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             HWM not found
         :obj:`EntityAlreadyExistsError <horizon.commons.exceptions.entity.EntityAlreadyExistsError>`
             HWM with the same name already exists
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
 
         Examples
         --------
@@ -725,6 +733,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         ------
         :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
             HWM not found
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
 
         Examples
         --------

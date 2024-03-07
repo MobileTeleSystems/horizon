@@ -3,15 +3,16 @@
 
 from __future__ import annotations
 
-from sqlalchemy import SQLColumnExpression
+from sqlalchemy import SQLColumnExpression, select
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import Namespace, User
+from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
-from horizon.commons.exceptions.entity import (
+from horizon.commons.exceptions import (
     EntityAlreadyExistsError,
     EntityNotFoundError,
+    PermissionDeniedError,
 )
 
 
@@ -97,3 +98,24 @@ class NamespaceRepository(Repository[Namespace]):
         await self._session.delete(namespace)
         await self._session.flush()
         return namespace
+
+    async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRole) -> None:
+        owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
+        owner_id = owner_check.scalar_one_or_none()
+        if owner_id is None:
+            raise EntityNotFoundError("Namespace", "id", namespace_id)
+
+        if owner_id == user_id:
+            user_role = NamespaceUserRole.OWNER
+        else:
+            role_result = await self._session.execute(
+                select(NamespaceUser.role).where(
+                    NamespaceUser.namespace_id == namespace_id,
+                    NamespaceUser.user_id == user_id,
+                ),
+            )
+            user_role_value = role_result.scalars().first()
+            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.GUEST
+
+        if user_role < required_role:
+            raise PermissionDeniedError(required_role.name, user_role.name)

@@ -1,11 +1,20 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+import enum
+
 from sqlalchemy import BigInteger, ForeignKey, String, Text
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from horizon.backend.db.mixins.changed_by import ChangedByMixin
 from horizon.backend.db.models.base import Base
+
+
+class NamespaceUserRole(enum.IntEnum):
+    GUEST = 0
+    DEVELOPER = 1
+    MAINTAINER = 2
+    OWNER = 3
 
 
 class Namespace(Base, ChangedByMixin):

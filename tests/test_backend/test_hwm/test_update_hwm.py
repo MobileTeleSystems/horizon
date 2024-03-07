@@ -10,7 +10,13 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import (
+    HWM,
+    HWMHistory,
+    Namespace,
+    NamespaceUserRole,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -73,9 +79,19 @@ async def test_update_hwm_missing(
     ],
     indirect=True,
 )
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRole.OWNER,
+        NamespaceUserRole.MAINTAINER,
+        NamespaceUserRole.DEVELOPER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_update_hwm(
     test_client: AsyncClient,
     access_token: str,
+    user_with_role: None,
     user: User,
     namespace: Namespace,
     hwm: HWM,
@@ -481,3 +497,40 @@ async def test_update_hwm_invalid_field_length(
 
     # Nothing is changed
     assert naturally_equivalent(hwm_after, hwm)
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRole.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+                    "details": {
+                        "required_role": "DEVELOPER",
+                        "actual_role": "GUEST",
+                    },
+                }
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_update_hwm_permission_denied(
+    user_with_role: None,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+    hwm: HWM,
+):
+    response = await test_client.patch(
+        f"v1/hwm/{hwm.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"value": "value"},
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

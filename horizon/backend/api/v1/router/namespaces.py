@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import Annotated
 
-from horizon.backend.db.models import User
+from horizon.backend.db.models import NamespaceUserRole, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
@@ -74,6 +74,11 @@ async def update_namespace(
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
     async with unit_of_work:
+        await unit_of_work.namespace.check_user_permission(
+            user_id=user.id,
+            namespace_id=namespace_id,
+            required_role=NamespaceUserRole.OWNER,
+        )
         namespace = await unit_of_work.namespace.update(
             namespace_id=namespace_id,
             changes=changes.dict(exclude_defaults=True),
@@ -100,6 +105,11 @@ async def delete_namespace(
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
     async with unit_of_work:
+        await unit_of_work.namespace.check_user_permission(
+            user_id=user.id,
+            namespace_id=namespace_id,
+            required_role=NamespaceUserRole.OWNER,
+        )
         hwm_records = await unit_of_work.hwm.paginate(namespace_id=namespace_id, page=1, page_size=1)
         if hwm_records.total_count:
             raise HTTPException(

@@ -11,7 +11,12 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import Namespace, NamespaceHistory, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceHistory,
+    NamespaceUserRole,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -124,11 +129,19 @@ async def test_update_namespace_name(
     assert updated_namespace_history.action == "Updated"
 
 
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRole.OWNER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_update_namespace_description(
     test_client: AsyncClient,
     access_token: str,
     user: User,
     namespace: Namespace,
+    user_with_role: None,
     new_namespace: Namespace,
     async_session: AsyncSession,
 ):
@@ -350,3 +363,70 @@ async def test_update_namespace_invalid_name_length(
 
     # Nothing is changed
     assert naturally_equivalent(namespace_after, namespace)
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRole.MAINTAINER,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "MAINTAINER",
+                    },
+                }
+            },
+        ),
+        (
+            NamespaceUserRole.DEVELOPER,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "DEVELOPER",
+                    },
+                }
+            },
+        ),
+        (
+            NamespaceUserRole.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "GUEST",
+                    },
+                }
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_update_namespace_permission_denied(
+    namespace: Namespace,
+    user_with_role: None,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+):
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "name": namespace.name,
+        },
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

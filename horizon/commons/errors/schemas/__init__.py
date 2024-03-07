@@ -4,6 +4,7 @@ from horizon.commons.errors.schemas.already_exists import AlreadyExistsSchema
 from horizon.commons.errors.schemas.invalid_request import InvalidRequestSchema
 from horizon.commons.errors.schemas.not_authorized import NotAuthorizedSchema
 from horizon.commons.errors.schemas.not_found import NotFoundSchema
+from horizon.commons.errors.schemas.permission_denied import PermissionDeniedSchema
 
 __all__ = [
     "AlreadyExistsSchema",

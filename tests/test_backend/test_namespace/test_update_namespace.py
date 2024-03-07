@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Tuple
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
@@ -131,17 +131,20 @@ async def test_update_namespace_name(
 
 @pytest.mark.parametrize(
     "user_with_role",
-    [(NamespaceUserRole.OWNER,)],
+    [
+        NamespaceUserRole.OWNER,
+    ],
     indirect=["user_with_role"],
 )
 async def test_update_namespace_description(
     test_client: AsyncClient,
     access_token: str,
-    user_with_role: Tuple[User, Namespace],
+    user: User,
+    namespace: Namespace,
+    user_with_role: None,
     new_namespace: Namespace,
     async_session: AsyncSession,
 ):
-    user, namespace = user_with_role
     current_dt = datetime.now(tz=timezone.utc)
     response = await test_client.patch(
         f"v1/namespaces/{namespace.id}",
@@ -366,43 +369,43 @@ async def test_update_namespace_invalid_name_length(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.MAINTAINER,),
+            NamespaceUserRole.MAINTAINER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.MAINTAINER.name}",
+                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.MAINTAINER.name,
+                        "required_role": "OWNER",
+                        "actual_role": "MAINTAINER",
                     },
                 }
             },
         ),
         (
-            (NamespaceUserRole.DEVELOPER,),
+            NamespaceUserRole.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.DEVELOPER.name}",
+                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.DEVELOPER.name,
+                        "required_role": "OWNER",
+                        "actual_role": "DEVELOPER",
                     },
                 }
             },
         ),
         (
-            (NamespaceUserRole.AUTHORIZED,),
+            NamespaceUserRole.AUTHORIZED,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.AUTHORIZED.name}",
+                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.AUTHORIZED.name,
+                        "required_role": "OWNER",
+                        "actual_role": "AUTHORIZED",
                     },
                 }
             },
@@ -411,13 +414,13 @@ async def test_update_namespace_invalid_name_length(
     indirect=["user_with_role"],
 )
 async def test_update_namespace_permission_denied(
-    user_with_role: Tuple[User, Namespace],
+    namespace: Namespace,
+    user_with_role: None,
     expected_status: int,
     expected_response: dict,
     test_client: AsyncClient,
     access_token: str,
 ):
-    user, namespace = user_with_role
     response = await test_client.patch(
         f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},

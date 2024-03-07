@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, Namespace, NamespaceUserRole, User
+from horizon.backend.db.models import HWM, NamespaceUserRole, User
 from horizon.backend.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
@@ -60,17 +60,20 @@ async def test_delete_hwm_missing(
 
 @pytest.mark.parametrize(
     "user_with_role",
-    [(NamespaceUserRole.OWNER,), (NamespaceUserRole.MAINTAINER,)],
+    [
+        NamespaceUserRole.OWNER,
+        NamespaceUserRole.MAINTAINER,
+    ],
     indirect=["user_with_role"],
 )
 async def test_delete_hwm(
     test_client: AsyncClient,
     access_token: str,
-    user_with_role: Tuple[User, Namespace],
+    user: User,
+    user_with_role: None,
     hwm: HWM,
     async_session: AsyncSession,
 ):
-    user, namespace = user_with_role
     pre_delete_timestamp = datetime.now(timezone.utc) - timedelta(minutes=1)
     response = await test_client.delete(
         f"v1/hwm/{hwm.id}",
@@ -106,29 +109,29 @@ async def test_delete_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.DEVELOPER,),
+            NamespaceUserRole.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.MAINTAINER.name} role. Actual role is {NamespaceUserRole.DEVELOPER.name}",
+                    "message": f"Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
                     "details": {
-                        "required_role": NamespaceUserRole.MAINTAINER.name,
-                        "actual_role": NamespaceUserRole.DEVELOPER.name,
+                        "required_role": "MAINTAINER",
+                        "actual_role": "DEVELOPER",
                     },
                 }
             },
         ),
         (
-            (NamespaceUserRole.AUTHORIZED,),
+            NamespaceUserRole.AUTHORIZED,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.MAINTAINER.name} role. Actual role is {NamespaceUserRole.AUTHORIZED.name}",
+                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least MAINTAINER.",
                     "details": {
-                        "required_role": NamespaceUserRole.MAINTAINER.name,
-                        "actual_role": NamespaceUserRole.AUTHORIZED.name,
+                        "required_role": "MAINTAINER",
+                        "actual_role": "AUTHORIZED",
                     },
                 }
             },
@@ -137,7 +140,7 @@ async def test_delete_hwm(
     indirect=["user_with_role"],
 )
 async def test_delete_hwm_permission_denied(
-    user_with_role: Tuple[User, Namespace],
+    user_with_role: None,
     expected_status: int,
     expected_response: dict,
     test_client: AsyncClient,

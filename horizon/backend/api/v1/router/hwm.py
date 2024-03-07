@@ -56,7 +56,7 @@ async def create_hwm(
 ) -> HWMResponseV1:
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
-            user=user,
+            user_id=user.id,
             required_role=NamespaceUserRole.DEVELOPER,
             namespace_id=data.namespace_id,
         )
@@ -84,7 +84,7 @@ async def update_hwm(
     async with unit_of_work:
         hwm = await unit_of_work.hwm.get(hwm_id)
         await unit_of_work.namespace.check_user_permission(
-            user=user,
+            user_id=user.id,
             required_role=NamespaceUserRole.DEVELOPER,
             namespace_id=hwm.namespace_id,
         )
@@ -116,7 +116,7 @@ async def delete_hwm(
     async with unit_of_work:
         hwm = await unit_of_work.hwm.get(hwm_id)
         await unit_of_work.namespace.check_user_permission(
-            user=user,
+            user_id=user.id,
             required_role=NamespaceUserRole.MAINTAINER,
             namespace_id=hwm.namespace_id,
         )

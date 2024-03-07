@@ -100,34 +100,32 @@ async def users(
         await async_session.commit()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(params=[NamespaceUserRole.DEVELOPER])
 async def user_with_role(
     request: pytest.FixtureRequest,
     user: User,
     namespace: Namespace,
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
-) -> AsyncGenerator[tuple[User, Namespace], None]:
-    role_tuple = request.param
-    role = role_tuple[0]
+) -> AsyncGenerator[None, None]:
+    role = request.param
     fake_owner = None
 
-    if role != NamespaceUserRole.OWNER:
-        async with async_session_factory() as async_session:
-            fake_owner = User(
-                username=secrets.token_hex(5),
-                is_active=True,
-            )
+    async with async_session_factory() as async_session:
+        if role != NamespaceUserRole.OWNER:
+            fake_owner = User(username=secrets.token_hex(5), is_active=True)
             async_session.add(fake_owner)
             await async_session.commit()
 
             namespace.owner_id = fake_owner.id
             async_session.add(namespace)
 
-            namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
-            async_session.add(namespace_user)
+            if role != NamespaceUserRole.AUTHORIZED:
+                namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
+                async_session.add(namespace_user)
+
             await async_session.commit()
 
-    yield user, namespace
+    yield
 
     async with async_session_factory() as async_session:
         if fake_owner:

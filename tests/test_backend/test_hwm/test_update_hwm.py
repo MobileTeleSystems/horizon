@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Tuple
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
@@ -81,18 +81,23 @@ async def test_update_hwm_missing(
 )
 @pytest.mark.parametrize(
     "user_with_role",
-    [(NamespaceUserRole.OWNER,), (NamespaceUserRole.MAINTAINER,), (NamespaceUserRole.DEVELOPER,)],
+    [
+        NamespaceUserRole.OWNER,
+        NamespaceUserRole.MAINTAINER,
+        NamespaceUserRole.DEVELOPER,
+    ],
     indirect=["user_with_role"],
 )
 async def test_update_hwm(
     test_client: AsyncClient,
     access_token: str,
-    user_with_role: Tuple[User, Namespace],
+    user_with_role: None,
+    user: User,
+    namespace: Namespace,
     hwm: HWM,
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
-    user, namespace = user_with_role
     current_dt = datetime.now(tz=timezone.utc)
 
     response = await test_client.patch(
@@ -498,15 +503,15 @@ async def test_update_hwm_invalid_field_length(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.AUTHORIZED,),
+            NamespaceUserRole.AUTHORIZED,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.DEVELOPER.name} role. Actual role is {NamespaceUserRole.AUTHORIZED.name}",
+                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least DEVELOPER.",
                     "details": {
-                        "required_role": NamespaceUserRole.DEVELOPER.name,
-                        "actual_role": NamespaceUserRole.AUTHORIZED.name,
+                        "required_role": "DEVELOPER",
+                        "actual_role": "AUTHORIZED",
                     },
                 }
             },
@@ -515,7 +520,7 @@ async def test_update_hwm_invalid_field_length(
     indirect=["user_with_role"],
 )
 async def test_update_hwm_permission_denied(
-    user_with_role: Tuple[User, Namespace],
+    user_with_role: None,
     expected_status: int,
     expected_response: dict,
     test_client: AsyncClient,

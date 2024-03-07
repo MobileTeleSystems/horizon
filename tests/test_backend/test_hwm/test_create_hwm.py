@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Tuple
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
@@ -96,17 +96,22 @@ async def test_create_hwm_missing_namespace(
 )
 @pytest.mark.parametrize(
     "user_with_role",
-    [(NamespaceUserRole.OWNER,), (NamespaceUserRole.MAINTAINER,), (NamespaceUserRole.DEVELOPER,)],
+    [
+        NamespaceUserRole.OWNER,
+        NamespaceUserRole.MAINTAINER,
+        NamespaceUserRole.DEVELOPER,
+    ],
     indirect=["user_with_role"],
 )
 async def test_create_hwm(
     test_client: AsyncClient,
     access_token: str,
-    user_with_role: Tuple[User, Namespace],
+    user: User,
+    namespace: Namespace,
+    user_with_role: None,
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
-    user, namespace = user_with_role
     current_dt = datetime.now(tz=timezone.utc)
 
     response = await test_client.post(
@@ -541,15 +546,15 @@ async def test_create_hwm_with_same_name_after_deletion(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.AUTHORIZED,),
+            NamespaceUserRole.AUTHORIZED,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.DEVELOPER.name} role. Actual role is {NamespaceUserRole.AUTHORIZED.name}",
+                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least DEVELOPER.",
                     "details": {
-                        "required_role": NamespaceUserRole.DEVELOPER.name,
-                        "actual_role": NamespaceUserRole.AUTHORIZED.name,
+                        "required_role": "DEVELOPER",
+                        "actual_role": "AUTHORIZED",
                     },
                 }
             },
@@ -558,13 +563,13 @@ async def test_create_hwm_with_same_name_after_deletion(
     indirect=["user_with_role"],
 )
 async def test_create_hwm_permission_denied(
-    user_with_role: Tuple[User, Namespace],
+    user_with_role: None,
+    namespace: Namespace,
     expected_status: int,
     expected_response: dict,
     test_client: AsyncClient,
     access_token: str,
 ):
-    user, namespace = user_with_role
     response = await test_client.post(
         "/v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},

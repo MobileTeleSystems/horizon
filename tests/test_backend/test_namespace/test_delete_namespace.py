@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import select
@@ -65,16 +65,19 @@ async def test_delete_namespace_missing(
 
 @pytest.mark.parametrize(
     "user_with_role",
-    [(NamespaceUserRole.OWNER,)],
+    [
+        NamespaceUserRole.OWNER,
+    ],
     indirect=["user_with_role"],
 )
 async def test_delete_namespace(
     test_client: AsyncClient,
     access_token: str,
-    user_with_role: Tuple[User, Namespace],
+    user: User,
+    namespace: Namespace,
+    user_with_role: None,
     async_session: AsyncSession,
 ):
-    user, namespace = user_with_role
     pre_delete_timestamp = datetime.now(timezone.utc) - timedelta(minutes=1)
     response = await test_client.delete(
         f"v1/namespaces/{namespace.id}",
@@ -106,7 +109,6 @@ async def test_delete_namespace(
 async def test_delete_namespace_with_existing_hwm(
     test_client: AsyncClient,
     access_token: str,
-    user: User,
     namespace: Namespace,
     hwm: HWM,
     async_session: AsyncSession,
@@ -163,43 +165,43 @@ async def test_delete_namespace_with_existing_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            (NamespaceUserRole.MAINTAINER,),
+            NamespaceUserRole.MAINTAINER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.MAINTAINER.name}",
+                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.MAINTAINER.name,
+                        "required_role": "OWNER",
+                        "actual_role": "MAINTAINER",
                     },
                 }
             },
         ),
         (
-            (NamespaceUserRole.DEVELOPER,),
+            NamespaceUserRole.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.DEVELOPER.name}",
+                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.DEVELOPER.name,
+                        "required_role": "OWNER",
+                        "actual_role": "DEVELOPER",
                     },
                 }
             },
         ),
         (
-            (NamespaceUserRole.AUTHORIZED,),
+            NamespaceUserRole.AUTHORIZED,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied as user lacks {NamespaceUserRole.OWNER.name} role. Actual role is {NamespaceUserRole.AUTHORIZED.name}",
+                    "message": f"Permission denied. User has role AUTHORIZED but action requires at least OWNER.",
                     "details": {
-                        "required_role": NamespaceUserRole.OWNER.name,
-                        "actual_role": NamespaceUserRole.AUTHORIZED.name,
+                        "required_role": "OWNER",
+                        "actual_role": "AUTHORIZED",
                     },
                 }
             },
@@ -208,13 +210,13 @@ async def test_delete_namespace_with_existing_hwm(
     indirect=["user_with_role"],
 )
 async def test_delete_namespace_permission_denied(
-    user_with_role: Tuple[User, Namespace],
+    user_with_role: None,
+    namespace: Namespace,
     expected_status: int,
     expected_response: dict,
     test_client: AsyncClient,
     access_token: str,
 ):
-    user, namespace = user_with_role
     response = await test_client.delete(
         f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},

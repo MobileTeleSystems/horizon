@@ -16,9 +16,9 @@ class PermissionDeniedError(ApplicationError):
 
     >>> from horizon.commons.exceptions import PermissionDeniedError
     >>> from horizon.backend.db.models import NamespaceUserRole
-    >>> raise PermissionDeniedError(NamespaceUserRole.DEVELOPER.name, NamespaceUserRole.AUTHORIZED.name)
+    >>> raise PermissionDeniedError(required_role=NamespaceUserRole.DEVELOPER.name, actual_role=NamespaceUserRole.AUTHORIZED.name)
     Traceback (most recent call last):
-    horizon.commons.exceptions.PermissionDeniedError: Permission denied as user lacks DEVELOPER role. Actual role is AUTHORIZED.
+    horizon.commons.exceptions.PermissionDeniedError: Permission denied. User has role AUTHORIZED but action requires at least DEVELOPER.
     """
 
     required_role: str
@@ -33,7 +33,7 @@ class PermissionDeniedError(ApplicationError):
 
     @property
     def message(self) -> str:
-        return f"Permission denied as user lacks {self.required_role} role. Actual role is {self.actual_role}"
+        return f"Permission denied. User has role {self.actual_role} but action requires at least {self.required_role}."
 
     @property
     def details(self) -> dict[str, Any]:

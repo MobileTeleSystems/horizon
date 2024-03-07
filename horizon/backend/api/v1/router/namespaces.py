@@ -75,7 +75,7 @@ async def update_namespace(
 ) -> NamespaceResponseV1:
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
-            user=user,
+            user_id=user.id,
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )
@@ -106,7 +106,7 @@ async def delete_namespace(
 ) -> None:
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
-            user=user,
+            user_id=user.id,
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )

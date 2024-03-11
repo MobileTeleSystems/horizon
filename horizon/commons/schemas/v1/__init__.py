@@ -26,6 +26,12 @@ from horizon.commons.schemas.v1.pagination import (
     PageResponseV1,
     PaginateQueryV1,
 )
+from horizon.commons.schemas.v1.permission import (
+    PermissionResponseItemV1,
+    PermissionsRequestItemV1,
+    PermissionsRequestV1,
+    PermissionsResponseV1,
+)
 from horizon.commons.schemas.v1.user import UserResponseV1
 
 __all__ = [
@@ -45,5 +51,9 @@ __all__ = [
     "PageMetaResponseV1",
     "PageResponseV1",
     "PaginateQueryV1",
+    "PermissionsRequestItemV1",
+    "PermissionResponseItemV1",
+    "PermissionsResponseV1",
+    "PermissionsRequestV1",
     "UserResponseV1",
 ]

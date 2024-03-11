@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import List
+
 from sqlalchemy import SQLColumnExpression, select
 from sqlalchemy.exc import IntegrityError
 
@@ -119,3 +121,19 @@ class NamespaceRepository(Repository[Namespace]):
 
         if user_role < required_role:
             raise PermissionDeniedError(required_role.name, user_role.name)
+
+    async def get_permissions(self, namespace_id: int) -> List[dict]:
+        namespace = await self.get(namespace_id)
+
+        query = (
+            select(User.username, NamespaceUser.role)
+            .join(NamespaceUser, User.id == NamespaceUser.user_id)
+            .where(NamespaceUser.namespace_id == namespace_id)
+        )
+
+        result = await self._session.execute(query)
+        permissions = [{"username": namespace.owned_by, "role": NamespaceUserRole.OWNER.name}]
+        for user_name, role in result.fetchall():
+            permissions.append({"username": user_name, "role": role})
+
+        return permissions

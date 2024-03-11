@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import List
 
-from sqlalchemy import SQLColumnExpression, select
+from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
@@ -16,6 +16,7 @@ from horizon.commons.exceptions import (
     EntityNotFoundError,
     PermissionDeniedError,
 )
+from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1
 
 
 class NamespaceRepository(Repository[Namespace]):
@@ -137,3 +138,68 @@ class NamespaceRepository(Repository[Namespace]):
             permissions.append({"username": user_name, "role": role})
 
         return permissions
+
+    async def update_permissions(  # noqa:  WPS217
+        self,
+        namespace_id: int,
+        permissions_update: PermissionsUpdateRequestV1,
+    ) -> List[dict]:
+        updated_permissions = []
+
+        for perm in permissions_update.permissions:
+            user = await self._get_user_by_username(perm.username)
+
+            user_id = user.id
+            if perm.role is None:
+                await self._session.execute(
+                    delete(NamespaceUser).where(
+                        NamespaceUser.namespace_id == namespace_id,
+                        NamespaceUser.user_id == user_id,
+                    ),
+                )
+            else:
+                role_enum = NamespaceUserRole[perm.role.upper()]
+                if role_enum == NamespaceUserRole.OWNER:
+                    await self._session.execute(
+                        update(Namespace).where(Namespace.id == namespace_id).values(owner_id=user_id),
+                    )
+                    await self._session.execute(
+                        delete(NamespaceUser).where(
+                            NamespaceUser.namespace_id == namespace_id,
+                            NamespaceUser.user_id == user_id,
+                        ),
+                    )
+                else:
+                    result = await self._session.execute(
+                        select(NamespaceUser).where(
+                            NamespaceUser.namespace_id == namespace_id,
+                            NamespaceUser.user_id == user_id,
+                        ),
+                    )
+                    existing_record = result.scalars().first()
+                    if existing_record:
+                        await self._session.execute(
+                            update(NamespaceUser)
+                            .where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id)
+                            .values(role=role_enum.name),
+                        )
+                    else:
+                        await self._session.execute(
+                            insert(NamespaceUser).values(
+                                namespace_id=namespace_id,
+                                user_id=user_id,
+                                role=role_enum.name,
+                            ),
+                        )
+
+                updated_permissions.append({"username": perm.username, "role": role_enum.name})
+
+        return updated_permissions
+
+    async def _get_user_by_username(self, username: str) -> User:
+        query = select(User).where(User.username == username)
+        result = await self._session.execute(query)
+        user = result.scalars().first()
+        if not user:
+            raise EntityNotFoundError("User", "username", username)
+        return user

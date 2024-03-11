@@ -239,7 +239,6 @@ relative_files = true
 concurrency = ["gevent"]
 omit = [
   "tests/*",
-  "horizon/db/migrations/*",
 ]
 data_file = "reports/.coverage"
 

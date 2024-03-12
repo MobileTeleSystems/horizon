@@ -176,7 +176,7 @@ class NamespaceRepository(Repository[Namespace]):
                     # without reassigning new OWNER to namespace
                     # TODO: create custom exception if logic is acceptable
                     raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN,
+                        status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Operation forbidden: The current owner cannot change their rights"
                         " without reassigning them to another user.",
                     )

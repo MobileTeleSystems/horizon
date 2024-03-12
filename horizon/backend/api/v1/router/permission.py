@@ -51,6 +51,7 @@ async def update_namespace_permissions(
         )
         updated_permissions = await unit_of_work.namespace.update_permissions(
             namespace_id=namespace_id,
+            owner_id=user.id,
             permissions_update=changes,
         )
     return PermissionsResponseV1(

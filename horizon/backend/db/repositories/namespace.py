@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import List
 
+from fastapi import HTTPException, status
 from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -142,15 +143,45 @@ class NamespaceRepository(Repository[Namespace]):
     async def update_permissions(  # noqa:  WPS217
         self,
         namespace_id: int,
+        owner_id: int,
         permissions_update: PermissionsUpdateRequestV1,
     ) -> List[dict]:
         updated_permissions = []
+        new_owner_id = None
+        seen_usernames = set()
+        owner_assignment_count = 0
 
-        for perm in permissions_update.permissions:
-            user = await self._get_user_by_username(perm.username)
+        # sort permissions so that "OWNER" role updates come first to not depend on order of assignments
+        sorted_permissions = sorted(
+            permissions_update.permissions,
+            key=lambda perm: perm.role.upper() == NamespaceUserRole.OWNER.name if perm.role else False,
+            reverse=True,
+        )
+
+        for permission in sorted_permissions:
+            # TODO: create custom exception if logic is acceptable
+            if permission.username in seen_usernames:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Duplicate username detected: {permission.username}. Each username must appear only once.",
+                )
+            user = await self._get_user_by_username(permission.username)
 
             user_id = user.id
-            if perm.role is None:
+
+            if user_id == owner_id:
+                role_enum = NamespaceUserRole[permission.role.upper()] if permission.role else None
+                if role_enum != NamespaceUserRole.OWNER and not new_owner_id:
+                    # raise an error if the current owner tries to change their role to something other than OWNER
+                    # without reassigning new OWNER to namespace
+                    # TODO: create custom exception if logic is acceptable
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Operation forbidden: The current owner cannot change their rights"
+                        " without reassigning them to another user.",
+                    )
+
+            if permission.role is None:
                 await self._session.execute(
                     delete(NamespaceUser).where(
                         NamespaceUser.namespace_id == namespace_id,
@@ -158,8 +189,16 @@ class NamespaceRepository(Repository[Namespace]):
                     ),
                 )
             else:
-                role_enum = NamespaceUserRole[perm.role.upper()]
+                role_enum = NamespaceUserRole[permission.role.upper()]
                 if role_enum == NamespaceUserRole.OWNER:
+                    owner_assignment_count += 1
+                    if owner_assignment_count > 1:
+                        # TODO: create custom exception if logic is acceptable
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Multiple owner role assignments detected. Only one owner can be assigned.",
+                        )
+                    new_owner_id = user_id
                     await self._session.execute(
                         update(Namespace).where(Namespace.id == namespace_id).values(owner_id=user_id),
                     )
@@ -192,7 +231,8 @@ class NamespaceRepository(Repository[Namespace]):
                             ),
                         )
 
-                updated_permissions.append({"username": perm.username, "role": role_enum.name})
+                updated_permissions.append({"username": permission.username, "role": role_enum.name})
+                seen_usernames.add(permission.username)
 
         return updated_permissions
 

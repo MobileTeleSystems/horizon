@@ -15,6 +15,7 @@ All of then are based on Pydantic models.
     namespace_history
     hwm
     hwm_history
+    permissions
 
     user
     ping

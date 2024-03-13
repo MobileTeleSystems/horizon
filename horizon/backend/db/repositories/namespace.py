@@ -3,9 +3,8 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import TYPE_CHECKING, List
 
-from fastapi import HTTPException, status
 from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -13,11 +12,14 @@ from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRol
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
 from horizon.commons.exceptions import (
+    BadRequestError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
     PermissionDeniedError,
 )
-from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1
+
+if TYPE_CHECKING:
+    from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1
 
 
 class NamespaceRepository(Repository[Namespace]):
@@ -124,7 +126,7 @@ class NamespaceRepository(Repository[Namespace]):
         if user_role < required_role:
             raise PermissionDeniedError(required_role.name, user_role.name)
 
-    async def get_permissions(self, namespace_id: int) -> List[dict]:
+    async def get_namespace_users_permissions(self, namespace_id: int) -> List[dict]:
         namespace = await self.get(namespace_id)
 
         query = (
@@ -140,7 +142,7 @@ class NamespaceRepository(Repository[Namespace]):
 
         return permissions
 
-    async def update_permissions(  # noqa:  WPS217
+    async def update_namespace_users_permissions(  # noqa:  WPS217
         self,
         namespace_id: int,
         owner_id: int,
@@ -159,11 +161,9 @@ class NamespaceRepository(Repository[Namespace]):
         )
 
         for permission in sorted_permissions:
-            # TODO: create custom exception if logic is acceptable
             if permission.username in seen_usernames:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Duplicate username detected: {permission.username}. Each username must appear only once.",
+                raise BadRequestError(
+                    f"Duplicate username detected: {permission.username}. Each username must appear only once.",
                 )
             user = await self._get_user_by_username(permission.username)
 
@@ -174,10 +174,8 @@ class NamespaceRepository(Repository[Namespace]):
                 if role_enum != NamespaceUserRole.OWNER and not new_owner_id:
                     # raise an error if the current owner tries to change their role to something other than OWNER
                     # without reassigning new OWNER to namespace
-                    # TODO: create custom exception if logic is acceptable
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Operation forbidden: The current owner cannot change their rights"
+                    raise BadRequestError(
+                        "Operation forbidden: The current owner cannot change their rights"
                         " without reassigning them to another user.",
                     )
 
@@ -193,10 +191,8 @@ class NamespaceRepository(Repository[Namespace]):
                 if role_enum == NamespaceUserRole.OWNER:
                     owner_assignment_count += 1
                     if owner_assignment_count > 1:
-                        # TODO: create custom exception if logic is acceptable
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Multiple owner role assignments detected. Only one owner can be assigned.",
+                        raise BadRequestError(
+                            "Multiple owner role assignments detected. Only one owner can be assigned.",
                         )
                     new_owner_id = user_id
                     await self._session.execute(

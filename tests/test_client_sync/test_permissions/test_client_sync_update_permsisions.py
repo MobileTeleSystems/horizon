@@ -10,7 +10,7 @@ import requests
 
 from horizon.backend.db.models import Namespace, NamespaceUserRole, User
 from horizon.client.sync import HorizonClientSync
-from horizon.commons.exceptions import EntityNotFoundError, PermissionDeniedError
+from horizon.commons.exceptions import BadRequestError, EntityNotFoundError
 from horizon.commons.schemas.v1 import (
     PermissionsResponseV1,
     PermissionsUpdateRequestV1,
@@ -88,13 +88,14 @@ def test_sync_client_update_namespace_permissions_namespace_missing(
         ),
     ],
 )
-def test_sync_client_update_namespace_permissions_invalid(
+def test_sync_client_update_namespace_permissions_invalid_request(
     namespace: Namespace,
     invalid_changes: PermissionsUpdateRequestV1,
     sync_client: HorizonClientSync,
     namespace_with_users: None,
 ):
-    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+    with pytest.raises(BadRequestError) as exc_info:
         sync_client.update_namespace_permissions(namespace.id, invalid_changes)
 
-    assert exc_info.value.response.status_code == 400
+    assert isinstance(exc_info.value.__cause__, requests.exceptions.HTTPError)
+    assert exc_info.value.__cause__.response.status_code == 400

@@ -28,7 +28,7 @@ async def get_namespace_permissions(
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )
-        permissions = await unit_of_work.namespace.get_permissions(namespace_id)
+        permissions = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
     return PermissionsResponseV1(permissions=[PermissionResponseItemV1(**perm) for perm in permissions])
 
 
@@ -49,13 +49,14 @@ async def update_namespace_permissions(
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )
-        updated_permissions = await unit_of_work.namespace.update_permissions(
+        updated_permissions = await unit_of_work.namespace.update_namespace_users_permissions(
             namespace_id=namespace_id,
             owner_id=user.id,
             permissions_update=changes,
         )
     return PermissionsResponseV1(
         permissions=[
-            PermissionResponseItemV1(username=perm["username"], role=perm["role"]) for perm in updated_permissions
+            PermissionResponseItemV1(username=permission["username"], role=permission["role"])
+            for permission in updated_permissions
         ],
     )

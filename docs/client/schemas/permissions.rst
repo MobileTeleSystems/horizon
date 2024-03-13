@@ -1,7 +1,7 @@
 .. _client-schemas-permissions:
 
 Permissions-related schemas
-=========================
+===========================
 
 .. currentmodule:: horizon.commons.schemas.v1.permission
 

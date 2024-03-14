@@ -10,7 +10,12 @@ import pytest_asyncio
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceUser,
+    NamespaceUserRoleInt,
+    User,
+)
 
 
 @pytest_asyncio.fixture
@@ -30,8 +35,8 @@ async def namespace_with_users(
             await async_session.commit()
             created_users.append(user)
 
-            if role != NamespaceUserRole.GUEST:
-                if role == NamespaceUserRole.OWNER:
+            if role != NamespaceUserRoleInt.GUEST:
+                if role == NamespaceUserRoleInt.OWNER:
                     namespace.owner_id = user.id
                 else:
                     namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)

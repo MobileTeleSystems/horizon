@@ -8,7 +8,7 @@ import re
 import pytest
 import requests
 
-from horizon.backend.db.models import Namespace, NamespaceUserRole, User
+from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
 from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions import BadRequestError, EntityNotFoundError
 from horizon.commons.schemas.v1 import (
@@ -23,7 +23,7 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
-        [("new_user", NamespaceUserRole.MAINTAINER)],
+        [("new_user", NamespaceUserRoleInt.MAINTAINER)],
     ],
     indirect=["namespace_with_users"],
 )
@@ -32,19 +32,19 @@ def test_sync_client_update_namespace_permissions(
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
-            PermissionUpdateRequestItemV1(username=user.username, role=NamespaceUserRole.DEVELOPER.name),
-            PermissionUpdateRequestItemV1(username="new_user", role=NamespaceUserRole.OWNER.name),
+            PermissionUpdateRequestItemV1(username=user.username, role=NamespaceUserRoleInt.DEVELOPER.name),
+            PermissionUpdateRequestItemV1(username="new_user", role=NamespaceUserRoleInt.OWNER.name),
         ]
     )
     response = sync_client.update_namespace_permissions(namespace.id, changes)
 
     assert isinstance(response, PermissionsResponseV1)
     assert any(
-        perm.username == user.username and perm.role == NamespaceUserRole.DEVELOPER.name
+        perm.username == user.username and perm.role == NamespaceUserRoleInt.DEVELOPER.name
         for perm in response.permissions
     )
     assert any(
-        perm.username == "new_user" and perm.role == NamespaceUserRole.OWNER.name for perm in response.permissions
+        perm.username == "new_user" and perm.role == NamespaceUserRoleInt.OWNER.name for perm in response.permissions
     )
 
 
@@ -53,7 +53,7 @@ def test_sync_client_update_namespace_permissions_namespace_missing(
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
-            PermissionUpdateRequestItemV1(username="someuser", role=NamespaceUserRole.DEVELOPER.name),
+            PermissionUpdateRequestItemV1(username="someuser", role=NamespaceUserRoleInt.DEVELOPER.name),
         ]
     )
     with pytest.raises(

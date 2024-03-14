@@ -6,7 +6,7 @@ from typing import Set
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated
 
-from horizon.backend.db.models import NamespaceUserRole, User
+from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
@@ -28,7 +28,7 @@ async def get_namespace_permissions(
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
             namespace_id=namespace_id,
-            required_role=NamespaceUserRole.OWNER,
+            required_role=NamespaceUserRoleInt.OWNER,
         )
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
 
@@ -54,12 +54,12 @@ async def update_namespace_permissions(
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
             namespace_id=namespace_id,
-            required_role=NamespaceUserRole.OWNER,
+            required_role=NamespaceUserRoleInt.OWNER,
         )
 
         sorted_permissions = sorted(
             changes.permissions,
-            key=lambda perm: perm.role == NamespaceUserRole.OWNER.name if perm.role else False,
+            key=lambda perm: perm.role == NamespaceUserRoleInt.OWNER.name if perm.role else False,
             reverse=True,
         )
 
@@ -70,7 +70,7 @@ async def update_namespace_permissions(
             perm_user = await unit_of_work.user.get_user_by_username(permission.username)
 
             if permission.role:
-                role_enum = NamespaceUserRole[permission.role.upper()]
+                role_enum = NamespaceUserRoleInt[permission.role.upper()]
                 await unit_of_work.namespace.update_user_permission(
                     namespace_id,
                     perm_user.id,

@@ -8,7 +8,12 @@ from typing import Dict, Set
 from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceUser,
+    NamespaceUserRoleInt,
+    User,
+)
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
 from horizon.commons.exceptions import (
@@ -102,14 +107,14 @@ class NamespaceRepository(Repository[Namespace]):
         await self._session.flush()
         return namespace
 
-    async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRole) -> None:
+    async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRoleInt) -> None:
         owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
         owner_id = owner_check.scalar_one_or_none()
         if owner_id is None:
             raise EntityNotFoundError("Namespace", "id", namespace_id)
 
         if owner_id == user_id:
-            user_role = NamespaceUserRole.OWNER
+            user_role = NamespaceUserRoleInt.OWNER
         else:
             role_result = await self._session.execute(
                 select(NamespaceUser.role).where(
@@ -118,18 +123,18 @@ class NamespaceRepository(Repository[Namespace]):
                 ),
             )
             user_role_value = role_result.scalars().first()
-            user_role = NamespaceUserRole[user_role_value] if user_role_value else NamespaceUserRole.GUEST
+            user_role = NamespaceUserRoleInt[user_role_value] if user_role_value else NamespaceUserRoleInt.GUEST
 
         if user_role < required_role:
             raise PermissionDeniedError(required_role.name, user_role.name)
 
-    async def get_namespace_users_permissions(self, namespace_id: int) -> Dict[User, NamespaceUserRole]:
+    async def get_namespace_users_permissions(self, namespace_id: int) -> Dict[User, NamespaceUserRoleInt]:
         permissions_dict = {}
 
         namespace = await self.get(namespace_id)
         if namespace.owner_id is not None:
             owner = await self._session.get(User, namespace.owner_id)
-            permissions_dict[owner] = NamespaceUserRole.OWNER
+            permissions_dict[owner] = NamespaceUserRoleInt.OWNER
 
         query = (
             select(User, NamespaceUser.role)
@@ -138,7 +143,7 @@ class NamespaceRepository(Repository[Namespace]):
         )
         result = await self._session.execute(query)
         for user, role in result.fetchall():
-            permissions_dict[user] = NamespaceUserRole[role]
+            permissions_dict[user] = NamespaceUserRoleInt[role]
 
         return permissions_dict  # type: ignore[return-value]
 
@@ -146,14 +151,14 @@ class NamespaceRepository(Repository[Namespace]):
         self,
         namespace_id: int,
         user_id: int,
-        role: NamespaceUserRole,
+        role: NamespaceUserRoleInt,
         seen_user_ids: Set[int],
         owner_changed: dict,
     ) -> None:
         if user_id in seen_user_ids:
             raise BadRequestError("Duplicate username detected. Each username must appear only once.")
 
-        if role == NamespaceUserRole.OWNER:
+        if role == NamespaceUserRoleInt.OWNER:
             if owner_changed["changed"]:
                 raise BadRequestError("Multiple owner role assignments detected. Only one owner can be assigned.")
 
@@ -171,7 +176,7 @@ class NamespaceRepository(Repository[Namespace]):
             return
 
         namespace = await self.get(namespace_id=namespace_id)
-        if namespace.owner_id == user_id and role != NamespaceUserRole.OWNER:
+        if namespace.owner_id == user_id and role != NamespaceUserRoleInt.OWNER:
             # raise an error if the current owner tries to change their role to something other than OWNER
             # without reassigning new OWNER to namespace
             raise BadRequestError(

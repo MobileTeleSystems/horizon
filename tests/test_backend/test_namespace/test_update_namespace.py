@@ -14,7 +14,7 @@ from sqlalchemy_utils.functions import naturally_equivalent
 from horizon.backend.db.models import (
     Namespace,
     NamespaceHistory,
-    NamespaceUserRole,
+    NamespaceUserRoleInt,
     User,
 )
 
@@ -132,7 +132,7 @@ async def test_update_namespace_name(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRole.OWNER,
+        NamespaceUserRoleInt.OWNER,
     ],
     indirect=["user_with_role"],
 )
@@ -369,7 +369,7 @@ async def test_update_namespace_invalid_name_length(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.MAINTAINER,
+            NamespaceUserRoleInt.MAINTAINER,
             403,
             {
                 "error": {
@@ -383,7 +383,7 @@ async def test_update_namespace_invalid_name_length(
             },
         ),
         (
-            NamespaceUserRole.DEVELOPER,
+            NamespaceUserRoleInt.DEVELOPER,
             403,
             {
                 "error": {
@@ -397,7 +397,7 @@ async def test_update_namespace_invalid_name_length(
             },
         ),
         (
-            NamespaceUserRole.GUEST,
+            NamespaceUserRoleInt.GUEST,
             403,
             {
                 "error": {

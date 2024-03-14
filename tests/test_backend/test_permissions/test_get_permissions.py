@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.backend.db.models import Namespace, NamespaceUserRole, User
+from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -54,14 +54,14 @@ async def test_get_namespace_permissions_missing(
     }
 
 
-@pytest.mark.parametrize("user_with_role", [NamespaceUserRole.OWNER], indirect=["user_with_role"])
+@pytest.mark.parametrize("user_with_role", [NamespaceUserRoleInt.OWNER], indirect=["user_with_role"])
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.DEVELOPER),
-            ("user3", NamespaceUserRole.MAINTAINER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.DEVELOPER),
+            ("user3", NamespaceUserRoleInt.MAINTAINER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -93,7 +93,7 @@ async def test_get_namespace_permissions(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.MAINTAINER,
+            NamespaceUserRoleInt.MAINTAINER,
             403,
             {
                 "error": {
@@ -107,7 +107,7 @@ async def test_get_namespace_permissions(
             },
         ),
         (
-            NamespaceUserRole.DEVELOPER,
+            NamespaceUserRoleInt.DEVELOPER,
             403,
             {
                 "error": {
@@ -121,7 +121,7 @@ async def test_get_namespace_permissions(
             },
         ),
         (
-            NamespaceUserRole.GUEST,
+            NamespaceUserRoleInt.GUEST,
             403,
             {
                 "error": {

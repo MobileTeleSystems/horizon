@@ -4,12 +4,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from horizon.backend.db.models import NamespaceUserRoleStr
+
 
 class PermissionResponseItemV1(BaseModel):
     """Represents a single permission entry in a response, linking a user with their role within a namespace."""
 
     username: str
-    role: str
+    role: NamespaceUserRoleStr
 
 
 class PermissionsResponseV1(BaseModel):
@@ -22,7 +24,7 @@ class PermissionUpdateRequestItemV1(BaseModel):
     """Represents a single permission entry in a request, specifying a desired role for a user within a namespace."""
 
     username: str
-    role: Optional[str] = Field(
+    role: Optional[NamespaceUserRoleStr] = Field(
         default=None,
         description="The role to be assigned to the user within the namespace."
         " A value of `None` indicates that the permission should be removed.",

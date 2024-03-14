@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.backend.db.models import Namespace, NamespaceUserRole, User
+from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -21,7 +21,7 @@ async def test_update_namespace_permissions_unauthorized_user(
 ):
     changes = {
         "permissions": [
-            {"username": secrets.token_hex(6), "role": NamespaceUserRole.DEVELOPER.name},
+            {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
         ]
     }
     response = await test_client.patch(
@@ -45,7 +45,7 @@ async def test_update_namespace_permissions_namespace_missing(
 ):
     changes = {
         "permissions": [
-            {"username": secrets.token_hex(6), "role": NamespaceUserRole.DEVELOPER.name},
+            {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
         ]
     }
     response = await test_client.patch(
@@ -71,9 +71,9 @@ async def test_update_namespace_permissions_namespace_missing(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.DEVELOPER),
-            ("user3", NamespaceUserRole.MAINTAINER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.DEVELOPER),
+            ("user3", NamespaceUserRoleInt.MAINTAINER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -110,9 +110,9 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.DEVELOPER),
-            ("user3", NamespaceUserRole.MAINTAINER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.DEVELOPER),
+            ("user3", NamespaceUserRoleInt.MAINTAINER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -149,9 +149,9 @@ async def test_update_namespace_permissions_duplicates_owner(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.DEVELOPER),
-            ("user3", NamespaceUserRole.MAINTAINER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.DEVELOPER),
+            ("user3", NamespaceUserRoleInt.MAINTAINER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -188,9 +188,9 @@ async def test_update_namespace_permissions_lose_owner(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.MAINTAINER),
-            ("user3", NamespaceUserRole.DEVELOPER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.MAINTAINER),
+            ("user3", NamespaceUserRoleInt.DEVELOPER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -221,8 +221,8 @@ async def test_update_namespace_permissions_remove_role(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.MAINTAINER),
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.MAINTAINER),
         ]
     ],
     indirect=["namespace_with_users"],
@@ -259,7 +259,7 @@ async def test_update_namespace_permissions_add_or_update_roles(
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
-        [("existing_owner", NamespaceUserRole.OWNER), ("user_to_become_owner", NamespaceUserRole.DEVELOPER)],
+        [("existing_owner", NamespaceUserRoleInt.OWNER), ("user_to_become_owner", NamespaceUserRoleInt.DEVELOPER)],
     ],
     indirect=["namespace_with_users"],
 )
@@ -288,7 +288,7 @@ async def test_update_namespace_permissions_change_owner(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.MAINTAINER,
+            NamespaceUserRoleInt.MAINTAINER,
             403,
             {
                 "error": {
@@ -302,7 +302,7 @@ async def test_update_namespace_permissions_change_owner(
             },
         ),
         (
-            NamespaceUserRole.DEVELOPER,
+            NamespaceUserRoleInt.DEVELOPER,
             403,
             {
                 "error": {
@@ -316,7 +316,7 @@ async def test_update_namespace_permissions_change_owner(
             },
         ),
         (
-            NamespaceUserRole.GUEST,
+            NamespaceUserRoleInt.GUEST,
             403,
             {
                 "error": {

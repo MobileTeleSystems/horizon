@@ -18,7 +18,13 @@ from horizon.backend.db.models import (
 )
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(
+    params=[
+        ("user1", NamespaceUserRoleInt.DEVELOPER),
+        ("user2", NamespaceUserRoleInt.DEVELOPER),
+        ("user3", NamespaceUserRoleInt.MAINTAINER),
+    ]
+)
 async def namespace_with_users(
     request: pytest.FixtureRequest,
     namespace: Namespace,

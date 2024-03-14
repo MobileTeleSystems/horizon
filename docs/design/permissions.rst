@@ -6,9 +6,9 @@ Horizon implements a role-based access control model to manage permissions acros
 Role Model Overview
 -------------------
 
-The role model in Horizon defines the roles as follows:
+In Horizon, roles are defined within the context of namespaces, with the exception of the superadmin role. A user can be associated with one, several, or no namespaces at all.
 
-- **GUEST**: Users authenticated via LDAP without a specific namespace assigned, having limited access rights.
+- **GUEST**: Users authenticated without a specific namespace assignment, having limited access rights. Authentication can be performed through various mechanisms such as ``LDAP``, ``Dummy Auth`` or ``Custom Auth provider``.
 - **DEVELOPER**: Users with development-related permissions.
 - **MAINTAINER**: Users with permissions similar to developers but with additional rights in certain areas.
 - **OWNER**: Users with full permissions within their owned namespaces and associated HWMs.
@@ -27,31 +27,31 @@ Namespace Permissions
       - Update
       - Delete
       - Manage Users
-    * - guest
+    * - GUEST
       - ``+``
       - ``+``
       - ``-``
       - ``-``
       - ``-``
-    * - developer
+    * - DEVELOPER
       - ``+``
       - ``+``
       - ``-``
       - ``-``
       - ``-``
-    * - maintainer
+    * - MAINTAINER
       - ``+``
       - ``+``
       - ``-``
       - ``-``
       - ``-``
-    * - owner
+    * - OWNER
       - ``+``
       - ``+``
       - ``+``
       - ``+``
       - ``+``
-    * - superadmin
+    * - SUPERADMIN
       - ``+``
       - ``+``
       - ``+``
@@ -71,27 +71,27 @@ HWM Permissions
       - Read
       - Update
       - Delete
-    * - guest
+    * - GUEST
       - ``-``
       - ``+``
       - ``-``
       - ``-``
-    * - developer
+    * - DEVELOPER
       - ``+``
       - ``+``
       - ``+``
       - ``-``
-    * - maintainer
+    * - MAINTAINER
       - ``+``
       - ``+``
       - ``+``
       - ``+``
-    * - owner
+    * - OWNER
       - ``+``
       - ``+``
       - ``+``
       - ``+``
-    * - superadmin
+    * - SUPERADMIN
       - ``+``
       - ``+``
       - ``+``

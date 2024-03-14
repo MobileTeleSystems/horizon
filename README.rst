@@ -47,6 +47,7 @@ Goals
 * Allow users to save and fetch *HWM* (High Water Mark) items. These are ``name+type+value`` triples with few optional fields (``description``, ``entity``, ``expression``).
 * Avoid confusion between different user's data by separating HWMs to different *namespaces*. HWMs is created within namespace, each ``namespace name`` + ``HWM name`` is unique.
 * Allow users to get HWM change history, to determine who and when changed a specific HWM value and other fields.
+* Provide a robust role based access control model to define and enforce permissions within the service. This ensures that user interactions with ``HWMs`` and ``Namespaces`` are governed by their assigned roles.
 
 Non-goals
 ---------
@@ -57,7 +58,6 @@ Non-goals
 Limitations
 -----------
 
-* Currently Horizon does not implement any kind of access control, so **anyone can change anything**.
 * HWM types and values are not checked, and can contain anything. It is up to user how to parse fetched values and perform validation.
 * HWMs cannot be renamed or moved between namespaces. These operations could be performed only by creating new HWM in desired namespace, and deleting the old one.
 

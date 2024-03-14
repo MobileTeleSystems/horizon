@@ -8,7 +8,7 @@ Role Model Overview
 
 In Horizon, roles are defined within the context of namespaces, with the exception of the superadmin role. A user can be associated with one, several, or no namespaces at all.
 
-- **GUEST**: Users authenticated without a specific namespace assignment, having limited access rights. Authentication can be performed through various mechanisms such as ``LDAP``, ``Dummy Auth`` or ``Custom Auth provider``.
+- **GUEST**: User without a specific namespace assignment, having limited access rights.
 - **DEVELOPER**: Users with development-related permissions.
 - **MAINTAINER**: Users with permissions similar to developers but with additional rights in certain areas.
 - **OWNER**: Users with full permissions within their owned namespaces and associated HWMs.

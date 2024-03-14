@@ -30,8 +30,13 @@ async def get_namespace_permissions(
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )
-        permissions = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
-    return PermissionsResponseV1(permissions=[PermissionResponseItemV1(**perm) for perm in permissions])
+        permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
+
+        permissions_response = [
+            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+        ]
+
+    return PermissionsResponseV1(permissions=permissions_response)
 
 
 @router.patch(

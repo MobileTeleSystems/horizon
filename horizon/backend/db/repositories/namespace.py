@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import List, Set
+from typing import Dict, Set
 
 from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
@@ -123,21 +123,24 @@ class NamespaceRepository(Repository[Namespace]):
         if user_role < required_role:
             raise PermissionDeniedError(required_role.name, user_role.name)
 
-    async def get_namespace_users_permissions(self, namespace_id: int) -> List[dict]:
+    async def get_namespace_users_permissions(self, namespace_id: int) -> Dict[User, NamespaceUserRole]:
+        permissions_dict = {}
+
         namespace = await self.get(namespace_id)
+        if namespace.owner_id is not None:
+            owner = await self._session.get(User, namespace.owner_id)
+            permissions_dict[owner] = NamespaceUserRole.OWNER
 
         query = (
-            select(User.username, NamespaceUser.role)
+            select(User, NamespaceUser.role)
             .join(NamespaceUser, User.id == NamespaceUser.user_id)
             .where(NamespaceUser.namespace_id == namespace_id)
         )
-
         result = await self._session.execute(query)
-        permissions = [{"username": namespace.owned_by, "role": NamespaceUserRole.OWNER.name}]
-        for user_name, role in result.fetchall():
-            permissions.append({"username": user_name, "role": role})
+        for user, role in result.fetchall():
+            permissions_dict[user] = NamespaceUserRole[role]
 
-        return permissions
+        return permissions_dict  # type: ignore[return-value]
 
     async def update_user_permission(  # noqa: WPS217
         self,

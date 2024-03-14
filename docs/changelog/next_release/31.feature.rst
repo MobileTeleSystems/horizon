@@ -1,0 +1,1 @@
+Add docs for Horizon **Role Model** at ``/permissions/index.html``

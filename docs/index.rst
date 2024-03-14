@@ -30,6 +30,13 @@
 
 .. toctree::
     :maxdepth: 2
+    :caption: Permissions
+    :hidden:
+
+    permissions/index
+
+.. toctree::
+    :maxdepth: 2
     :caption: Client
     :hidden:
 

@@ -47,7 +47,7 @@ Goals
 * Allow users to save and fetch *HWM* (High Water Mark) items. These are ``name+type+value`` triples with few optional fields (``description``, ``entity``, ``expression``).
 * Avoid confusion between different user's data by separating HWMs to different *namespaces*. HWMs is created within namespace, each ``namespace name`` + ``HWM name`` is unique.
 * Allow users to get HWM change history, to determine who and when changed a specific HWM value and other fields.
-* Provide a robust role based access control model to define and enforce permissions within the service. This ensures that user interactions with ``HWMs`` and ``Namespaces`` are governed by their assigned roles.
+* Provide RBAC model to define and enforce permissions within the service. This ensures that user interactions with ``HWMs`` and ``Namespaces`` are governed by their assigned roles.
 
 Non-goals
 ---------

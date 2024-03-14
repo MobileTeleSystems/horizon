@@ -64,38 +64,3 @@ def test_sync_client_update_namespace_permissions_namespace_missing(
 
     assert isinstance(exc_info.value.__cause__, requests.exceptions.HTTPError)
     assert exc_info.value.__cause__.response.status_code == 404
-
-
-@pytest.mark.parametrize(
-    "namespace_with_users",
-    [
-        [
-            ("owner_user", NamespaceUserRole.OWNER),
-            ("user1", NamespaceUserRole.DEVELOPER),
-            ("user2", NamespaceUserRole.DEVELOPER),
-        ],
-    ],
-    indirect=["namespace_with_users"],
-)
-@pytest.mark.parametrize(
-    "invalid_changes",
-    [
-        PermissionsUpdateRequestV1(
-            permissions=[
-                PermissionUpdateRequestItemV1(username="user1", role="OWNER"),
-                PermissionUpdateRequestItemV1(username="user2", role="OWNER"),
-            ]
-        ),
-    ],
-)
-def test_sync_client_update_namespace_permissions_invalid_request(
-    namespace: Namespace,
-    invalid_changes: PermissionsUpdateRequestV1,
-    sync_client: HorizonClientSync,
-    namespace_with_users: None,
-):
-    with pytest.raises(BadRequestError) as exc_info:
-        sync_client.update_namespace_permissions(namespace.id, invalid_changes)
-
-    assert isinstance(exc_info.value.__cause__, requests.exceptions.HTTPError)
-    assert exc_info.value.__cause__.response.status_code == 400

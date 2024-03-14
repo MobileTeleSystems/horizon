@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import Set
+
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated
 
@@ -49,14 +51,35 @@ async def update_namespace_permissions(
             namespace_id=namespace_id,
             required_role=NamespaceUserRole.OWNER,
         )
-        updated_permissions = await unit_of_work.namespace.update_namespace_users_permissions(
-            namespace_id=namespace_id,
-            owner_id=user.id,
-            permissions_update=changes,
+
+        sorted_permissions = sorted(
+            changes.permissions,
+            key=lambda perm: perm.role == NamespaceUserRole.OWNER.name if perm.role else False,
+            reverse=True,
         )
+
+        updated_permissions = []
+        seen_user_ids: Set[int] = set()
+        owner_changed = {"changed": False}
+        for permission in sorted_permissions:
+            perm_user = await unit_of_work.user.get_user_by_username(permission.username)
+
+            if permission.role:
+                role_enum = NamespaceUserRole[permission.role.upper()]
+                await unit_of_work.namespace.update_user_permission(
+                    namespace_id,
+                    perm_user.id,
+                    role_enum,
+                    seen_user_ids,
+                    owner_changed,
+                )
+                updated_permissions.append(
+                    {"user_id": perm_user.id, "username": permission.username, "role": role_enum.name},
+                )
+            else:
+                await unit_of_work.namespace.delete_permission(namespace_id, perm_user.id)
     return PermissionsResponseV1(
         permissions=[
-            PermissionResponseItemV1(username=permission["username"], role=permission["role"])
-            for permission in updated_permissions
+            PermissionResponseItemV1(username=perm["username"], role=perm["role"]) for perm in updated_permissions
         ],
     )

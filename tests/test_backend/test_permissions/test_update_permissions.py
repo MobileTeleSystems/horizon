@@ -100,8 +100,8 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
     assert response.json() == {
         "error": {
             "code": "bad_request",
-            "message": "Duplicate username detected: user1. Each username must appear only once.",
-            "details": {"reason": "Duplicate username detected: user1. Each username must appear only once."},
+            "message": "Duplicate username detected. Each username must appear only once.",
+            "details": {},
         },
     }
 
@@ -140,7 +140,7 @@ async def test_update_namespace_permissions_duplicates_owner(
         "error": {
             "code": "bad_request",
             "message": "Multiple owner role assignments detected. Only one owner can be assigned.",
-            "details": {"reason": "Multiple owner role assignments detected. Only one owner can be assigned."},
+            "details": {},
         },
     }
 
@@ -179,10 +179,7 @@ async def test_update_namespace_permissions_lose_owner(
             "code": "bad_request",
             "message": "Operation forbidden: The current owner cannot change their "
             "rights without reassigning them to another user.",
-            "details": {
-                "reason": "Operation forbidden: The current owner cannot change their "
-                "rights without reassigning them to another user."
-            },
+            "details": {},
         },
     }
 

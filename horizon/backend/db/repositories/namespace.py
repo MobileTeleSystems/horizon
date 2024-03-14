@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import List, Set
 
 from sqlalchemy import SQLColumnExpression, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
@@ -17,9 +17,6 @@ from horizon.commons.exceptions import (
     EntityNotFoundError,
     PermissionDeniedError,
 )
-
-if TYPE_CHECKING:
-    from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1
 
 
 class NamespaceRepository(Repository[Namespace]):
@@ -142,100 +139,64 @@ class NamespaceRepository(Repository[Namespace]):
 
         return permissions
 
-    async def update_namespace_users_permissions(  # noqa:  WPS217
+    async def update_user_permission(  # noqa: WPS217
         self,
         namespace_id: int,
-        owner_id: int,
-        permissions_update: PermissionsUpdateRequestV1,
-    ) -> List[dict]:
-        updated_permissions = []
-        new_owner_id = None
-        seen_usernames = set()
-        owner_assignment_count = 0
+        user_id: int,
+        role: NamespaceUserRole,
+        seen_user_ids: Set[int],
+        owner_changed: dict,
+    ) -> None:
+        if user_id in seen_user_ids:
+            raise BadRequestError("Duplicate username detected. Each username must appear only once.")
 
-        # sort permissions so that "OWNER" role updates come first to not depend on order of assignments
-        sorted_permissions = sorted(
-            permissions_update.permissions,
-            key=lambda perm: perm.role.upper() == NamespaceUserRole.OWNER.name if perm.role else False,
-            reverse=True,
+        if role == NamespaceUserRole.OWNER:
+            if owner_changed["changed"]:
+                raise BadRequestError("Multiple owner role assignments detected. Only one owner can be assigned.")
+
+            await self._session.execute(
+                update(Namespace).where(Namespace.id == namespace_id).values(owner_id=user_id),
+            )
+            owner_changed["changed"] = True
+
+            await self._session.execute(
+                delete(NamespaceUser).where(
+                    NamespaceUser.namespace_id == namespace_id,
+                    NamespaceUser.user_id == user_id,
+                ),
+            )
+            return
+
+        namespace = await self.get(namespace_id=namespace_id)
+        if namespace.owner_id == user_id and role != NamespaceUserRole.OWNER:
+            # raise an error if the current owner tries to change their role to something other than OWNER
+            # without reassigning new OWNER to namespace
+            raise BadRequestError(
+                "Operation forbidden: The current owner cannot change their rights"
+                " without reassigning them to another user.",
+            )
+
+        existing_permission_result = await self._session.execute(
+            select(NamespaceUser).where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id),
         )
+        existing_permission = existing_permission_result.scalars().first()
 
-        for permission in sorted_permissions:
-            if permission.username in seen_usernames:
-                raise BadRequestError(
-                    f"Duplicate username detected: {permission.username}. Each username must appear only once.",
-                )
-            user = await self._get_user_by_username(permission.username)
+        if existing_permission:
+            await self._session.execute(
+                update(NamespaceUser)
+                .where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id)
+                .values(role=role.name),
+            )
+        else:
+            await self._session.execute(
+                insert(NamespaceUser).values(namespace_id=namespace_id, user_id=user_id, role=role.name),
+            )
+        seen_user_ids.add(user_id)
 
-            user_id = user.id
-
-            if user_id == owner_id:
-                role_enum = NamespaceUserRole[permission.role.upper()] if permission.role else None
-                if role_enum != NamespaceUserRole.OWNER and not new_owner_id:
-                    # raise an error if the current owner tries to change their role to something other than OWNER
-                    # without reassigning new OWNER to namespace
-                    raise BadRequestError(
-                        "Operation forbidden: The current owner cannot change their rights"
-                        " without reassigning them to another user.",
-                    )
-
-            if permission.role is None:
-                await self._session.execute(
-                    delete(NamespaceUser).where(
-                        NamespaceUser.namespace_id == namespace_id,
-                        NamespaceUser.user_id == user_id,
-                    ),
-                )
-            else:
-                role_enum = NamespaceUserRole[permission.role.upper()]
-                if role_enum == NamespaceUserRole.OWNER:
-                    owner_assignment_count += 1
-                    if owner_assignment_count > 1:
-                        raise BadRequestError(
-                            "Multiple owner role assignments detected. Only one owner can be assigned.",
-                        )
-                    new_owner_id = user_id
-                    await self._session.execute(
-                        update(Namespace).where(Namespace.id == namespace_id).values(owner_id=user_id),
-                    )
-                    await self._session.execute(
-                        delete(NamespaceUser).where(
-                            NamespaceUser.namespace_id == namespace_id,
-                            NamespaceUser.user_id == user_id,
-                        ),
-                    )
-                else:
-                    result = await self._session.execute(
-                        select(NamespaceUser).where(
-                            NamespaceUser.namespace_id == namespace_id,
-                            NamespaceUser.user_id == user_id,
-                        ),
-                    )
-                    existing_record = result.scalars().first()
-                    if existing_record:
-                        await self._session.execute(
-                            update(NamespaceUser)
-                            .where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id)
-                            .values(role=role_enum.name),
-                        )
-                    else:
-                        await self._session.execute(
-                            insert(NamespaceUser).values(
-                                namespace_id=namespace_id,
-                                user_id=user_id,
-                                role=role_enum.name,
-                            ),
-                        )
-
-                updated_permissions.append({"username": permission.username, "role": role_enum.name})
-                seen_usernames.add(permission.username)
-
-        return updated_permissions
-
-    async def _get_user_by_username(self, username: str) -> User:
-        query = select(User).where(User.username == username)
-        result = await self._session.execute(query)
-        user = result.scalars().first()
-        if not user:
-            raise EntityNotFoundError("User", "username", username)
-        return user
+    async def delete_permission(self, namespace_id: int, user_id: int) -> None:
+        await self._session.execute(
+            delete(NamespaceUser).where(
+                NamespaceUser.namespace_id == namespace_id,
+                NamespaceUser.user_id == user_id,
+            ),
+        )

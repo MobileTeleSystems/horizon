@@ -31,5 +31,5 @@ class BadRequestError(ApplicationError):
         return self.reason
 
     @property
-    def details(self) -> dict[str, str]:
-        return {"reason": self.reason}
+    def details(self) -> dict:
+        return {}

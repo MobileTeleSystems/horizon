@@ -21,7 +21,7 @@ class UserRepository(Repository[User]):
             raise EntityNotFoundError("User", "id", user_id)
         return result
 
-    async def get_user_by_username(self, username: str) -> User:
+    async def get_by_username(self, username: str) -> User:
         user = await self._get(User.username == username)
         if not user:
             raise EntityNotFoundError("User", "username", username)

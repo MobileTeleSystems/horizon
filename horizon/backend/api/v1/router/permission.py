@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Set
-
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated
 
 from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
+from horizon.commons.exceptions import BadRequestError
 from horizon.commons.schemas.v1 import (
     PermissionResponseItemV1,
     PermissionsResponseV1,
@@ -57,34 +56,35 @@ async def update_namespace_permissions(
             required_role=NamespaceUserRoleInt.OWNER,
         )
 
-        sorted_permissions = sorted(
-            changes.permissions,
-            key=lambda perm: perm.role == NamespaceUserRoleInt.OWNER.name if perm.role else False,
-            reverse=True,
-        )
+        updated_permissions_response = []
+        owner_change_detected = False
 
-        updated_permissions = []
-        seen_user_ids: Set[int] = set()
-        owner_changed = {"changed": False}
-        for permission in sorted_permissions:
-            perm_user = await unit_of_work.user.get_user_by_username(permission.username)
+        for perm in changes.permissions:
+            update_user = await unit_of_work.user.get_by_username(perm.username)
 
-            if permission.role:
-                role_enum = NamespaceUserRoleInt[permission.role.upper()]
-                await unit_of_work.namespace.update_user_permission(
-                    namespace_id,
-                    perm_user.id,
-                    role_enum,
-                    seen_user_ids,
-                    owner_changed,
-                )
-                updated_permissions.append(
-                    {"user_id": perm_user.id, "username": permission.username, "role": role_enum.name},
+            # Ensure the current owner isn't changing their role without assigning a new owner
+            if update_user.id == user.id and perm.role != NamespaceUserRoleInt.OWNER.name:
+                if not any(
+                    p.role == NamespaceUserRoleInt.OWNER.name
+                    for p in changes.permissions
+                    if p.username != user.username
+                ):
+                    raise BadRequestError(
+                        "Operation forbidden: The current owner cannot change their rights without reassigning them to another user.",
+                    )
+
+            # Update or delete permissions as requested
+            if perm.role:
+                if perm.role == "OWNER" and not owner_change_detected:
+                    await unit_of_work.namespace.set_new_owner(namespace_id, update_user.id)
+                    owner_change_detected = True
+                else:
+                    role_enum = NamespaceUserRoleInt[perm.role.upper()]
+                    await unit_of_work.namespace.update_permission(namespace_id, update_user.id, role_enum)
+                updated_permissions_response.append(
+                    PermissionResponseItemV1(username=perm.username, role=perm.role),
                 )
             else:
-                await unit_of_work.namespace.delete_permission(namespace_id, perm_user.id)
-    return PermissionsResponseV1(
-        permissions=[
-            PermissionResponseItemV1(username=perm["username"], role=perm["role"]) for perm in updated_permissions
-        ],
-    )
+                await unit_of_work.namespace.delete_permission(namespace_id, update_user.id)
+
+        return PermissionsResponseV1(permissions=updated_permissions_response)

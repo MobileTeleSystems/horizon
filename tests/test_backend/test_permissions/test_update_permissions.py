@@ -96,14 +96,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": {
-            "code": "bad_request",
-            "message": "Duplicate username detected. Each username must appear only once.",
-            "details": {},
-        },
-    }
+    assert response.status_code == 422
 
 
 @pytest.mark.parametrize(
@@ -135,14 +128,7 @@ async def test_update_namespace_permissions_duplicates_owner(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": {
-            "code": "bad_request",
-            "message": "Multiple owner role assignments detected. Only one owner can be assigned.",
-            "details": {},
-        },
-    }
+    assert response.status_code == 422
 
 
 @pytest.mark.parametrize(

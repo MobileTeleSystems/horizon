@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, Set
+from typing import Dict
 
-from sqlalchemy import SQLColumnExpression, delete, insert, select, update
+from sqlalchemy import SQLColumnExpression, delete, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 
 from horizon.backend.db.models import (
@@ -17,7 +18,6 @@ from horizon.backend.db.models import (
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto import Pagination
 from horizon.commons.exceptions import (
-    BadRequestError,
     EntityAlreadyExistsError,
     EntityNotFoundError,
     PermissionDeniedError,
@@ -132,9 +132,8 @@ class NamespaceRepository(Repository[Namespace]):
         permissions_dict = {}
 
         namespace = await self.get(namespace_id)
-        if namespace.owner_id is not None:
-            owner = await self._session.get(User, namespace.owner_id)
-            permissions_dict[owner] = NamespaceUserRoleInt.OWNER
+        owner = await self._session.get(User, namespace.owner_id)
+        permissions_dict[owner] = NamespaceUserRoleInt.OWNER
 
         query = (
             select(User, NamespaceUser.role)
@@ -145,66 +144,27 @@ class NamespaceRepository(Repository[Namespace]):
         for user, role in result.fetchall():
             permissions_dict[user] = NamespaceUserRoleInt[role]
 
-        return permissions_dict  # type: ignore[return-value]
+        return permissions_dict  # type: ignore
 
-    async def update_user_permission(  # noqa: WPS217
-        self,
-        namespace_id: int,
-        user_id: int,
-        role: NamespaceUserRoleInt,
-        seen_user_ids: Set[int],
-        owner_changed: dict,
-    ) -> None:
-        if user_id in seen_user_ids:
-            raise BadRequestError("Duplicate username detected. Each username must appear only once.")
-
-        if role == NamespaceUserRoleInt.OWNER:
-            if owner_changed["changed"]:
-                raise BadRequestError("Multiple owner role assignments detected. Only one owner can be assigned.")
-
-            await self._session.execute(
-                update(Namespace).where(Namespace.id == namespace_id).values(owner_id=user_id),
-            )
-            owner_changed["changed"] = True
-
-            await self._session.execute(
-                delete(NamespaceUser).where(
-                    NamespaceUser.namespace_id == namespace_id,
-                    NamespaceUser.user_id == user_id,
-                ),
-            )
-            return
-
-        namespace = await self.get(namespace_id=namespace_id)
-        if namespace.owner_id == user_id and role != NamespaceUserRoleInt.OWNER:
-            # raise an error if the current owner tries to change their role to something other than OWNER
-            # without reassigning new OWNER to namespace
-            raise BadRequestError(
-                "Operation forbidden: The current owner cannot change their rights"
-                " without reassigning them to another user.",
-            )
-
-        existing_permission_result = await self._session.execute(
-            select(NamespaceUser).where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id),
-        )
-        existing_permission = existing_permission_result.scalars().first()
-
-        if existing_permission:
-            await self._session.execute(
-                update(NamespaceUser)
-                .where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id)
-                .values(role=role.name),
-            )
-        else:
-            await self._session.execute(
-                insert(NamespaceUser).values(namespace_id=namespace_id, user_id=user_id, role=role.name),
-            )
-        seen_user_ids.add(user_id)
-
-    async def delete_permission(self, namespace_id: int, user_id: int) -> None:
+    async def set_new_owner(self, namespace_id: int, new_owner_id: int) -> None:
+        await self._session.execute(update(Namespace).where(Namespace.id == namespace_id).values(owner_id=new_owner_id))
         await self._session.execute(
             delete(NamespaceUser).where(
                 NamespaceUser.namespace_id == namespace_id,
-                NamespaceUser.user_id == user_id,
+                NamespaceUser.user_id == new_owner_id,
             ),
+        )
+
+    async def update_permission(self, namespace_id: int, user_id: int, role: NamespaceUserRoleInt) -> None:
+        # create an "upsert" statement using PostgreSQL's ON CONFLICT syntax.
+        stmt = pg_insert(NamespaceUser).values(namespace_id=namespace_id, user_id=user_id, role=role.name)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[NamespaceUser.namespace_id, NamespaceUser.user_id],
+            set_={"role": role.name},
+        )
+        await self._session.execute(stmt)
+
+    async def delete_permission(self, namespace_id: int, user_id: int) -> None:
+        await self._session.execute(
+            delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id),
         )

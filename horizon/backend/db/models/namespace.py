@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-from enum import Enum, IntEnum
+from enum import IntEnum
 
 from sqlalchemy import BigInteger, ForeignKey, String, Text
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
@@ -15,12 +15,6 @@ class NamespaceUserRoleInt(IntEnum):
     DEVELOPER = 1
     MAINTAINER = 2
     OWNER = 3
-
-
-class NamespaceUserRoleStr(str, Enum):  # noqa: WPS60
-    DEVELOPER = "DEVELOPER"
-    MAINTAINER = "MAINTAINER"
-    OWNER = "OWNER"
 
 
 class Namespace(Base, ChangedByMixin):

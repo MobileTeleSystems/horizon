@@ -811,8 +811,8 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         Examples
         --------
 
-        >>> from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1
-        >>> to_update = PermissionsUpdateRequestV1([{'role': 'OWNER', 'username': 'needed_user'}])
+        >>> from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1, PermissionUpdateRequestItemV1
+        >>> to_update = PermissionsUpdateRequestV1([PermissionUpdateRequestItemV1(role="OWNER", username="needed_user")])
         >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
         """
         return self._request(  # type: ignore[return-value]

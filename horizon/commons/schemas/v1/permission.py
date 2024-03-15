@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
-from typing import List, Optional
+from typing import List, Optional, Set
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
-from horizon.backend.db.models import NamespaceUserRoleStr
+from horizon.commons.schemas.v1 import NamespaceUserRole
 
 
 class PermissionResponseItemV1(BaseModel):
     """Represents a single permission entry in a response, linking a user with their role within a namespace."""
 
     username: str
-    role: NamespaceUserRoleStr
+    role: NamespaceUserRole
 
 
 class PermissionsResponseV1(BaseModel):
@@ -24,7 +24,7 @@ class PermissionUpdateRequestItemV1(BaseModel):
     """Represents a single permission entry in a request, specifying a desired role for a user within a namespace."""
 
     username: str
-    role: Optional[NamespaceUserRoleStr] = Field(
+    role: Optional[NamespaceUserRole] = Field(
         default=None,
         description="The role to be assigned to the user within the namespace."
         " A value of `None` indicates that the permission should be removed.",
@@ -38,3 +38,23 @@ class PermissionsUpdateRequestV1(BaseModel):
         description="A list of modifications to the namespace's permissions."
         " Each entry specifies a user and the role they should have or be removed from.",
     )
+
+    @validator("permissions")
+    def _ensure_unique_usernames_and_single_owner(cls, permissions):
+        seen: Set[str] = set()
+        owner_count = 0
+        for perm in permissions:
+            username = perm.username if hasattr(perm, "username") else perm.get("username")
+            role = perm.role if hasattr(perm, "role") else perm.get("role")
+
+            if username in seen:
+                raise ValueError(f"Duplicate username detected: {username}. Each username must appear only once.")
+            seen.add(username)
+
+            if role == NamespaceUserRole.OWNER:
+                owner_count += 1
+
+        if owner_count > 1:
+            raise ValueError("Multiple owner role assignments detected. Only one owner can be assigned.")
+
+        return permissions

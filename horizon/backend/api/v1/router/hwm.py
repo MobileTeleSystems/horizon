@@ -4,7 +4,7 @@
 from fastapi import APIRouter, Depends, status
 from typing_extensions import Annotated
 
-from horizon.backend.db.models import NamespaceUserRole, User
+from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
@@ -57,7 +57,7 @@ async def create_hwm(
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
-            required_role=NamespaceUserRole.DEVELOPER,
+            required_role=NamespaceUserRoleInt.DEVELOPER,
             namespace_id=data.namespace_id,
         )
         hwm = await unit_of_work.hwm.create(
@@ -85,7 +85,7 @@ async def update_hwm(
         hwm = await unit_of_work.hwm.get(hwm_id)
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
-            required_role=NamespaceUserRole.DEVELOPER,
+            required_role=NamespaceUserRoleInt.DEVELOPER,
             namespace_id=hwm.namespace_id,
         )
         hwm = await unit_of_work.hwm.update(
@@ -117,7 +117,7 @@ async def delete_hwm(
         hwm = await unit_of_work.hwm.get(hwm_id)
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
-            required_role=NamespaceUserRole.MAINTAINER,
+            required_role=NamespaceUserRoleInt.MAINTAINER,
             namespace_id=hwm.namespace_id,
         )
         hwm = await unit_of_work.hwm.delete(hwm_id=hwm_id, user=user)

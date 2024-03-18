@@ -17,4 +17,5 @@ pytest_plugins = [
     "tests.factories.namespace_history",
     "tests.factories.hwm",
     "tests.factories.hwm_history",
+    "tests.factories.permissions",
 ]

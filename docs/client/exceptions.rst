@@ -31,6 +31,9 @@ Permissions
      :members: message, details, required_role, actual_role
      :member-order: bysource
 
+.. autoclass:: BadRequestError
+     :members: reason
+     :member-order: bysource
 
 Entity
 ------

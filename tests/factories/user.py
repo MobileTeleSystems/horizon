@@ -12,7 +12,12 @@ import pytest_asyncio
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import Namespace, NamespaceUser, NamespaceUserRole, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceUser,
+    NamespaceUserRoleInt,
+    User,
+)
 from tests.factories.base import random_string
 
 
@@ -100,7 +105,7 @@ async def users(
         await async_session.commit()
 
 
-@pytest_asyncio.fixture(params=[NamespaceUserRole.DEVELOPER])
+@pytest_asyncio.fixture(params=[NamespaceUserRoleInt.DEVELOPER])
 async def user_with_role(
     request: pytest.FixtureRequest,
     user: User,
@@ -111,7 +116,7 @@ async def user_with_role(
     fake_owner = None
 
     async with async_session_factory() as async_session:
-        if role != NamespaceUserRole.OWNER:
+        if role != NamespaceUserRoleInt.OWNER:
             fake_owner = User(username=secrets.token_hex(5), is_active=True)
             async_session.add(fake_owner)
             await async_session.commit()
@@ -119,7 +124,7 @@ async def user_with_role(
             namespace.owner_id = fake_owner.id
             async_session.add(namespace)
 
-            if role != NamespaceUserRole.GUEST:
+            if role != NamespaceUserRoleInt.GUEST:
                 namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
                 async_session.add(namespace_user)
 

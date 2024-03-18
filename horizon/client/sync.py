@@ -26,6 +26,8 @@ from horizon.commons.schemas.v1 import (
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
     PageResponseV1,
+    PermissionsResponseV1,
+    PermissionsUpdateRequestV1,
     UserResponseV1,
 )
 
@@ -744,6 +746,80 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         self._request(
             "DELETE",
             f"{self.base_url}/v1/hwm/{hwm_id}",
+        )
+
+    def get_namespace_permissions(self, namespace_id: int) -> PermissionsResponseV1:
+        """Get permissions for a namespace.
+
+        Parameters
+        ----------
+        namespace_id : int
+            The ID of the namespace to get permissions for.
+
+        Returns
+        -------
+        :obj:`PermissionsResponseV1 <horizon.commons.schemas.v1.permission.PermissionsResponseV1>`
+            The permissions of the namespace.
+
+        Raises
+        ------
+        :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
+            Namespace or provided user not found.
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
+
+        Examples
+        --------
+
+        >>> client.get_namespace_permissions(namespace_id=234)
+        """
+
+        return self._request(  # type: ignore[return-value]
+            "GET",
+            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            response_class=PermissionsResponseV1,
+        )
+
+    def update_namespace_permissions(
+        self,
+        namespace_id: int,
+        changes: PermissionsUpdateRequestV1,
+    ) -> PermissionsResponseV1:
+        """Update permissions for a namespace.
+
+        Parameters
+        ----------
+        namespace_id : int
+            The ID of the namespace to update permissions for.
+        changes : :obj:`PermissionsUpdateRequestV1 <horizon.commons.schemas.v1.permission.PermissionsUpdateRequestV1>`
+            The changes to apply to the namespace's permissions.
+
+        Returns
+        -------
+        :obj:`PermissionsResponseV1 <horizon.commons.schemas.v1.permission.PermissionsResponseV1>`
+            The permissions of the namespace.
+
+        Raises
+        ------
+        :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
+            Namespace or provided user not found.
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
+        :obj:`BadRequestError <horizon.commons.exceptions.permission.BadRequestError>`
+            Bad request with incorrect operating logic.
+
+        Examples
+        --------
+
+        >>> from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1, PermissionUpdateRequestItemV1
+        >>> to_update = PermissionsUpdateRequestV1([PermissionUpdateRequestItemV1(role="OWNER", username="needed_user")])
+        >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
+        """
+        return self._request(  # type: ignore[return-value]
+            "PATCH",
+            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            json=changes.dict(exclude_unset=True),
+            response_class=PermissionsResponseV1,
         )
 
     def paginate_hwm_history(

@@ -12,7 +12,7 @@ from horizon.backend.db.models import (
     HWM,
     Namespace,
     NamespaceHistory,
-    NamespaceUserRole,
+    NamespaceUserRoleInt,
     User,
 )
 
@@ -66,7 +66,7 @@ async def test_delete_namespace_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRole.OWNER,
+        NamespaceUserRoleInt.OWNER,
     ],
     indirect=["user_with_role"],
 )
@@ -165,7 +165,7 @@ async def test_delete_namespace_with_existing_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.MAINTAINER,
+            NamespaceUserRoleInt.MAINTAINER,
             403,
             {
                 "error": {
@@ -179,7 +179,7 @@ async def test_delete_namespace_with_existing_hwm(
             },
         ),
         (
-            NamespaceUserRole.DEVELOPER,
+            NamespaceUserRoleInt.DEVELOPER,
             403,
             {
                 "error": {
@@ -193,7 +193,7 @@ async def test_delete_namespace_with_existing_hwm(
             },
         ),
         (
-            NamespaceUserRole.GUEST,
+            NamespaceUserRoleInt.GUEST,
             403,
             {
                 "error": {

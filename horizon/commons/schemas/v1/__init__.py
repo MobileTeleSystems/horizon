@@ -16,6 +16,7 @@ from horizon.commons.schemas.v1.namespace import (
     NamespacePaginateQueryV1,
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
+    NamespaceUserRole,
 )
 from horizon.commons.schemas.v1.namespace_history import (
     NamespaceHistoryPaginateQueryV1,
@@ -25,6 +26,12 @@ from horizon.commons.schemas.v1.pagination import (
     PageMetaResponseV1,
     PageResponseV1,
     PaginateQueryV1,
+)
+from horizon.commons.schemas.v1.permission import (
+    PermissionResponseItemV1,
+    PermissionsResponseV1,
+    PermissionsUpdateRequestV1,
+    PermissionUpdateRequestItemV1,
 )
 from horizon.commons.schemas.v1.user import UserResponseV1
 
@@ -45,5 +52,9 @@ __all__ = [
     "PageMetaResponseV1",
     "PageResponseV1",
     "PaginateQueryV1",
+    "PermissionUpdateRequestItemV1",
+    "PermissionResponseItemV1",
+    "PermissionsResponseV1",
+    "PermissionsUpdateRequestV1",
     "UserResponseV1",
 ]

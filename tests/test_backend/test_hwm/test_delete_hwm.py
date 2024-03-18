@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, NamespaceUserRole, User
+from horizon.backend.db.models import HWM, NamespaceUserRoleInt, User
 from horizon.backend.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
@@ -61,8 +61,8 @@ async def test_delete_hwm_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRole.OWNER,
-        NamespaceUserRole.MAINTAINER,
+        NamespaceUserRoleInt.OWNER,
+        NamespaceUserRoleInt.MAINTAINER,
     ],
     indirect=["user_with_role"],
 )
@@ -109,7 +109,7 @@ async def test_delete_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRole.DEVELOPER,
+            NamespaceUserRoleInt.DEVELOPER,
             403,
             {
                 "error": {
@@ -123,7 +123,7 @@ async def test_delete_hwm(
             },
         ),
         (
-            NamespaceUserRole.GUEST,
+            NamespaceUserRoleInt.GUEST,
             403,
             {
                 "error": {

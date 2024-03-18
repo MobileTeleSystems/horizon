@@ -9,6 +9,7 @@ from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.exceptions import BadRequestError
 from horizon.commons.schemas.v1 import (
+    NamespaceUserRole,
     PermissionResponseItemV1,
     PermissionsResponseV1,
     PermissionsUpdateRequestV1,
@@ -63,19 +64,16 @@ async def update_namespace_permissions(
             update_user = await unit_of_work.user.get_by_username(perm.username)
 
             # Ensure the current owner isn't changing their role without assigning a new owner
-            if update_user.id == user.id and perm.role != NamespaceUserRoleInt.OWNER.name:
+            if update_user.id == user.id and perm.role != NamespaceUserRole.OWNER:
                 if not any(
-                    p.role == NamespaceUserRoleInt.OWNER.name
-                    for p in changes.permissions
-                    if p.username != user.username
+                    p.role == NamespaceUserRole.OWNER for p in changes.permissions if p.username != user.username
                 ):
                     raise BadRequestError(
                         "Operation forbidden: The current owner cannot change their rights without reassigning them to another user.",
                     )
 
-            # Update or delete permissions as requested
             if perm.role:
-                if perm.role == "OWNER" and not owner_change_detected:
+                if perm.role == NamespaceUserRole.OWNER and not owner_change_detected:
                     await unit_of_work.namespace.set_new_owner(namespace_id, update_user.id)
                     owner_change_detected = True
                 else:

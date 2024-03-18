@@ -6,6 +6,7 @@ import secrets
 from typing import TYPE_CHECKING
 
 import pytest
+from pydantic import VERSION
 
 from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
 
@@ -13,6 +14,15 @@ if TYPE_CHECKING:
     from httpx import AsyncClient
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
+
+
+@pytest.fixture
+def pydantic_url_value_error():
+    pydantic_version = VERSION
+    if pydantic_version.startswith("1"):
+        return "https://errors.pydantic.dev/1.x/v/value_error"
+    else:
+        return "https://errors.pydantic.dev/2.5/v/value_error"
 
 
 async def test_update_namespace_permissions_unauthorized_user(
@@ -83,6 +93,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
     access_token: str,
     namespace_with_users: None,
     namespace: Namespace,
+    pydantic_url_value_error: str,
 ):
     changes = {
         "permissions": [
@@ -97,6 +108,27 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
         json=changes,
     )
     assert response.status_code == 422
+    expected_content = {
+        "error": {
+            "code": "invalid_request",
+            "details": [
+                {
+                    "code": "value_error",
+                    "context": {},
+                    "input": [
+                        {"role": "DEVELOPER", "username": "user1"},
+                        {"role": "MAINTAINER", "username": "user1"},
+                        {"role": "OWNER", "username": "user2"},
+                    ],
+                    "location": ["body", "permissions"],
+                    "message": "Value error, Duplicate username detected: user1. Each username must appear only once.",
+                    "url": pydantic_url_value_error,
+                }
+            ],
+            "message": "Invalid request",
+        }
+    }
+    assert response.json() == expected_content
 
 
 @pytest.mark.parametrize(
@@ -115,6 +147,7 @@ async def test_update_namespace_permissions_duplicates_owner(
     access_token: str,
     namespace_with_users: None,
     namespace: Namespace,
+    pydantic_url_value_error: str,
 ):
     changes = {
         "permissions": [
@@ -129,6 +162,24 @@ async def test_update_namespace_permissions_duplicates_owner(
         json=changes,
     )
     assert response.status_code == 422
+    expected_response = {
+        "error": {
+            "code": "invalid_request",
+            "details": [
+                {
+                    "code": "value_error",
+                    "context": {},
+                    "input": changes["permissions"],
+                    "location": ["body", "permissions"],
+                    "message": "Value error, Multiple owner role assignments detected. Only one owner can be assigned.",
+                    "url": pydantic_url_value_error,
+                }
+            ],
+            "message": "Invalid request",
+        }
+    }
+
+    assert response.json() == expected_response
 
 
 @pytest.mark.parametrize(

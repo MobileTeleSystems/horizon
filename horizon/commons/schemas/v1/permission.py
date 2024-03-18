@@ -44,8 +44,7 @@ class PermissionsUpdateRequestV1(BaseModel):
         seen: Set[str] = set()
         owner_count = 0
         for perm in permissions:
-            username = perm.username if hasattr(perm, "username") else perm.get("username")
-            role = perm.role if hasattr(perm, "role") else perm.get("role")
+            username, role = perm.username, perm.role
 
             if username in seen:
                 raise ValueError(f"Duplicate username detected: {username}. Each username must appear only once.")

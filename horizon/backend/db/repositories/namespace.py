@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, cast
 
 from sqlalchemy import SQLColumnExpression, delete, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -133,6 +133,7 @@ class NamespaceRepository(Repository[Namespace]):
 
         namespace = await self.get(namespace_id)
         owner = await self._session.get(User, namespace.owner_id)
+        owner = cast(User, owner)
         permissions_dict[owner] = NamespaceUserRoleInt.OWNER
 
         query = (
@@ -144,7 +145,7 @@ class NamespaceRepository(Repository[Namespace]):
         for user, role in result.fetchall():
             permissions_dict[user] = NamespaceUserRoleInt[role]
 
-        return permissions_dict  # type: ignore
+        return permissions_dict
 
     async def set_new_owner(self, namespace_id: int, new_owner_id: int) -> None:
         await self._session.execute(update(Namespace).where(Namespace.id == namespace_id).values(owner_id=new_owner_id))

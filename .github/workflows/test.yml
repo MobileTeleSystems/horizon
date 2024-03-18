@@ -17,7 +17,7 @@ env:
 
 jobs:
   tests:
-    name: Run ${{ matrix.mark }} tests (Python ${{ matrix.python-version }}, Pydantic v${{ matrix.pydantic-version }} on ${{ matrix.os }})
+    name: Run tests (Python ${{ matrix.python-version }}, Pydantic v${{ matrix.pydantic-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -72,12 +72,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-${{ hashFiles('**/poetry.lock') }}
+          key: ${{ runner.os }}-python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}-test-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-${{ hashFiles('**/poetry.lock') }}
-            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-
-            ${{ runner.os }}-python
-            ${{ runner.os }}-
+            ${{ runner.os }}-python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}-test-${{ hashFiles('**/poetry.lock') }}
+            ${{ runner.os }}-python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}-test-
+            ${{ runner.os }}-python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}-
 
       - name: Install dependencies
         run: |

@@ -322,6 +322,49 @@ async def test_update_namespace_permissions_change_owner(
 
 
 @pytest.mark.parametrize(
+    "namespace_with_users",
+    [
+        [
+            ("user1", NamespaceUserRoleInt.DEVELOPER),
+            ("user2", NamespaceUserRoleInt.DEVELOPER),
+            ("user3", NamespaceUserRoleInt.MAINTAINER),
+        ]
+    ],
+    indirect=["namespace_with_users"],
+)
+async def test_update_namespace_permissions_unknown_user(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace_with_users: None,
+    namespace: Namespace,
+    new_user: User,
+):
+    changes = {
+        "permissions": [
+            {"username": new_user.username, "role": "DEVELOPER"},
+        ]
+    }
+
+    response = await test_client.patch(
+        f"/v1/namespace/{namespace.id}/permissions",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=changes,
+    )
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "code": "not_found",
+            "message": f"User with username={new_user.username!r} not found",
+            "details": {
+                "entity_type": "User",
+                "field": "username",
+                "value": new_user.username,
+            },
+        },
+    }
+
+
+@pytest.mark.parametrize(
     "user_with_role, expected_status, expected_response",
     [
         (

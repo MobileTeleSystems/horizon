@@ -172,6 +172,10 @@ responses = [
   {version = "^0.23.2", python = "<3.8"},
   {version = "^0.24.1", python = ">=3.8"},
 ]
+types-pyyaml = [
+  {version = "6.0.12.12", python = "<3.8"},
+  {version = "^6.0.12", python = "==3.7"}
+]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = [
@@ -187,8 +191,11 @@ sqlalchemy = {extras = ["mypy"], version = "^2.0.25", python = ">=3.8"}
 wemake-python-styleguide = {version = "^0.18.0", python = ">=3.8.1"}
 flake8-pyproject = {version = "^1.2.3", python = ">=3.8"}
 types-python-jose = {version = "^3.3.4", python = ">=3.8"}
-types-pyyaml = {version = "^6.0.12", python = ">=3.8"}
 types-passlib = {version = "^1.7.7", python = ">=3.8"}
+types-pyyaml = [
+  {version = "6.0.12.12", python = "<3.8"},
+  {version = "^6.0.12", python = "==3.7"}
+]
 types-requests = {version = "^2.31.0", python = ">=3.8"}
 
 [tool.poetry.group.docs.dependencies]

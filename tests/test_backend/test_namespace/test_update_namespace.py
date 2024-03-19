@@ -132,6 +132,7 @@ async def test_update_namespace_name(
 @pytest.mark.parametrize(
     "user_with_role",
     [
+        NamespaceUserRoleInt.SUPERADMIN,
         NamespaceUserRoleInt.OWNER,
     ],
     indirect=["user_with_role"],

@@ -36,6 +36,38 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("namespace_id", "user_id", name=op.f("pk__namespace_user")),
     )
+    # Any user who has changed a namespace at least once should be a maintainer
+    op.execute(
+        """
+        INSERT INTO namespace_user (namespace_id, user_id, role)
+            SELECT DISTINCT
+                namespace_history.namespace_id,
+                namespace_history.changed_by_user_id,
+                'MAINTAINER' AS role
+            FROM namespace_history
+            JOIN namespace ON namespace_history.namespace_id = namespace.id
+            WHERE
+                namespace_history.changed_by_user_id IS NOT NULL
+            AND namespace_history.changed_by_user_id != namespace.owner_id
+        ON CONFLICT (namespace_id, user_id) DO NOTHING
+        """,
+    )
+    # Any user who has changed any HWM in namespace at least once should be a developer
+    op.execute(
+        """
+        INSERT INTO namespace_user (namespace_id, user_id, role)
+            SELECT DISTINCT
+                hwm_history.namespace_id,
+                hwm_history.changed_by_user_id,
+                'DEVELOPER' AS role
+            FROM hwm_history
+            JOIN namespace ON hwm_history.namespace_id = namespace.id
+            WHERE
+                hwm_history.changed_by_user_id IS NOT NULL
+            AND hwm_history.changed_by_user_id != namespace.owner_id
+        ON CONFLICT (namespace_id, user_id) DO NOTHING
+        """,
+    )
 
 
 def downgrade() -> None:

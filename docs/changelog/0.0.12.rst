@@ -4,4 +4,4 @@
 Bug Fixes
 ---------
 
-- Fix client compatibility with ``urllib`` 1.x
+- Fix client compatibility with ``urllib`` 1.x .

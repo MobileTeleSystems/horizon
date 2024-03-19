@@ -134,3 +134,25 @@ Architecture Diagram with Permissions
     note right of Roles : Roles define the\npermissions within\nnamespaces and HWMs.
     @enduml
 
+
+Superadmin Role
+---------------
+
+The ``SUPERADMIN`` role grants a user unrestricted access across all entities and operations within the Horizon service.
+Users with the ``SUPERADMIN`` role can create, read, update, delete, and manage users across all ``namespaces`` and ``HWMs`` without any restrictions.
+
+
+Superadmins are managed outside the usual user interface, through a dedicated script that can add or remove ``SUPERADMIN`` privileges from users. This operation is intended to be performed directly on the server where the Horizon service is hosted.
+
+To add or remove superadmin privileges, run the following command:
+
+.. code-block:: shell
+
+    # to add superadmin privileges
+    python -m horizon.backend.scripts.manage_admins --add username1 username2
+
+    # to remove superadmin privileges
+    python -m horizon.backend.scripts.manage_admins --remove username3
+
+    # both operations
+    python -m horizon.backend.scripts.manage_admins --add username1 username2 --remove username3

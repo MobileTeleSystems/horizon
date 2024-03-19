@@ -3,7 +3,7 @@
 import pytest
 from httpx import AsyncClient
 
-from horizon.backend.db.models import User
+from horizon.backend.db.models import NamespaceUserRoleInt, User
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
@@ -34,4 +34,29 @@ async def test_whoami(
     assert response.json() == {
         "id": user.id,
         "username": user.username,
+    }
+
+
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRoleInt.SUPERADMIN,
+    ],
+    indirect=["user_with_role"],
+)
+async def test_whoami_superadmin(
+    test_client: AsyncClient,
+    access_token: str,
+    user_with_role: None,
+    user: User,
+):
+    response = await test_client.get(
+        "v1/users/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": user.id,
+        "username": user.username,
+        "is_admin": True,
     }

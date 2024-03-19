@@ -132,7 +132,7 @@ async def user_with_role(
                     namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
                     async_session.add(namespace_user)
 
-                await async_session.commit()
+        await async_session.commit()
 
     yield
 

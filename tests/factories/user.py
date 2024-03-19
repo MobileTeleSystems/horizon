@@ -12,12 +12,8 @@ import pytest_asyncio
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import (
-    Namespace,
-    NamespaceUser,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import Namespace, NamespaceUser, User
+from horizon.commons.dto import Role
 from tests.factories.base import random_string
 
 
@@ -105,18 +101,18 @@ async def users(
         await async_session.commit()
 
 
-@pytest_asyncio.fixture(params=[NamespaceUserRoleInt.DEVELOPER])
+@pytest_asyncio.fixture(params=[Role.DEVELOPER])
 async def user_with_role(
     request: pytest.FixtureRequest,
     user: User,
     namespace: Namespace,
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[None, None]:
-    role = request.param
+    role: Role | None = request.param
     fake_owner = None
 
     async with async_session_factory() as async_session:
-        if role != NamespaceUserRoleInt.OWNER:
+        if role != Role.OWNER:
             fake_owner = User(username=secrets.token_hex(5), is_active=True)
             async_session.add(fake_owner)
             await async_session.commit()
@@ -124,7 +120,7 @@ async def user_with_role(
             namespace.owner_id = fake_owner.id
             async_session.add(namespace)
 
-            if role != NamespaceUserRoleInt.GUEST:
+            if role:
                 namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
                 async_session.add(namespace_user)
 
@@ -135,11 +131,11 @@ async def user_with_role(
     async with async_session_factory() as async_session:
         if fake_owner:
             await async_session.execute(
-                update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id)
+                update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id),
             )
 
-            await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
-
             await async_session.execute(delete(User).where(User.id == fake_owner.id))
+
+        await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
 
         await async_session.commit()

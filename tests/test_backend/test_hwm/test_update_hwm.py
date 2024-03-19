@@ -10,13 +10,8 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import (
-    HWM,
-    HWMHistory,
-    Namespace,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.commons.dto import Role
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -82,11 +77,11 @@ async def test_update_hwm_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRoleInt.OWNER,
-        NamespaceUserRoleInt.MAINTAINER,
-        NamespaceUserRoleInt.DEVELOPER,
+        Role.OWNER,
+        Role.MAINTAINER,
+        Role.DEVELOPER,
     ],
-    indirect=["user_with_role"],
+    indirect=True,
 )
 async def test_update_hwm(
     test_client: AsyncClient,
@@ -499,30 +494,9 @@ async def test_update_hwm_invalid_field_length(
     assert naturally_equivalent(hwm_after, hwm)
 
 
-@pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
-    [
-        (
-            NamespaceUserRoleInt.GUEST,
-            403,
-            {
-                "error": {
-                    "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
-                    "details": {
-                        "required_role": "DEVELOPER",
-                        "actual_role": "GUEST",
-                    },
-                }
-            },
-        ),
-    ],
-    indirect=["user_with_role"],
-)
+@pytest.mark.parametrize("user_with_role", [None], indirect=True)
 async def test_update_hwm_permission_denied(
     user_with_role: None,
-    expected_status: int,
-    expected_response: dict,
     test_client: AsyncClient,
     access_token: str,
     hwm: HWM,
@@ -532,5 +506,14 @@ async def test_update_hwm_permission_denied(
         headers={"Authorization": f"Bearer {access_token}"},
         json={"value": "value"},
     )
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": {
+            "code": "permission_denied",
+            "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+            "details": {
+                "required_role": "DEVELOPER",
+                "actual_role": "GUEST",
+            },
+        },
+    }

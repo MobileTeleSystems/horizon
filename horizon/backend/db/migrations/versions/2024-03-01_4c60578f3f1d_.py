@@ -21,7 +21,7 @@ def upgrade() -> None:
         "namespace_user",
         sa.Column("namespace_id", sa.BigInteger(), nullable=False),
         sa.Column("user_id", sa.BigInteger(), nullable=False),
-        sa.Column("role", sa.String(length=50), nullable=False),
+        sa.Column("role", sa.String(length=255), nullable=False),
         sa.ForeignKeyConstraint(
             ["namespace_id"],
             ["namespace.id"],

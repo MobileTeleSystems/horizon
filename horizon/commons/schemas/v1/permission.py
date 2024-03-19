@@ -4,14 +4,14 @@ from typing import List, Optional, Set
 
 from pydantic import BaseModel, Field, validator
 
-from horizon.commons.schemas.v1 import NamespaceUserRole
+from horizon.commons.dto import Role
 
 
 class PermissionResponseItemV1(BaseModel):
     """Represents a single permission entry in a response, linking a user with their role within a namespace."""
 
     username: str
-    role: NamespaceUserRole
+    role: Role
 
 
 class PermissionsResponseV1(BaseModel):
@@ -24,7 +24,7 @@ class PermissionUpdateRequestItemV1(BaseModel):
     """Represents a single permission entry in a request, specifying a desired role for a user within a namespace."""
 
     username: str
-    role: Optional[NamespaceUserRole] = Field(
+    role: Optional[Role] = Field(
         default=None,
         description="The role to be assigned to the user within the namespace."
         " A value of `None` indicates that the permission should be removed.",
@@ -50,7 +50,7 @@ class PermissionsUpdateRequestV1(BaseModel):
                 raise ValueError(f"Duplicate username detected: {username}. Each username must appear only once.")
             seen.add(username)
 
-            if role == NamespaceUserRole.OWNER:
+            if role == Role.OWNER:
                 owner_count += 1
 
         if owner_count > 1:

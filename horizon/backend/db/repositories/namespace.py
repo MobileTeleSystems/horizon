@@ -3,25 +3,14 @@
 
 from __future__ import annotations
 
-from typing import Dict, cast
-
-from sqlalchemy import SQLColumnExpression, delete, select, update
+from sqlalchemy import SQLColumnExpression, delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import (
-    Namespace,
-    NamespaceUser,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import Namespace, NamespaceUser, User
 from horizon.backend.db.repositories.base import Repository
-from horizon.commons.dto import Pagination
-from horizon.commons.exceptions import (
-    EntityAlreadyExistsError,
-    EntityNotFoundError,
-    PermissionDeniedError,
-)
+from horizon.commons.dto import Pagination, Role
+from horizon.commons.exceptions import EntityAlreadyExistsError, EntityNotFoundError
 
 
 class NamespaceRepository(Repository[Namespace]):
@@ -89,6 +78,7 @@ class NamespaceRepository(Repository[Namespace]):
                 raise EntityNotFoundError("Namespace", "id", namespace_id)
 
             await self._session.flush()
+            await self._session.refresh(result)
             return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError(
@@ -100,41 +90,42 @@ class NamespaceRepository(Repository[Namespace]):
     async def delete(
         self,
         namespace_id: int,
-        user: User,
     ) -> Namespace:
-        namespace = await self.get(namespace_id)
-        await self._session.delete(namespace)
+        result = await self.get(namespace_id)
+        await self._session.delete(result)
         await self._session.flush()
-        return namespace
+        return result
 
-    async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRoleInt) -> None:
-        owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
-        owner_id = owner_check.scalar_one_or_none()
-        if owner_id is None:
-            raise EntityNotFoundError("Namespace", "id", namespace_id)
+    async def get_user_role(self, user_id: int, namespace_id: int) -> Role | None:
+        owner_result = await self._session.execute(
+            select(Namespace.owner_id).where(
+                Namespace.id == namespace_id,
+                Namespace.owner_id == user_id,
+            ),
+        )
+        owner_id = owner_result.scalar_one_or_none()
+        if owner_id:
+            return Role.OWNER
 
-        if owner_id == user_id:
-            user_role = NamespaceUserRoleInt.OWNER
-        else:
-            role_result = await self._session.execute(
-                select(NamespaceUser.role).where(
-                    NamespaceUser.namespace_id == namespace_id,
-                    NamespaceUser.user_id == user_id,
-                ),
-            )
-            user_role_value = role_result.scalars().first()
-            user_role = NamespaceUserRoleInt[user_role_value] if user_role_value else NamespaceUserRoleInt.GUEST
+        role_result = await self._session.execute(
+            select(NamespaceUser.role).where(
+                NamespaceUser.namespace_id == namespace_id,
+                NamespaceUser.user_id == user_id,
+            ),
+        )
+        user_role = role_result.scalar_one_or_none()
+        if user_role:
+            return user_role
 
-        if user_role < required_role:
-            raise PermissionDeniedError(required_role.name, user_role.name)
+        return None
 
-    async def get_namespace_users_permissions(self, namespace_id: int) -> Dict[User, NamespaceUserRoleInt]:
-        permissions_dict = {}
+    async def get_all_roles(self, namespace_id: int) -> dict[User, Role]:
+        roles_dict = {}
 
         namespace = await self.get(namespace_id)
         owner = await self._session.get(User, namespace.owner_id)
-        owner = cast(User, owner)
-        permissions_dict[owner] = NamespaceUserRoleInt.OWNER
+        if owner:
+            roles_dict[owner] = Role.OWNER
 
         query = (
             select(User, NamespaceUser.role)
@@ -143,29 +134,22 @@ class NamespaceRepository(Repository[Namespace]):
         )
         result = await self._session.execute(query)
         for user, role in result.fetchall():
-            permissions_dict[user] = NamespaceUserRoleInt[role]
+            roles_dict[user] = Role[role]
 
-        return permissions_dict
+        return roles_dict
 
-    async def set_new_owner(self, namespace_id: int, new_owner_id: int) -> None:
-        await self._session.execute(update(Namespace).where(Namespace.id == namespace_id).values(owner_id=new_owner_id))
-        await self._session.execute(
-            delete(NamespaceUser).where(
-                NamespaceUser.namespace_id == namespace_id,
-                NamespaceUser.user_id == new_owner_id,
-            ),
-        )
-
-    async def update_permission(self, namespace_id: int, user_id: int, role: NamespaceUserRoleInt) -> None:
+    async def set_role(self, namespace_id: int, user_id: int, role: Role) -> None:
         # create an "upsert" statement using PostgreSQL's ON CONFLICT syntax.
         stmt = pg_insert(NamespaceUser).values(namespace_id=namespace_id, user_id=user_id, role=role.name)
         stmt = stmt.on_conflict_do_update(
             index_elements=[NamespaceUser.namespace_id, NamespaceUser.user_id],
-            set_={"role": role.name},
+            set_={"role": role},
         )
         await self._session.execute(stmt)
+        await self._session.flush()
 
-    async def delete_permission(self, namespace_id: int, user_id: int) -> None:
+    async def delete_role(self, namespace_id: int, user_id: int) -> None:
         await self._session.execute(
             delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace_id, NamespaceUser.user_id == user_id),
         )
+        await self._session.flush()

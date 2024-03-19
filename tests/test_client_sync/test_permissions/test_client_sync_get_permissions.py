@@ -8,8 +8,9 @@ import re
 import pytest
 import requests
 
-from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
+from horizon.backend.db.models import Namespace, User
 from horizon.client.sync import HorizonClientSync
+from horizon.commons.dto import Role
 from horizon.commons.exceptions.entity import EntityNotFoundError
 from horizon.commons.schemas.v1 import PermissionResponseItemV1, PermissionsResponseV1
 
@@ -19,7 +20,7 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 def test_sync_client_get_namespace_permissions(namespace: Namespace, user: User, sync_client: HorizonClientSync):
     response = sync_client.get_namespace_permissions(namespace.id)
     assert response == PermissionsResponseV1(
-        permissions=[PermissionResponseItemV1(username=user.username, role=NamespaceUserRoleInt.OWNER.name)]
+        permissions=[PermissionResponseItemV1(username=user.username, role=Role.OWNER)],
     )
 
 

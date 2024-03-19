@@ -4,9 +4,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import Annotated
 
-from horizon.backend.db.models import NamespaceUserRoleInt, User
+from horizon.backend.db.models import User
 from horizon.backend.services import UnitOfWork, current_user
+from horizon.commons.dto import Role
 from horizon.commons.errors import get_error_responses
+from horizon.commons.exceptions import PermissionDeniedError
 from horizon.commons.schemas.v1 import (
     NamespaceCreateRequestV1,
     NamespacePaginateQueryV1,
@@ -73,14 +75,18 @@ async def update_namespace(
     unit_of_work: Annotated[UnitOfWork, Depends()],
     user: Annotated[User, Depends(current_user)],
 ) -> NamespaceResponseV1:
+    namespace = await unit_of_work.namespace.get(namespace_id)
+
+    role = await unit_of_work.namespace.get_user_role(
+        user_id=user.id,
+        namespace_id=namespace.id,
+    )
+    if role != Role.OWNER:
+        raise PermissionDeniedError(required_role="OWNER", actual_role=role.name if role else "GUEST")
+
     async with unit_of_work:
-        await unit_of_work.namespace.check_user_permission(
-            user_id=user.id,
-            namespace_id=namespace_id,
-            required_role=NamespaceUserRoleInt.OWNER,
-        )
         namespace = await unit_of_work.namespace.update(
-            namespace_id=namespace_id,
+            namespace_id=namespace.id,
             changes=changes.dict(exclude_defaults=True),
             user=user,
         )
@@ -104,21 +110,25 @@ async def delete_namespace(
     user: Annotated[User, Depends(current_user)],
     unit_of_work: Annotated[UnitOfWork, Depends()],
 ) -> None:
-    async with unit_of_work:
-        await unit_of_work.namespace.check_user_permission(
-            user_id=user.id,
-            namespace_id=namespace_id,
-            required_role=NamespaceUserRoleInt.OWNER,
-        )
-        hwm_records = await unit_of_work.hwm.paginate(namespace_id=namespace_id, page=1, page_size=1)
-        if hwm_records.total_count:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot delete namespace because it has related HWM records.",
-            )
+    namespace = await unit_of_work.namespace.get(namespace_id)
 
-        namespace = await unit_of_work.namespace.delete(namespace_id=namespace_id, user=user)
+    role = await unit_of_work.namespace.get_user_role(
+        user_id=user.id,
+        namespace_id=namespace.id,
+    )
+    if role != Role.OWNER:
+        raise PermissionDeniedError(required_role="OWNER", actual_role=role.name if role else "GUEST")
+
+    hwm_records = await unit_of_work.hwm.paginate(namespace_id=namespace.id, page=1, page_size=1)
+    if hwm_records.total_count:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete namespace because it has related HWM records.",
+        )
+
+    async with unit_of_work:
+        namespace = await unit_of_work.namespace.delete(namespace_id=namespace.id)
         await unit_of_work.namespace_history.create(
-            namespace_id=namespace_id,
+            namespace_id=namespace.id,
             data={**namespace.to_dict(exclude={"id"}), "action": "Deleted"},
         )

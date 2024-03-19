@@ -8,13 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import (
-    HWM,
-    Namespace,
-    NamespaceHistory,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import HWM, Namespace, NamespaceHistory, User
+from horizon.commons.dto import Role
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -63,13 +58,7 @@ async def test_delete_namespace_missing(
     }
 
 
-@pytest.mark.parametrize(
-    "user_with_role",
-    [
-        NamespaceUserRoleInt.OWNER,
-    ],
-    indirect=["user_with_role"],
-)
+@pytest.mark.parametrize("user_with_role", [Role.OWNER], indirect=True)
 async def test_delete_namespace(
     test_client: AsyncClient,
     access_token: str,
@@ -165,45 +154,45 @@ async def test_delete_namespace_with_existing_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRoleInt.MAINTAINER,
+            Role.MAINTAINER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
-            NamespaceUserRoleInt.DEVELOPER,
+            Role.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
-            NamespaceUserRoleInt.GUEST,
+            None,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

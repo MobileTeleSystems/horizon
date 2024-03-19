@@ -10,45 +10,42 @@ import pytest_asyncio
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import (
-    Namespace,
-    NamespaceUser,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import Namespace, NamespaceUser, User
+from horizon.commons.dto import Role
 
 
 @pytest_asyncio.fixture(
     params=[
-        ("user1", NamespaceUserRoleInt.DEVELOPER),
-        ("user2", NamespaceUserRoleInt.DEVELOPER),
-        ("user3", NamespaceUserRoleInt.MAINTAINER),
-    ]
+        [
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.DEVELOPER),
+            ("user3", Role.MAINTAINER),
+        ],
+    ],
 )
 async def namespace_with_users(
     request: pytest.FixtureRequest,
     namespace: Namespace,
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[None, None]:
-    users_roles = request.param
+    user_roles: list[tuple[str, Role | None]] = request.param
 
     async with async_session_factory() as async_session:
         created_users = []
         original_owner_id = namespace.owner_id
-        for username, role in users_roles:
+        for username, role in user_roles:
             user = User(username=username, is_active=True)
             async_session.add(user)
             await async_session.commit()
             created_users.append(user)
 
-            if role != NamespaceUserRoleInt.GUEST:
-                if role == NamespaceUserRoleInt.OWNER:
-                    namespace.owner_id = user.id
-                else:
-                    namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
-                    async_session.add(namespace_user)
+            if role == Role.OWNER:
+                namespace.owner_id = user.id
+            elif role:
+                namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
+                async_session.add(namespace_user)
 
-                await async_session.commit()
+        await async_session.commit()
 
     yield
 

@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 from pydantic import VERSION
 
-from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
+from horizon.backend.db.models import Namespace, User
+from horizon.commons.dto import Role
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -31,8 +32,8 @@ async def test_update_namespace_permissions_unauthorized_user(
 ):
     changes = {
         "permissions": [
-            {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
-        ]
+            {"username": secrets.token_hex(6), "role": "DEVELOPER"},
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -55,8 +56,8 @@ async def test_update_namespace_permissions_namespace_missing(
 ):
     changes = {
         "permissions": [
-            {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
-        ]
+            {"username": secrets.token_hex(6), "role": "DEVELOPER"},
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{new_namespace.id}/permissions",
@@ -81,10 +82,10 @@ async def test_update_namespace_permissions_namespace_missing(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.DEVELOPER),
-            ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.DEVELOPER),
+            ("user3", Role.MAINTAINER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -100,7 +101,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
             {"username": "user1", "role": "DEVELOPER"},
             {"username": "user1", "role": "MAINTAINER"},
             {"username": "user2", "role": "OWNER"},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -123,10 +124,10 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
                     "location": ["body", "permissions"],
                     "message": "Value error, Duplicate username detected: user1. Each username must appear only once.",
                     "url": pydantic_url_value_error,
-                }
+                },
             ],
             "message": "Invalid request",
-        }
+        },
     }
     assert response.json() == expected_content
 
@@ -135,10 +136,10 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.DEVELOPER),
-            ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.DEVELOPER),
+            ("user3", Role.MAINTAINER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -154,7 +155,7 @@ async def test_update_namespace_permissions_duplicates_owner(
             {"username": "user1", "role": "DEVELOPER"},
             {"username": "user2", "role": "OWNER"},
             {"username": "user3", "role": "OWNER"},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -173,10 +174,10 @@ async def test_update_namespace_permissions_duplicates_owner(
                     "location": ["body", "permissions"],
                     "message": "Value error, Multiple owner role assignments detected. Only one owner can be assigned.",
                     "url": pydantic_url_value_error,
-                }
+                },
             ],
             "message": "Invalid request",
-        }
+        },
     }
 
     assert response.json() == expected_response
@@ -186,10 +187,10 @@ async def test_update_namespace_permissions_duplicates_owner(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.DEVELOPER),
-            ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.DEVELOPER),
+            ("user3", Role.MAINTAINER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -214,8 +215,8 @@ async def test_update_namespace_permissions_lose_owner(
     assert response.json() == {
         "error": {
             "code": "bad_request",
-            "message": "Operation forbidden: The current owner cannot change their "
-            "rights without reassigning them to another user.",
+            "message": "Operation forbidden: The current owner cannot change own "
+            "role without reassigning it to another user.",
             "details": {},
         },
     }
@@ -225,10 +226,10 @@ async def test_update_namespace_permissions_lose_owner(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.MAINTAINER),
-            ("user3", NamespaceUserRoleInt.DEVELOPER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.MAINTAINER),
+            ("user3", Role.DEVELOPER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -241,7 +242,7 @@ async def test_update_namespace_permissions_remove_role(
     changes = {
         "permissions": [
             {"username": "user3", "role": None},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -258,9 +259,9 @@ async def test_update_namespace_permissions_remove_role(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.MAINTAINER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.MAINTAINER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -274,7 +275,7 @@ async def test_update_namespace_permissions_add_or_update_roles(
         "permissions": [
             {"username": "user1", "role": "MAINTAINER"},
             {"username": "user2", "role": "DEVELOPER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -288,15 +289,14 @@ async def test_update_namespace_permissions_add_or_update_roles(
     expected_roles = {change["username"]: change["role"] for change in changes["permissions"]}
 
     for permission in updated_permissions:
-        assert (
-            permission["role"] == expected_roles[permission["username"]]
-        ), f"{permission['username']} role should be {expected_roles[permission['username']]}"
+        error_msg = f"{permission['username']} role should be {expected_roles[permission['username']]}"
+        assert permission["role"] == expected_roles[permission["username"]], error_msg
 
 
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
-        [("existing_owner", NamespaceUserRoleInt.OWNER), ("user_to_become_owner", NamespaceUserRoleInt.DEVELOPER)],
+        [("existing_owner", Role.OWNER), ("user_to_become_owner", Role.DEVELOPER)],
     ],
     indirect=["namespace_with_users"],
 )
@@ -309,7 +309,7 @@ async def test_update_namespace_permissions_change_owner(
     changes = {
         "permissions": [
             {"username": "user_to_become_owner", "role": "OWNER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -325,10 +325,10 @@ async def test_update_namespace_permissions_change_owner(
     "namespace_with_users",
     [
         [
-            ("user1", NamespaceUserRoleInt.DEVELOPER),
-            ("user2", NamespaceUserRoleInt.DEVELOPER),
-            ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+            ("user1", Role.DEVELOPER),
+            ("user2", Role.DEVELOPER),
+            ("user3", Role.MAINTAINER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -342,7 +342,7 @@ async def test_update_namespace_permissions_unknown_user(
     changes = {
         "permissions": [
             {"username": new_user.username, "role": "DEVELOPER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -368,45 +368,45 @@ async def test_update_namespace_permissions_unknown_user(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRoleInt.MAINTAINER,
+            Role.MAINTAINER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
-            NamespaceUserRoleInt.DEVELOPER,
+            Role.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
-            NamespaceUserRoleInt.GUEST,
+            None,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

@@ -11,13 +11,8 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import desc, select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import (
-    HWM,
-    HWMHistory,
-    Namespace,
-    NamespaceUserRoleInt,
-    User,
-)
+from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.commons.dto import Role
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -97,11 +92,11 @@ async def test_create_hwm_missing_namespace(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRoleInt.OWNER,
-        NamespaceUserRoleInt.MAINTAINER,
-        NamespaceUserRoleInt.DEVELOPER,
+        Role.OWNER,
+        Role.MAINTAINER,
+        Role.DEVELOPER,
     ],
-    indirect=["user_with_role"],
+    indirect=True,
 )
 async def test_create_hwm(
     test_client: AsyncClient,
@@ -307,7 +302,7 @@ async def test_create_hwm_already_exist(
                 "field": "name",
                 "value": hwm.name,
             },
-        }
+        },
     }
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -542,31 +537,10 @@ async def test_create_hwm_with_same_name_after_deletion(
     assert created_hwm_history.value == hwm_data["value"]
 
 
-@pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
-    [
-        (
-            NamespaceUserRoleInt.GUEST,
-            403,
-            {
-                "error": {
-                    "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
-                    "details": {
-                        "required_role": "DEVELOPER",
-                        "actual_role": "GUEST",
-                    },
-                }
-            },
-        ),
-    ],
-    indirect=["user_with_role"],
-)
+@pytest.mark.parametrize("user_with_role", [None], indirect=True)
 async def test_create_hwm_permission_denied(
     user_with_role: None,
     namespace: Namespace,
-    expected_status: int,
-    expected_response: dict,
     test_client: AsyncClient,
     access_token: str,
 ):
@@ -580,5 +554,14 @@ async def test_create_hwm_permission_denied(
             "value": 123,
         },
     )
-    assert response.status_code == expected_status
-    assert response.json() == expected_response
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": {
+            "code": "permission_denied",
+            "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+            "details": {
+                "required_role": "DEVELOPER",
+                "actual_role": "GUEST",
+            },
+        },
+    }

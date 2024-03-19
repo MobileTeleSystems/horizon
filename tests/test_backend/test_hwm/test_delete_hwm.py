@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, NamespaceUserRoleInt, User
-from horizon.backend.db.models.hwm_history import HWMHistory
+from horizon.backend.db.models import HWM, HWMHistory, User
+from horizon.commons.dto import Role
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -61,10 +61,10 @@ async def test_delete_hwm_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
-        NamespaceUserRoleInt.OWNER,
-        NamespaceUserRoleInt.MAINTAINER,
+        Role.OWNER,
+        Role.MAINTAINER,
     ],
-    indirect=["user_with_role"],
+    indirect=True,
 )
 async def test_delete_hwm(
     test_client: AsyncClient,
@@ -109,31 +109,31 @@ async def test_delete_hwm(
     "user_with_role, expected_status, expected_response",
     [
         (
-            NamespaceUserRoleInt.DEVELOPER,
+            Role.DEVELOPER,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
-            NamespaceUserRoleInt.GUEST,
+            None,
             403,
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

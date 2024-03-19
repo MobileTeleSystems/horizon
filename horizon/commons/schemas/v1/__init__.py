@@ -16,7 +16,6 @@ from horizon.commons.schemas.v1.namespace import (
     NamespacePaginateQueryV1,
     NamespaceResponseV1,
     NamespaceUpdateRequestV1,
-    NamespaceUserRole,
 )
 from horizon.commons.schemas.v1.namespace_history import (
     NamespaceHistoryPaginateQueryV1,

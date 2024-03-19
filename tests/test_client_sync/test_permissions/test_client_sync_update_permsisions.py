@@ -8,11 +8,11 @@ import re
 import pytest
 import requests
 
-from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
+from horizon.backend.db.models import Namespace, User
 from horizon.client.sync import HorizonClientSync
+from horizon.commons.dto import Role
 from horizon.commons.exceptions import EntityNotFoundError
 from horizon.commons.schemas.v1 import (
-    NamespaceUserRole,
     PermissionsResponseV1,
     PermissionsUpdateRequestV1,
     PermissionUpdateRequestItemV1,
@@ -24,7 +24,7 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
-        [("new_user", NamespaceUserRoleInt.MAINTAINER)],
+        [("new_user", Role.MAINTAINER)],
     ],
     indirect=["namespace_with_users"],
 )
@@ -33,17 +33,15 @@ def test_sync_client_update_namespace_permissions(
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
-            PermissionUpdateRequestItemV1(username=user.username, role=NamespaceUserRole.DEVELOPER),
-            PermissionUpdateRequestItemV1(username="new_user", role=NamespaceUserRole.OWNER),
-        ]
+            PermissionUpdateRequestItemV1(username=user.username, role=Role.DEVELOPER),
+            PermissionUpdateRequestItemV1(username="new_user", role=Role.OWNER),
+        ],
     )
     response = sync_client.update_namespace_permissions(namespace.id, changes)
 
     assert isinstance(response, PermissionsResponseV1)
-    assert any(
-        perm.username == user.username and perm.role == NamespaceUserRole.DEVELOPER for perm in response.permissions
-    )
-    assert any(perm.username == "new_user" and perm.role == NamespaceUserRole.OWNER for perm in response.permissions)
+    assert any(perm.username == user.username and perm.role == Role.DEVELOPER for perm in response.permissions)
+    assert any(perm.username == "new_user" and perm.role == Role.OWNER for perm in response.permissions)
 
 
 def test_sync_client_update_namespace_permissions_namespace_missing(
@@ -51,8 +49,8 @@ def test_sync_client_update_namespace_permissions_namespace_missing(
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
-            PermissionUpdateRequestItemV1(username="someuser", role=NamespaceUserRole.DEVELOPER),
-        ]
+            PermissionUpdateRequestItemV1(username="someuser", role=Role.DEVELOPER),
+        ],
     )
     with pytest.raises(
         EntityNotFoundError,

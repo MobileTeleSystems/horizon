@@ -1,6 +1,7 @@
-Superadmin Role Management
---------------------------
+.. _manage-admins-script:
 
+Manage Admins
+-------------
 
 .. argparse::
    :module: horizon.backend.scripts.manage_admins

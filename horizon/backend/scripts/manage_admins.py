@@ -16,6 +16,14 @@ engine = create_async_engine(Settings().database.url)
 SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
 
+def create_parser():
+    """Create and return the argparse parser."""
+    parser = argparse.ArgumentParser(description="Manage admin users.")
+    parser.add_argument("--add", nargs="+", help="Usernames to add as admins")
+    parser.add_argument("--remove", nargs="+", help="Usernames to remove from admins")
+    return parser
+
+
 async def add_admins(session: AsyncSession, usernames: List[str]):
     for username in usernames:
         result = await session.execute(select(User).filter_by(username=username))
@@ -38,10 +46,7 @@ async def remove_admins(session: AsyncSession, usernames: List[str]):
 
 
 async def main():
-    parser = argparse.ArgumentParser(description="Manage admin users.")
-    parser.add_argument("--add", nargs="+", help="Usernames to add as admins")
-    parser.add_argument("--remove", nargs="+", help="Usernames to remove from admins")
-
+    parser = create_parser()
     args = parser.parse_args()
 
     async with SessionLocal() as session:

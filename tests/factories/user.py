@@ -119,18 +119,17 @@ async def user_with_role(
         if role == NamespaceUserRoleInt.SUPERADMIN:
             user.is_admin = True
             async_session.add(user)
-        else:
-            if role != NamespaceUserRoleInt.OWNER:
-                fake_owner = User(username=secrets.token_hex(5), is_active=True)
-                async_session.add(fake_owner)
-                await async_session.commit()
+        elif role != NamespaceUserRoleInt.OWNER:
+            fake_owner = User(username=secrets.token_hex(5), is_active=True)
+            async_session.add(fake_owner)
+            await async_session.commit()
 
-                namespace.owner_id = fake_owner.id
-                async_session.add(namespace)
+            namespace.owner_id = fake_owner.id
+            async_session.add(namespace)
 
-                if role != NamespaceUserRoleInt.GUEST:
-                    namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
-                    async_session.add(namespace_user)
+            if role != NamespaceUserRoleInt.GUEST:
+                namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
+                async_session.add(namespace_user)
 
         await async_session.commit()
 

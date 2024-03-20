@@ -2,3 +2,4 @@ User-agent: *
 Allow: /*/stable/
 Allow: /en/stable/   # Fallback for bots that don't understand wildcards
 Disallow: /
+Sitemap: https://data-horizon.readthedocs.io/sitemap.xml

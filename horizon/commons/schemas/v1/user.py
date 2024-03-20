@@ -16,3 +16,9 @@ class UserResponseV1(BaseModel):
         orm_mode = True
         # pydantic v2
         from_attributes = True
+
+
+class UserResponseV1WithAdmin(UserResponseV1):
+    """Extended user info response including is_admin."""
+
+    is_admin: bool = Field(description="Indicates if the user is a superadmin")

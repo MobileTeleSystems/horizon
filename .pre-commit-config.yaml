@@ -41,7 +41,7 @@ repos:
       - id: chmod
         args: ['644']
         exclude_types: [shell]
-        exclude: ^(.*__main__\.py|horizon/backend/export_openapi_schema\.py)$
+        exclude: ^(.*__main__\.py|horizon/backend/export_openapi_schema\.py|horizon/backend/scripts/manage_admins\.py)$
       - id: chmod
         args: ['755']
         types: [shell]

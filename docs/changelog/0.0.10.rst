@@ -4,4 +4,4 @@
 Bug Fixes
 ---------
 
-- Update ``starlette-exporter`` and ``uvicorn`` to latest versions
+- Update ``starlette-exporter`` and ``uvicorn`` to latest versions.

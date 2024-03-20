@@ -134,3 +134,12 @@ Architecture Diagram with Permissions
     note right of Roles : Roles define the\npermissions within\nnamespaces and HWMs.
     @enduml
 
+
+Superadmin Role
+---------------
+
+The ``SUPERADMIN`` role grants a user unrestricted access across all entities and operations within the Horizon service.
+Users with the ``SUPERADMIN`` role can create, read, update, delete, and manage users across all ``namespaces`` and ``HWMs`` without any restrictions.
+
+For details on how to update ``SUPERADMIN`` roles via the command-line script, see the :ref:`manage-admins-script`.
+

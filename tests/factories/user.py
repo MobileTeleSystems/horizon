@@ -116,7 +116,10 @@ async def user_with_role(
     fake_owner = None
 
     async with async_session_factory() as async_session:
-        if role != NamespaceUserRoleInt.OWNER:
+        if role == NamespaceUserRoleInt.SUPERADMIN:
+            user.is_admin = True
+            async_session.add(user)
+        elif role != NamespaceUserRoleInt.OWNER:
             fake_owner = User(username=secrets.token_hex(5), is_active=True)
             async_session.add(fake_owner)
             await async_session.commit()
@@ -128,18 +131,22 @@ async def user_with_role(
                 namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
                 async_session.add(namespace_user)
 
-            await async_session.commit()
+        await async_session.commit()
 
     yield
 
     async with async_session_factory() as async_session:
-        if fake_owner:
-            await async_session.execute(
-                update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id)
-            )
+        if role == NamespaceUserRoleInt.SUPERADMIN:
+            user.is_admin = False
+            async_session.add(user)
+        else:
+            if fake_owner:
+                await async_session.execute(
+                    update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id)
+                )
 
-            await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
+                await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
 
-            await async_session.execute(delete(User).where(User.id == fake_owner.id))
+                await async_session.execute(delete(User).where(User.id == fake_owner.id))
 
         await async_session.commit()

@@ -33,7 +33,7 @@ async def test_add_admins(caplog, async_session: AsyncSession, user: User, addit
             await add_admins(async_session, usernames)
 
         for username in usernames:
-            assert f"Updated user '{username}' to admin." or f"Created new admin user '{username}'." in caplog.messages
+            assert f"Updated user '{username}' to admin." in caplog.messages or f"Created new admin user '{username}'." in caplog.messages
             result = await async_session.execute(select(User).filter_by(username=username))
             user = result.scalars().first()
             assert user is not None

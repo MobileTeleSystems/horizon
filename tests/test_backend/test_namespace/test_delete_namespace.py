@@ -66,6 +66,7 @@ async def test_delete_namespace_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
+        NamespaceUserRoleInt.SUPERADMIN,
         NamespaceUserRoleInt.OWNER,
     ],
     indirect=["user_with_role"],

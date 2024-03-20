@@ -82,6 +82,7 @@ async def test_update_hwm_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
+        NamespaceUserRoleInt.SUPERADMIN,
         NamespaceUserRoleInt.OWNER,
         NamespaceUserRoleInt.MAINTAINER,
         NamespaceUserRoleInt.DEVELOPER,

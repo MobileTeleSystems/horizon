@@ -61,6 +61,7 @@ async def test_delete_hwm_missing(
 @pytest.mark.parametrize(
     "user_with_role",
     [
+        NamespaceUserRoleInt.SUPERADMIN,
         NamespaceUserRoleInt.OWNER,
         NamespaceUserRoleInt.MAINTAINER,
     ],

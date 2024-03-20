@@ -36,6 +36,7 @@
     backend/configuration/index
     backend/auth/index
     backend/openapi
+    backend/scripts/index
 
 
 .. toctree::

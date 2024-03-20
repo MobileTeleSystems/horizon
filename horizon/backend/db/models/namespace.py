@@ -15,6 +15,7 @@ class NamespaceUserRoleInt(IntEnum):
     DEVELOPER = 1
     MAINTAINER = 2
     OWNER = 3
+    SUPERADMIN = 4
 
 
 class Namespace(Base, ChangedByMixin):

@@ -33,7 +33,7 @@ from horizon.commons.schemas.v1.permission import (
     PermissionsUpdateRequestV1,
     PermissionUpdateRequestItemV1,
 )
-from horizon.commons.schemas.v1.user import UserResponseV1
+from horizon.commons.schemas.v1.user import UserResponseV1, UserResponseV1WithAdmin
 
 __all__ = [
     "AuthTokenResponseV1",
@@ -57,4 +57,5 @@ __all__ = [
     "PermissionsResponseV1",
     "PermissionsUpdateRequestV1",
     "UserResponseV1",
+    "UserResponseV1WithAdmin",
 ]

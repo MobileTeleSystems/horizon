@@ -97,6 +97,7 @@ async def test_create_hwm_missing_namespace(
 @pytest.mark.parametrize(
     "user_with_role",
     [
+        NamespaceUserRoleInt.SUPERADMIN,
         NamespaceUserRoleInt.OWNER,
         NamespaceUserRoleInt.MAINTAINER,
         NamespaceUserRoleInt.DEVELOPER,

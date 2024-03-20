@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from typing import List, Optional, TypeVar
+from typing import List, Optional, TypeVar, Union
 
 from authlib.integrations.requests_client import OAuth2Session
 from pydantic import BaseModel, Field, root_validator, validator
@@ -29,6 +29,7 @@ from horizon.commons.schemas.v1 import (
     PermissionsResponseV1,
     PermissionsUpdateRequestV1,
     UserResponseV1,
+    UserResponseV1WithAdmin,
 )
 
 ResponseSchema = TypeVar("ResponseSchema", bound=BaseModel)
@@ -202,7 +203,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             response_class=PingResponse,
         )
 
-    def whoami(self) -> UserResponseV1:
+    def whoami(self) -> Union[UserResponseV1WithAdmin, UserResponseV1]:
         """Get current user info.
 
         Examples
@@ -213,11 +214,19 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             id=1,
             username="me",
         )
+
+        >>> client.whoami()  # for a superadmin user:
+        UserResponseV1WithAdmin(
+            id=1,
+            username="admin",
+            is_admin=True,
+        )
+
         """
         return self._request(  # type: ignore[return-value]
             "GET",
             f"{self.base_url}/v1/users/me",
-            response_class=UserResponseV1,
+            response_class=Union[UserResponseV1WithAdmin, UserResponseV1],  # type: ignore[arg-type]
         )
 
     def paginate_namespaces(

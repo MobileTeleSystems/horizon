@@ -57,6 +57,7 @@ extensions = [
     "sphinx_design",  # provides `dropdown` directive
     "sphinxcontrib.plantuml",
     "sphinx_favicon",
+    "sphinxarg.ext",
 ]
 swagger = [
     {

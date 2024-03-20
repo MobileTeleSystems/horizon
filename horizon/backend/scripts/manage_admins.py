@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import argparse
 import asyncio
+import logging
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -19,9 +20,11 @@ async def add_admins(session: AsyncSession, usernames: List[str]):
         user = result.scalars().first()
         if user:
             user.is_admin = True
+            logging.info(f"Updated user '{username}' to admin.")
         else:
             user = User(username=username, is_admin=True)
             session.add(user)
+            logging.info(f"Created new admin user '{username}'.")
     await session.commit()
 
 
@@ -38,7 +41,7 @@ async def list_admins(session: AsyncSession):
     result = await session.execute(select(User).filter_by(is_admin=True))
     admins = result.scalars().all()
     for admin in admins:
-        print(admin.username)
+        logging.info(admin.username)
 
 
 def create_parser():
@@ -69,6 +72,7 @@ async def main(args: argparse.Namespace, session: AsyncSession):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     settings = Settings()
     engine = create_async_engine(settings.database.url)
     SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)

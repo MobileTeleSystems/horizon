@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-import io
-from contextlib import redirect_stdout
+import logging
 
 import pytest
 from sqlalchemy import delete, select
@@ -26,12 +25,15 @@ async def cleanup_users(async_session: AsyncSession, usernames: list):
         (["testadmin1", "testadmin2"]),
     ],
 )
-async def test_add_admins(async_session: AsyncSession, user: User, additional_usernames: list):
+async def test_add_admins(caplog, async_session: AsyncSession, user: User, additional_usernames: list):
     usernames = [user.username] + additional_usernames
+
     try:
-        await add_admins(async_session, usernames)
+        with caplog.at_level(logging.INFO):
+            await add_admins(async_session, usernames)
 
         for username in usernames:
+            assert f"Updated user '{username}' to admin." or f"Created new admin user '{username}'." in caplog.messages
             result = await async_session.execute(select(User).filter_by(username=username))
             user = result.scalars().first()
             assert user is not None
@@ -63,16 +65,14 @@ async def test_remove_admins_with_existing_user(async_session: AsyncSession, use
 
 
 @pytest.mark.parametrize("additional_usernames", [["testadmin1", "testadmin2"]])
-async def test_list_admins(async_session: AsyncSession, additional_usernames: list):
+async def test_list_admins(caplog, async_session: AsyncSession, additional_usernames: list):
     await add_admins(async_session, additional_usernames)
 
     try:
-        f = io.StringIO()
-        with redirect_stdout(f):
+        with caplog.at_level(logging.INFO):
             await list_admins(async_session)
 
-        output = f.getvalue()
         for username in additional_usernames:
-            assert username in output
+            assert username in caplog.text
     finally:
         await cleanup_users(async_session, additional_usernames)

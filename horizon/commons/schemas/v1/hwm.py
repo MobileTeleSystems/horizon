@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, root_validator
 
@@ -80,3 +80,10 @@ class HWMUpdateRequestV1(BaseModel):
         if not values_set:
             raise ValueError("At least one field must be set.")
         return values
+
+
+class HWMBulkDeleteRequestV1(BaseModel):
+    """Schema for request body of bulk delete HWM operation."""
+
+    namespace_id: int
+    hwm_ids: List[int] = Field(min_length=1)

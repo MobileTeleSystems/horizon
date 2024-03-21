@@ -8,6 +8,7 @@ from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
+    HWMBulkDeleteRequestV1,
     HWMCreateRequestV1,
     HWMPaginateQueryV1,
     HWMResponseV1,
@@ -120,8 +121,34 @@ async def delete_hwm(
             required_role=NamespaceUserRoleInt.MAINTAINER,
             namespace_id=hwm.namespace_id,
         )
-        hwm = await unit_of_work.hwm.delete(hwm_id=hwm_id, user=user)
+        hwm = await unit_of_work.hwm.delete(hwm_id=hwm_id)
         await unit_of_work.hwm_history.create(
             hwm_id=hwm.id,
-            data={**hwm.to_dict(exclude={"id"}), "action": "Deleted"},
+            data={**hwm.to_dict(exclude={"id"}), "changed_by_user_id": user.id, "action": "Deleted"},
         )
+
+
+@router.delete(
+    "/",
+    summary="Bulk Delete HWM",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def bulk_delete_hwm(
+    changes: HWMBulkDeleteRequestV1,
+    user: Annotated[User, Depends(current_user)],
+    unit_of_work: Annotated[UnitOfWork, Depends()],
+) -> None:
+    async with unit_of_work:
+        await unit_of_work.namespace.check_user_permission(
+            user_id=user.id,
+            required_role=NamespaceUserRoleInt.MAINTAINER,
+            namespace_id=changes.namespace_id,
+        )
+        deleted_hwms = await unit_of_work.hwm.bulk_delete(namespace_id=changes.namespace_id, hwm_ids=changes.hwm_ids)
+
+        hwm_history_data = [
+            {"hwm_id": hwm.id, "changed_by_user_id": user.id, "action": "Deleted", **hwm.to_dict(exclude={"id"})}
+            for hwm in deleted_hwms
+        ]
+
+        await unit_of_work.hwm_history.bulk_create(hwm_data=hwm_history_data)

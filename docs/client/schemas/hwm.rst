@@ -18,3 +18,6 @@ HWM-related schemas
 
 .. autopydantic_model:: HWMUpdateRequestV1
     :model-show-field-summary: false
+
+.. autopydantic_model:: HWMBulkDeleteRequestV1
+    :model-show-field-summary: false

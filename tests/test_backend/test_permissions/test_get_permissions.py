@@ -62,7 +62,7 @@ async def test_get_namespace_permissions_missing(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.DEVELOPER),
             ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -79,14 +79,15 @@ async def test_get_namespace_permissions(
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
-    permissions = response.json()["permissions"]
 
-    assert permissions == [
-        {"username": user.username, "role": "OWNER"},
-        {"username": "user1", "role": "DEVELOPER"},
-        {"username": "user2", "role": "DEVELOPER"},
-        {"username": "user3", "role": "MAINTAINER"},
-    ]
+    assert response.json() == {
+        "permissions": [
+            {"username": user.username, "role": "OWNER"},
+            {"username": "user3", "role": "MAINTAINER"},
+            {"username": "user1", "role": "DEVELOPER"},
+            {"username": "user2", "role": "DEVELOPER"},
+        ],
+    }
 
 
 @pytest.mark.parametrize(
@@ -98,12 +99,12 @@ async def test_get_namespace_permissions(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
@@ -112,12 +113,12 @@ async def test_get_namespace_permissions(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -126,12 +127,12 @@ async def test_get_namespace_permissions(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

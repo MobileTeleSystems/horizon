@@ -552,7 +552,7 @@ async def test_create_hwm_with_same_name_after_deletion(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
                     "details": {
                         "required_role": "DEVELOPER",
                         "actual_role": "GUEST",

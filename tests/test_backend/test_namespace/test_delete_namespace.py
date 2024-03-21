@@ -171,7 +171,7 @@ async def test_delete_namespace_with_existing_hwm(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
@@ -185,7 +185,7 @@ async def test_delete_namespace_with_existing_hwm(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
@@ -199,7 +199,7 @@ async def test_delete_namespace_with_existing_hwm(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",

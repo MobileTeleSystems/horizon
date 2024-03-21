@@ -115,7 +115,7 @@ async def test_delete_hwm(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "DEVELOPER",
@@ -129,7 +129,7 @@ async def test_delete_hwm(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "GUEST",

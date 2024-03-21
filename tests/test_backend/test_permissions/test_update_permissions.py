@@ -342,7 +342,7 @@ async def test_update_namespace_permissions_unknown_user(
     changes = {
         "permissions": [
             {"username": new_user.username, "role": "DEVELOPER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -373,12 +373,12 @@ async def test_update_namespace_permissions_unknown_user(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
@@ -387,12 +387,12 @@ async def test_update_namespace_permissions_unknown_user(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -401,12 +401,12 @@ async def test_update_namespace_permissions_unknown_user(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

@@ -215,7 +215,7 @@ async def test_update_namespace_no_data(
                 "location": ["body", "__root__"],
                 "code": "value_error",
                 "message": "At least one field must be set.",
-            }
+            },
         ]
     else:
         details = [
@@ -226,7 +226,7 @@ async def test_update_namespace_no_data(
                 "context": {},
                 "input": {"unexpected": "value"},
                 "url": "https://errors.pydantic.dev/2.5/v/value_error",
-            }
+            },
         ]
 
     assert response.json() == {
@@ -234,7 +234,7 @@ async def test_update_namespace_no_data(
             "code": "invalid_request",
             "message": "Invalid request",
             "details": details,
-        }
+        },
     }
 
 
@@ -375,12 +375,12 @@ async def test_update_namespace_invalid_name_length(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
@@ -389,12 +389,12 @@ async def test_update_namespace_invalid_name_length(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -403,12 +403,12 @@ async def test_update_namespace_invalid_name_length(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
                     "details": {
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

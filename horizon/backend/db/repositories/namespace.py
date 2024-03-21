@@ -146,6 +146,7 @@ class NamespaceRepository(Repository[Namespace]):
             select(User, NamespaceUser.role)
             .join(NamespaceUser, User.id == NamespaceUser.user_id)
             .where(NamespaceUser.namespace_id == namespace_id)
+            .order_by(NamespaceUser.role.desc(), User.username)
         )
         result = await self._session.execute(query)
         for user, role in result.fetchall():

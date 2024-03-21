@@ -82,6 +82,15 @@ class HWMUpdateRequestV1(BaseModel):
         return values
 
 
+class HWMCopyRequestV1(BaseModel):
+    """Schema for request body of HWM copy operation."""
+
+    source_namespace_id: int = Field(description="Source namespace ID from which HWMs are copied.")
+    target_namespace_id: int = Field(description="Target namespace ID to which HWMs are copied.")
+    hwm_ids: List[int] = Field(min_length=1, description="List of HWM IDs to be copied.")
+    with_history: bool = Field(default=False, description="Whether to copy HWM history.")
+
+
 class HWMBulkDeleteRequestV1(BaseModel):
     """Schema for request body of bulk delete HWM operation."""
 

@@ -13,6 +13,7 @@ from horizon import __version__ as horizon_version
 from horizon.client.base import BaseClient
 from horizon.commons.schemas import PingResponse
 from horizon.commons.schemas.v1 import (
+    HWMBulkDeleteRequestV1,
     HWMCreateRequestV1,
     HWMHistoryPaginateQueryV1,
     HWMHistoryResponseV1,
@@ -755,6 +756,41 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         self._request(
             "DELETE",
             f"{self.base_url}/v1/hwm/{hwm_id}",
+        )
+
+    def bulk_delete_hwm(self, namespace_id: int, hwm_ids: List[int]) -> None:
+        """Bulk delete HWMs.
+
+        .. note::
+
+            Method ignores HWMs that are not related to provided namespace.
+
+        Parameters
+        ----------
+        namespace_id : int
+            Namespace ID where the HWMs belong.
+        hwm_ids : List[int]
+            List of HWM IDs to be deleted.
+
+        Raises
+        ------
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
+
+        Examples
+        --------
+
+        >>> client.bulk_delete_hwm(
+        ...     namespace_id=123,
+        ...     hwm_ids=[234, 345, 456]
+        ... )
+        """
+
+        data = HWMBulkDeleteRequestV1(namespace_id=namespace_id, hwm_ids=hwm_ids)
+        self._request(
+            "DELETE",
+            f"{self.base_url}/v1/hwm/",
+            json=data.dict(),
         )
 
     def get_namespace_permissions(self, namespace_id: int) -> PermissionsResponseV1:

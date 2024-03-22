@@ -44,7 +44,7 @@ async def get_namespace_permissions(
     summary="Update namespace permissions",
     dependencies=[Depends(current_user)],
 )
-async def update_namespace_permissions(
+async def update_namespace_permissions(  # noqa: WPS217
     namespace_id: int,
     changes: PermissionsUpdateRequestV1,
     unit_of_work: Annotated[UnitOfWork, Depends()],
@@ -57,7 +57,6 @@ async def update_namespace_permissions(
             required_role=NamespaceUserRoleInt.OWNER,
         )
 
-        updated_permissions_response = []
         owner_change_detected = False
 
         for perm in changes.permissions:
@@ -68,9 +67,7 @@ async def update_namespace_permissions(
                 if not any(
                     p.role == NamespaceUserRole.OWNER for p in changes.permissions if p.username != user.username
                 ):
-                    raise BadRequestError(
-                        "Operation forbidden: The current owner cannot change their rights without reassigning them to another user.",
-                    )
+                    raise BadRequestError("Cannot drop ownership without assigning a new owner.")
 
             if perm.role:
                 if perm.role == NamespaceUserRole.OWNER and not owner_change_detected:
@@ -79,10 +76,11 @@ async def update_namespace_permissions(
                 else:
                     role_enum = NamespaceUserRoleInt[perm.role.upper()]
                     await unit_of_work.namespace.update_permission(namespace_id, update_user.id, role_enum)
-                updated_permissions_response.append(
-                    PermissionResponseItemV1(username=perm.username, role=perm.role),
-                )
             else:
                 await unit_of_work.namespace.delete_permission(namespace_id, update_user.id)
 
-        return PermissionsResponseV1(permissions=updated_permissions_response)
+        permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
+        permissions_response = [
+            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+        ]
+        return PermissionsResponseV1(permissions=permissions_response)

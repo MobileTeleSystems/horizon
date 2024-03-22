@@ -842,7 +842,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         Returns
         -------
         :obj:`PermissionsResponseV1 <horizon.commons.schemas.v1.permission.PermissionsResponseV1>`
-            The permissions of the namespace.
+            Actual permissions of the namespace.
 
         Raises
         ------
@@ -857,7 +857,11 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         --------
 
         >>> from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1, PermissionUpdateRequestItemV1
-        >>> to_update = PermissionsUpdateRequestV1([PermissionUpdateRequestItemV1(role="OWNER", username="needed_user")])
+        >>> to_update = PermissionsUpdateRequestV1([
+        ...     PermissionUpdateRequestItemV1(username="new_owner", role="OWNER"),
+        ...     PermissionUpdateRequestItemV1(username="add_developer", role="DEVELOPER"),
+        ...     PermissionUpdateRequestItemV1(username="make_read_only", role=None),
+        ... ])
         >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
         """
         return self._request(  # type: ignore[return-value]

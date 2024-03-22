@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
-from sqlalchemy import SQLColumnExpression
+from typing import List, Sequence
+
+from sqlalchemy import SQLColumnExpression, delete, select
 from sqlalchemy.exc import IntegrityError
 
 from horizon.backend.db.models import HWM, User
@@ -93,9 +95,17 @@ class HWMRepository(Repository[HWM]):
     async def delete(
         self,
         hwm_id: int,
-        user: User,
     ) -> HWM:
         hwm = await self.get(hwm_id)
         await self._session.delete(hwm)
         await self._session.flush()
         return hwm
+
+    async def bulk_delete(self, namespace_id: int, hwm_ids: List[int]) -> Sequence[HWM]:
+        result = await self._session.execute(select(HWM).where(HWM.id.in_(hwm_ids), HWM.namespace_id == namespace_id))
+        hwms_to_delete = result.scalars().all()
+
+        if hwms_to_delete:
+            await self._session.execute(delete(HWM).where(HWM.id.in_([hwm.id for hwm in hwms_to_delete])))
+
+        return hwms_to_delete

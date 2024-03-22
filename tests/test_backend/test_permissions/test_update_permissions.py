@@ -32,7 +32,7 @@ async def test_update_namespace_permissions_unauthorized_user(
     changes = {
         "permissions": [
             {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -56,7 +56,7 @@ async def test_update_namespace_permissions_namespace_missing(
     changes = {
         "permissions": [
             {"username": secrets.token_hex(6), "role": NamespaceUserRoleInt.DEVELOPER.name},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{new_namespace.id}/permissions",
@@ -84,7 +84,7 @@ async def test_update_namespace_permissions_namespace_missing(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.DEVELOPER),
             ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -100,7 +100,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
             {"username": "user1", "role": "DEVELOPER"},
             {"username": "user1", "role": "MAINTAINER"},
             {"username": "user2", "role": "OWNER"},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -138,7 +138,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.DEVELOPER),
             ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -154,7 +154,7 @@ async def test_update_namespace_permissions_duplicates_owner(
             {"username": "user1", "role": "DEVELOPER"},
             {"username": "user2", "role": "OWNER"},
             {"username": "user3", "role": "OWNER"},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -189,7 +189,7 @@ async def test_update_namespace_permissions_duplicates_owner(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.DEVELOPER),
             ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -203,7 +203,7 @@ async def test_update_namespace_permissions_lose_owner(
     changes = {
         "permissions": [
             {"username": user.username, "role": "DEVELOPER"},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -214,8 +214,7 @@ async def test_update_namespace_permissions_lose_owner(
     assert response.json() == {
         "error": {
             "code": "bad_request",
-            "message": "Operation forbidden: The current owner cannot change their "
-            "rights without reassigning them to another user.",
+            "message": "Cannot drop ownership without assigning a new owner.",
             "details": {},
         },
     }
@@ -228,7 +227,7 @@ async def test_update_namespace_permissions_lose_owner(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.MAINTAINER),
             ("user3", NamespaceUserRoleInt.DEVELOPER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -237,11 +236,12 @@ async def test_update_namespace_permissions_remove_role(
     access_token: str,
     namespace_with_users: None,
     namespace: Namespace,
+    user: User,
 ):
     changes = {
         "permissions": [
             {"username": "user3", "role": None},
-        ]
+        ],
     }
     response = await test_client.patch(
         f"/v1/namespace/{namespace.id}/permissions",
@@ -249,9 +249,13 @@ async def test_update_namespace_permissions_remove_role(
         json=changes,
     )
     assert response.status_code == 200
-    permissions = response.json()["permissions"]
-
-    assert not any(perm["username"] == "user3" for perm in permissions)
+    assert response.json() == {
+        "permissions": [
+            {"username": user.username, "role": "OWNER"},
+            {"username": "user2", "role": "MAINTAINER"},
+            {"username": "user1", "role": "DEVELOPER"},
+        ],
+    }
 
 
 @pytest.mark.parametrize(
@@ -260,7 +264,7 @@ async def test_update_namespace_permissions_remove_role(
         [
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -269,12 +273,13 @@ async def test_update_namespace_permissions_add_or_update_roles(
     access_token: str,
     namespace_with_users: None,
     namespace: Namespace,
+    user: User,
 ):
     changes = {
         "permissions": [
             {"username": "user1", "role": "MAINTAINER"},
             {"username": "user2", "role": "DEVELOPER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -284,19 +289,23 @@ async def test_update_namespace_permissions_add_or_update_roles(
     )
 
     assert response.status_code == 200
-    updated_permissions = response.json()["permissions"]
-    expected_roles = {change["username"]: change["role"] for change in changes["permissions"]}
-
-    for permission in updated_permissions:
-        assert (
-            permission["role"] == expected_roles[permission["username"]]
-        ), f"{permission['username']} role should be {expected_roles[permission['username']]}"
+    assert response.json() == {
+        "permissions": [
+            {"username": user.username, "role": "OWNER"},
+            {"username": "user1", "role": "MAINTAINER"},
+            {"username": "user2", "role": "DEVELOPER"},
+        ],
+    }
 
 
 @pytest.mark.parametrize(
     "namespace_with_users",
     [
-        [("existing_owner", NamespaceUserRoleInt.OWNER), ("user_to_become_owner", NamespaceUserRoleInt.DEVELOPER)],
+        [
+            ("existing_owner", NamespaceUserRoleInt.OWNER),
+            ("user_to_become_owner", NamespaceUserRoleInt.DEVELOPER),
+            ("other_user", NamespaceUserRoleInt.DEVELOPER),
+        ],
     ],
     indirect=["namespace_with_users"],
 )
@@ -309,7 +318,7 @@ async def test_update_namespace_permissions_change_owner(
     changes = {
         "permissions": [
             {"username": "user_to_become_owner", "role": "OWNER"},
-        ]
+        ],
     }
 
     response = await test_client.patch(
@@ -319,6 +328,12 @@ async def test_update_namespace_permissions_change_owner(
     )
 
     assert response.status_code == 200
+    assert response.json() == {
+        "permissions": [
+            {"username": "user_to_become_owner", "role": "OWNER"},
+            {"username": "other_user", "role": "DEVELOPER"},
+        ],
+    }
 
 
 @pytest.mark.parametrize(
@@ -328,7 +343,7 @@ async def test_update_namespace_permissions_change_owner(
             ("user1", NamespaceUserRoleInt.DEVELOPER),
             ("user2", NamespaceUserRoleInt.DEVELOPER),
             ("user3", NamespaceUserRoleInt.MAINTAINER),
-        ]
+        ],
     ],
     indirect=["namespace_with_users"],
 )

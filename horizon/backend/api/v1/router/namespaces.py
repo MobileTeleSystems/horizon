@@ -120,5 +120,5 @@ async def delete_namespace(
         namespace = await unit_of_work.namespace.delete(namespace_id=namespace_id, user=user)
         await unit_of_work.namespace_history.create(
             namespace_id=namespace_id,
-            data={**namespace.to_dict(exclude={"id"}), "action": "Deleted"},
+            data={**namespace.to_dict(exclude={"id"}), "action": "Deleted", "changed_by_user_id": user.id},
         )

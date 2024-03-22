@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, List
 
 import pytest
@@ -34,21 +33,11 @@ def test_sync_client_bulk_delete_hwm_missing(
     new_hwm: HWM,
     sync_client: HorizonClientSync,
 ):
-    with pytest.raises(
-        EntityNotFoundError,
-        match=re.escape(f"HWMs with ids=[{new_hwm.id!r}] not found"),
-    ) as e:
-        sync_client.bulk_delete_hwm(namespace_id=namespace.id, hwm_ids=[hwm.id, new_hwm.id])
+    sync_client.bulk_delete_hwm(namespace_id=namespace.id, hwm_ids=[hwm.id, new_hwm.id])
 
-    assert e.value.details == {
-        "entity_type": "HWMs",
-        "field": "ids",
-        "value": [new_hwm.id],
-    }
-
-    # original HTTP exception is attached as reason
-    assert isinstance(e.value.__cause__, requests.exceptions.HTTPError)
-    assert e.value.__cause__.response.status_code == 404
+    # we ignore hwms that are not related to namespace and delete only existing hws in namespace
+    with pytest.raises(EntityNotFoundError):
+        sync_client.get_hwm(hwm.id)
 
 
 def test_sync_client_bulk_delete_hwm_malformed(sync_client: HorizonClientSync):

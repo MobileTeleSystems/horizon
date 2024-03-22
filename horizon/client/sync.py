@@ -761,6 +761,10 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     def bulk_delete_hwm(self, namespace_id: int, hwm_ids: List[int]) -> None:
         """Bulk delete HWMs.
 
+        .. note::
+
+            Method ignores HWMs that are not related to provided namespace.
+
         Parameters
         ----------
         namespace_id : int
@@ -770,8 +774,6 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         Raises
         ------
-        :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
-            One or more HWMs not found.
         :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
             Permission denied for performing the requested action.
 

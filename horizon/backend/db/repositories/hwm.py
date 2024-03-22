@@ -105,11 +105,7 @@ class HWMRepository(Repository[HWM]):
         result = await self._session.execute(select(HWM).where(HWM.id.in_(hwm_ids), HWM.namespace_id == namespace_id))
         hwms_to_delete = result.scalars().all()
 
-        missing_ids = set(hwm_ids) - {hwm.id for hwm in hwms_to_delete}
-        if missing_ids:
-            raise EntityNotFoundError("HWMs", "ids", list(missing_ids))
-
         if hwms_to_delete:
-            await self._session.execute(delete(HWM).where(HWM.id.in_(hwm_ids)))
+            await self._session.execute(delete(HWM).where(HWM.id.in_([hwm.id for hwm in hwms_to_delete])))
 
         return hwms_to_delete

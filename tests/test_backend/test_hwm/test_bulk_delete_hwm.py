@@ -108,18 +108,8 @@ async def test_bulk_delete_not_existing_hwm(
         },
         json={"namespace_id": namespace.id, "hwm_ids": [hwm.id, new_hwm.id]},
     )
-    assert response.status_code == 404
-    assert response.json() == {
-        "error": {
-            "code": "not_found",
-            "message": f"HWMs with ids=[{new_hwm.id!r}] not found",
-            "details": {
-                "entity_type": "HWMs",
-                "field": "ids",
-                "value": [new_hwm.id],
-            },
-        },
-    }
+    # we ignore hwms that are not related to namespace and delete only existing hws in namespace
+    assert response.status_code == 204
 
 
 async def test_bulk_delete_empty_hwm_list(

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List
+from __future__ import annotations
 
 from horizon.backend.db.models import HWMHistory
 from horizon.backend.db.repositories.base import Repository
@@ -37,7 +37,7 @@ class HWMHistoryRepository(Repository[HWMHistory]):
         await self._session.flush()
         return result
 
-    async def bulk_create(self, hwm_data: List[dict]) -> List[HWMHistory]:
+    async def bulk_create(self, hwm_data: list[dict]) -> list[HWMHistory]:
         hwm_histories = [HWMHistory(**data) for data in hwm_data]
         self._session.add_all(hwm_histories)
         await self._session.flush()

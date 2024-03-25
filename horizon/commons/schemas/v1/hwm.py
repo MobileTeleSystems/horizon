@@ -90,6 +90,14 @@ class HWMCopyRequestV1(BaseModel):
     hwm_ids: List[int] = Field(min_length=1, description="List of HWM IDs to be copied.")
     with_history: bool = Field(default=False, description="Whether to copy HWM history.")
 
+    @root_validator(skip_on_failure=True)
+    def check_namespace_ids(cls, values):
+        """Validator to ensure source and target namespace IDs are different."""
+        source_namespace_id, target_namespace_id = values.get("source_namespace_id"), values.get("target_namespace_id")
+        if source_namespace_id == target_namespace_id:
+            raise ValueError("Source and target namespace IDs must not be the same.")
+        return values
+
 
 class HWMBulkDeleteRequestV1(BaseModel):
     """Schema for request body of bulk delete HWM operation."""

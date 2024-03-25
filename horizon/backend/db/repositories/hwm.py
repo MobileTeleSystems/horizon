@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
+import re
 from typing import List, Sequence
 
 from sqlalchemy import SQLColumnExpression, delete, select
 from sqlalchemy.exc import IntegrityError
 
-from horizon.backend.db.models import HWM, User
+from horizon.backend.db.models import HWM, HWMHistory, User
 from horizon.backend.db.repositories.base import Repository
 from horizon.commons.dto.pagination import Pagination
 from horizon.commons.exceptions.entity import (
@@ -109,3 +110,46 @@ class HWMRepository(Repository[HWM]):
             await self._session.execute(delete(HWM).where(HWM.id.in_([hwm.id for hwm in hwms_to_delete])))
 
         return hwms_to_delete
+
+    async def copy_hwms(
+        self,
+        source_namespace_id: int,
+        target_namespace_id: int,
+        hwm_ids: list[int],
+        with_history: bool,
+        user: User,
+    ) -> Sequence[HWM]:
+        result = await self._session.execute(
+            select(HWM).where(HWM.id.in_(hwm_ids), HWM.namespace_id == source_namespace_id),
+        )
+        hwms = result.scalars().all()
+        copied_hwms = []
+
+        for hwm in hwms:
+            new_hwm = HWM(
+                **hwm.to_dict(exclude={"id", "namespace_id"}),
+                namespace_id=target_namespace_id,
+            )
+            self._session.add(new_hwm)
+            copied_hwms.append(new_hwm)
+
+        try:
+            await self._session.flush()
+
+            if with_history:
+                for original_hwm, copied_hwm in zip(hwms, copied_hwms):
+                    history = await self._session.execute(
+                        select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id),
+                    )
+                    history = history.scalars().all()  # type: ignore
+                    for record in history:
+                        new_history_record = HWMHistory(
+                            **record.to_dict(exclude={"id", "hwm_id"}),
+                            hwm_id=copied_hwm.id,
+                        )
+                        self._session.add(new_history_record)
+        except IntegrityError as e:
+            hwm_name = re.search(r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.orig.args[0]).group(1)  # type: ignore
+            raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
+
+        return copied_hwms

@@ -23,7 +23,7 @@
     :caption: High-level design
     :hidden:
 
-    design/entities  # TODO: add info in future
+    design/entities
     design/permissions
 
 .. toctree::

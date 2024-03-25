@@ -44,22 +44,16 @@ Horizon is an application that implements simple HWM Store. Right now it include
 Goals
 -----
 
-* Allow users to save and fetch *HWM* (High Water Mark) items. These are ``name+type+value`` triples with few optional fields (``description``, ``entity``, ``expression``).
-* Avoid confusion between different user's data by separating HWMs to different *namespaces*. HWMs is created within namespace, each ``namespace name`` + ``HWM name`` is unique.
+* Allow users to save and fetch High Water Mark (*HWM*) items. These are ``name+type+value`` triples with few optional fields.
+* Avoid confusion between different user's data by separating HWMs to different *namespaces*. Each HWM is bound to namespace.
 * Allow users to get HWM change history, to determine who and when changed a specific HWM value and other fields.
-* Provide RBAC model to define and enforce permissions within the service. This ensures that user interactions with ``HWMs`` and ``Namespaces`` are governed by their assigned roles.
+* Provide RBAC model to ensure that interaction with ``HWMs`` and ``Namespaces`` are governed by role assigned to each user. Role are assigned per namespace.
 
 Non-goals
 ---------
 
-* This is not a data storage, it is not designed to store raw table rows. It is designed to store only HWM values, e.g. *max value* of a specific table column, list of handled files and so on.
-* Attaching machine-readable metadata for HWMs (like ``table``, ``process``, ``origin``) is not supported. This should be stored somewhere else.
-
-Limitations
------------
-
-* HWM types and values are not checked, and can contain anything. It is up to user how to parse fetched values and perform validation.
-* HWMs cannot be renamed or moved between namespaces. These operations could be performed only by creating new HWM in desired namespace, and deleting the old one.
+* This is not a *data* storage, it is not designed to store raw table rows. It is designed to store only HWM values.
+* Attaching machine-readable metadata for HWMs (like ``process``, ``origin``) is not supported. This should be stored somewhere else.
 
 .. documentation
 

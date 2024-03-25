@@ -128,7 +128,7 @@ html_css_files = [
     "custom.css",
 ]
 
-html_logo = "./_static/logo.svg"
+html_logo = "./_static/logo_no_title.svg"
 favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
 ]

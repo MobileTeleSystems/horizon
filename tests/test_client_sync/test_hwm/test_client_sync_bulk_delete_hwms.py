@@ -6,7 +6,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 
 import pytest
-import requests
 
 from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions.entity import EntityNotFoundError

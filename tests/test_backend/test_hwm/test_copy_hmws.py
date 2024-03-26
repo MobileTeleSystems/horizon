@@ -113,9 +113,12 @@ async def test_copy_hwms(
         # check that record with copied info is added to hwm_history
         assert len(copied_history_records) == len(original_history_records) + 1
 
-        copied_action_record = next(
-            (record for record in copied_history_records if "Copied from namespace" in record.action), None
+        history_result_query = (
+            select(HWMHistory).where(HWMHistory.hwm_id == copied_hwm.id).order_by(HWMHistory.changed_at.desc())
         )
+        history_result = await async_session.execute(history_result_query)
+        copied_action_record = history_result.scalars().first()
+
         assert copied_action_record is not None
         expected_action = f"Copied from namespace {source_namespace.id} to namespace {target_namespace.id}"
         assert copied_action_record.action == expected_action
@@ -189,6 +192,48 @@ async def test_copy_hwms_with_non_existing_hwm_ids(
     non_existing_copied_hwm = result.scalars().first()
 
     assert non_existing_copied_hwm is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("non_existing_namespace_position", ["source", "target"])
+async def test_copy_hwms_non_existing_namespace(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace: Namespace,
+    new_namespace: Namespace,
+    hwms: list[HWM],
+    non_existing_namespace_position: str,
+):
+    if non_existing_namespace_position == "source":
+        source_namespace_id = new_namespace.id
+        target_namespace_id = namespace.id
+    else:
+        source_namespace_id = namespace.id
+        target_namespace_id = new_namespace.id
+
+    response = await test_client.post(
+        "v1/hwm/copy",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "source_namespace_id": source_namespace_id,
+            "target_namespace_id": target_namespace_id,
+            "hwm_ids": [hwm.id for hwm in hwms],
+            "with_history": False,
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": {
+            "code": "not_found",
+            "message": f"Namespace with id={new_namespace.id!r} not found",
+            "details": {
+                "entity_type": "Namespace",
+                "field": "id",
+                "value": new_namespace.id,
+            },
+        },
+    }
 
 
 @pytest.mark.parametrize("namespaces", [(1, {})], indirect=True)

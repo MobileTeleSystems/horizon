@@ -763,6 +763,10 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
     def copy_hwms(self, data: HWMCopyRequestV1) -> HWMResponseListV1:
         """Copy HWMs from one namespace to another.
 
+        .. note::
+
+            Method ignores HWMs that are not related to provided source namespace.
+
         Parameters
         ----------
         data : :obj:`HWMCopyRequestV1 <horizon.commons.schemas.v1.hwm.HWMCopyRequestV1>`

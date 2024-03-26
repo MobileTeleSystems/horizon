@@ -111,7 +111,7 @@ class HWMRepository(Repository[HWM]):
 
         return hwms_to_delete
 
-    async def copy_hwms(
+    async def bulk_copy(
         self,
         source_namespace_id: int,
         target_namespace_id: int,
@@ -134,21 +134,21 @@ class HWMRepository(Repository[HWM]):
 
         try:
             await self._session.flush()
-
-            if with_history:
-                for original_hwm, copied_hwm in zip(hwms, copied_hwms):
-                    history = await self._session.execute(
-                        select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id),
-                    )
-                    history = history.scalars().all()  # type: ignore
-                    for record in history:
-                        new_history_record = HWMHistory(
-                            **record.to_dict(exclude={"id", "hwm_id"}),
-                            hwm_id=copied_hwm.id,
-                        )
-                        self._session.add(new_history_record)
         except IntegrityError as e:
             hwm_name = re.search(r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.orig.args[0]).group(1)  # type: ignore
             raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
+
+        if with_history:
+            for original_hwm, copied_hwm in zip(hwms, copied_hwms):
+                history = await self._session.execute(
+                    select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id),
+                )
+                history = history.scalars().all()  # type: ignore
+                for record in history:
+                    new_history_record = HWMHistory(
+                        **record.to_dict(exclude={"id", "hwm_id"}),
+                        hwm_id=copied_hwm.id,
+                    )
+                    self._session.add(new_history_record)
 
         return copied_hwms

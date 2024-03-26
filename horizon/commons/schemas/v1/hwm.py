@@ -95,7 +95,7 @@ class HWMCopyRequestV1(BaseModel):
     with_history: bool = Field(default=False, description="Whether to copy HWM history.")
 
     @root_validator(skip_on_failure=True)
-    def check_namespace_ids(cls, values):
+    def _check_namespace_ids(cls, values):
         """Validator to ensure source and target namespace IDs are different."""
         source_namespace_id, target_namespace_id = values.get("source_namespace_id"), values.get("target_namespace_id")
         if source_namespace_id == target_namespace_id:

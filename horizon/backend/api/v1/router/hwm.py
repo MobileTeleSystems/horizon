@@ -175,8 +175,9 @@ async def copy_hwms(
             required_role=NamespaceUserRoleInt.DEVELOPER,
         )
 
-        copied_hwms = await unit_of_work.hwm.copy_hwms(
-            source_namespace_id=copy_request.source_namespace_id,
+        source_namespace = await unit_of_work.namespace.get(copy_request.source_namespace_id)
+        copied_hwms = await unit_of_work.hwm.bulk_copy(
+            source_namespace_id=source_namespace.id,
             target_namespace_id=copy_request.target_namespace_id,
             hwm_ids=copy_request.hwm_ids,
             with_history=copy_request.with_history,
@@ -185,7 +186,7 @@ async def copy_hwms(
         hwm_history_data = []
         for copied_hwm in copied_hwms:
             history_record = {
-                **copied_hwm.to_dict(exclude={"hwm_id", "changed_by_user_id"}),
+                **copied_hwm.to_dict(exclude={"id", "changed_by_user_id"}),
                 "hwm_id": copied_hwm.id,
                 "action": f"Copied from namespace {copy_request.source_namespace_id} "
                 f"to namespace {copy_request.target_namespace_id}",

@@ -8,6 +8,9 @@ HWM-related schemas
 .. autopydantic_model:: HWMResponseV1
     :model-show-field-summary: false
 
+.. autopydantic_model:: HWMResponseListV1
+    :model-show-field-summary: false
+
 .. autopydantic_model:: HWMPaginateQueryV1
     :members:
     :inherited-members: BaseModel

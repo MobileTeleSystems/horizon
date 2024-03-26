@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List
 
 from fastapi import APIRouter, Depends, status
 from typing_extensions import Annotated
@@ -14,6 +13,7 @@ from horizon.commons.schemas.v1 import (
     HWMCopyRequestV1,
     HWMCreateRequestV1,
     HWMPaginateQueryV1,
+    HWMResponseListV1,
     HWMResponseV1,
     HWMUpdateRequestV1,
     PageResponseV1,
@@ -160,14 +160,14 @@ async def bulk_delete_hwm(
 @router.post(
     "/copy",
     summary="Copy HWMs to another namespace",
-    response_model=List[HWMResponseV1],
+    response_model=HWMResponseListV1,
     status_code=status.HTTP_201_CREATED,
 )
 async def copy_hwms(
     copy_request: HWMCopyRequestV1,
     user: Annotated[User, Depends(current_user)],
     unit_of_work: Annotated[UnitOfWork, Depends()],
-) -> List[HWMResponseV1]:
+) -> HWMResponseListV1:
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
@@ -194,4 +194,4 @@ async def copy_hwms(
             hwm_history_data.append(history_record)
 
         await unit_of_work.hwm_history.bulk_create(hwm_history_data)
-        return [HWMResponseV1.from_orm(hwm) for hwm in copied_hwms]
+        return HWMResponseListV1(hwms=[HWMResponseV1.from_orm(hwm) for hwm in copied_hwms])

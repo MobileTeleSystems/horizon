@@ -36,6 +36,10 @@ class HWMResponseV1(BaseModel):
         from_attributes = True
 
 
+class HWMResponseListV1(BaseModel):
+    hwms: List[HWMResponseV1]
+
+
 class HWMPaginateQueryV1(PaginateQueryV1):
     """Query params for HWM pagination request."""
 

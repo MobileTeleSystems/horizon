@@ -6,6 +6,7 @@ from horizon.commons.schemas.v1.hwm import (
     HWMCopyRequestV1,
     HWMCreateRequestV1,
     HWMPaginateQueryV1,
+    HWMResponseListV1,
     HWMResponseV1,
     HWMUpdateRequestV1,
 )
@@ -42,6 +43,7 @@ __all__ = [
     "HWMCreateRequestV1",
     "HWMPaginateQueryV1",
     "HWMResponseV1",
+    "HWMResponseListV1",
     "HWMUpdateRequestV1",
     "HWMHistoryPaginateQueryV1",
     "HWMHistoryResponseV1",

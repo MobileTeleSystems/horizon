@@ -117,7 +117,6 @@ class HWMRepository(Repository[HWM]):
         target_namespace_id: int,
         hwm_ids: list[int],
         with_history: bool,
-        user: User,
     ) -> Sequence[HWM]:
         result = await self._session.execute(
             select(HWM).where(HWM.id.in_(hwm_ids), HWM.namespace_id == source_namespace_id),

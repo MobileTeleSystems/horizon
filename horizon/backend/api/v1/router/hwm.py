@@ -180,7 +180,6 @@ async def copy_hwms(
             target_namespace_id=copy_request.target_namespace_id,
             hwm_ids=copy_request.hwm_ids,
             with_history=copy_request.with_history,
-            user=user,
         )
 
         hwm_history_data = []

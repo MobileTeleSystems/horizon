@@ -135,8 +135,10 @@ class HWMRepository(Repository[HWM]):
         try:
             await self._session.flush()
         except IntegrityError as e:
-            hwm_name = re.search(r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.orig.args[0]).group(1)  # type: ignore
-            raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
+            constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
+            if constraint == "hwm_name_unique_per_namespace":
+                hwm_name = re.search(r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.__cause__.__cause__.detail).group(1)  # type: ignore[union-attr]
+                raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
 
         if with_history:
             for original_hwm, copied_hwm in zip(hwms, copied_hwms):
@@ -150,5 +152,7 @@ class HWMRepository(Repository[HWM]):
                         hwm_id=copied_hwm.id,
                     )
                     self._session.add(new_history_record)
+
+            await self._session.flush()
 
         return copied_hwms

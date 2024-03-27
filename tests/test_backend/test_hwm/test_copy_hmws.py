@@ -236,6 +236,46 @@ async def test_copy_hwms_non_existing_namespace(
     }
 
 
+@pytest.mark.asyncio
+async def test_copy_hwms_with_existing_hwm_name(
+    test_client: AsyncClient,
+    access_token: str,
+    namespaces: list[Namespace],
+    hwms: list[HWM],
+    async_session: AsyncSession,
+):
+    source_namespace = hwms[0].namespace
+    target_namespace = namespaces[0]
+
+    existing_hwm = hwms[0]
+    existing_hwm_copy = HWM(
+        namespace_id=target_namespace.id,
+        name=existing_hwm.name,
+        description=existing_hwm.description,
+        type=existing_hwm.type,
+        value=existing_hwm.value,
+        entity=existing_hwm.entity,
+        expression=existing_hwm.expression,
+        changed_by_user_id=existing_hwm.changed_by_user_id,
+    )
+    async_session.add(existing_hwm_copy)
+    await async_session.commit()
+
+    response = await test_client.post(
+        "v1/hwm/copy",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "source_namespace_id": source_namespace.id,
+            "target_namespace_id": target_namespace.id,
+            "hwm_ids": [hwm.id for hwm in hwms],
+            "with_history": False,
+        },
+    )
+
+    assert response.status_code == 409
+    assert f"HWM with name='{hwms[0].name}' already exists" in response.json()["error"]["message"]
+
+
 @pytest.mark.parametrize("namespaces", [(1, {})], indirect=True)
 @pytest.mark.parametrize(
     "user_with_role, expected_status, expected_response",

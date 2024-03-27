@@ -1,3 +1,0 @@
-- Add new API endpoint ``PATCH /namespace/:id/permissions`` for updating the permissions of users within a namespace.
-- Add new API endpoint ``GET /namespace/:id/permissions`` for fetching the permissions of users within a specific namespace.
-- Extend the Python client library with methods ``get_namespace_permissions`` and ``update_namespace_permissions`` to interact with the new API endpoints.

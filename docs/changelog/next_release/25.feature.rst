@@ -1,1 +1,0 @@
-Restrict deletion of ``Namespace`` if there are any  ``hwms`` related to it.

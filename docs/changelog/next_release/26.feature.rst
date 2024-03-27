@@ -1,1 +1,0 @@
-Add ``owner_id`` field to ``Namespace`` model to keep track of the owner of the namespace.

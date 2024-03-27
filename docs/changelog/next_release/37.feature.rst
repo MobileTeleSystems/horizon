@@ -1,2 +1,0 @@
-- Add new API endpoint ``DELETE /hwm/`` for bulk deletion of High Water Marks (HWMs) by namespace_id and a list of hwm_ids.
-- Extend the Python client library with the method ``bulk_delete_hwm`` to interact with the new bulk delete HWM API endpoint.

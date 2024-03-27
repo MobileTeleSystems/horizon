@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, root_validator, validator
 
 from horizon.commons.dto import Unset
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
@@ -91,8 +91,14 @@ class HWMBulkCopyRequestV1(BaseModel):
 
     source_namespace_id: int = Field(description="Source namespace ID from which HWMs are copied.")
     target_namespace_id: int = Field(description="Target namespace ID to which HWMs are copied.")
-    hwm_ids: List[int] = Field(min_length=1, description="List of HWM IDs to be copied.")
+    hwm_ids: List[int] = Field(description="List of HWM IDs to be copied.")
     with_history: bool = Field(default=False, description="Whether to copy HWM history.")
+
+    @validator("hwm_ids", pre=True, always=True)
+    def _check_hwm_ids_not_empty(cls, v):
+        if not len(v):
+            raise ValueError("List should have at least 1 item after validation, not 0")
+        return v
 
     @root_validator(skip_on_failure=True)
     def _check_namespace_ids(cls, values):
@@ -107,4 +113,10 @@ class HWMBulkDeleteRequestV1(BaseModel):
     """Schema for request body of bulk delete HWM operation."""
 
     namespace_id: int
-    hwm_ids: List[int] = Field(min_length=1)
+    hwm_ids: List[int]
+
+    @validator("hwm_ids", pre=True, always=True)
+    def _check_hwm_ids_not_empty(cls, v):
+        if not len(v):
+            raise ValueError("List should have at least 1 item after validation, not 0")
+        return v

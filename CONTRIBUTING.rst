@@ -334,6 +334,13 @@ Release Process
 
 Before making a release from the ``develop`` branch, follow these steps:
 
+0. Checkout to ``develop`` branch and update it to the actual state
+
+.. code:: bash
+
+    git checkout develop
+    git pull -p
+
 1. Backup ``NEXT_RELEASE.rst``
 
 .. code:: bash
@@ -345,9 +352,9 @@ Before making a release from the ``develop`` branch, follow these steps:
 .. code:: bash
 
     VERSION=$(poetry version -s)
-    towncrier build --version=${VERSION} --yes
+    towncrier build "--version=${VERSION}" --yes
 
-3. Update Changelog
+3. Change file with changelog to release version number
 
 .. code:: bash
 
@@ -357,15 +364,15 @@ Before making a release from the ``develop`` branch, follow these steps:
 
 .. code:: bash
 
-    sed "0,/^.*towncrier release notes start/d" -i "docs/changelog/${VERSION}.rst"
+    awk '!/^.*towncrier release notes start/' "docs/changelog/${VERSION}.rst" > temp && mv temp "docs/changelog/${VERSION}.rst"
 
 5. Update Changelog Index
 
 .. code:: bash
 
-    sed -E "s/DRAFT/DRAFT\n    ${VERSION}/" -i "docs/changelog/index.rst"
+    awk -v version=${VERSION} '/DRAFT/{print;print "    " version;next}1' docs/changelog/index.rst > temp && mv temp docs/changelog/index.rst
 
-6. Reset ``NEXT_RELEASE.rst`` file
+6. Restore ``NEXT_RELEASE.rst`` file from backup
 
 .. code:: bash
 
@@ -384,6 +391,7 @@ Before making a release from the ``develop`` branch, follow these steps:
 .. code:: bash
 
     git checkout master
+    git pull
     git merge develop
     git push
 
@@ -392,7 +400,7 @@ Before making a release from the ``develop`` branch, follow these steps:
 .. code:: bash
 
     git tag "$VERSION"
-    git push --tags
+    git push origin "$VERSION"
 
 10. Update version in ``develop`` branch **after release**:
 

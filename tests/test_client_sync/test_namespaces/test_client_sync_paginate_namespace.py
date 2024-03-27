@@ -30,6 +30,7 @@ def test_sync_client_paginate_namespaces(namespaces: list[Namespace], sync_clien
             description=namespace.description,
             changed_at=namespace.changed_at,
             changed_by=namespace.changed_by,
+            owned_by=namespace.owned_by,
         )
         for namespace in namespaces
     ]
@@ -72,6 +73,7 @@ def test_sync_client_paginate_namespaces_filter_by_name(namespaces: list[Namespa
                 description=namespace.description,
                 changed_at=namespace.changed_at,
                 changed_by=namespace.changed_by,
+                owned_by=namespace.owned_by,
             ),
         ],
     )
@@ -90,6 +92,7 @@ def test_sync_client_paginate_namespaces_page_options(
             description=namespace.description,
             changed_at=namespace.changed_at,
             changed_by=namespace.changed_by,
+            owned_by=namespace.owned_by,
         )
         for namespace in namespaces
     ]

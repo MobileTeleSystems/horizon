@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "data-horizon"
-version = "0.0.13"
+version = "0.1.0"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
@@ -171,6 +172,10 @@ responses = [
   {version = "^0.23.2", python = "<3.8"},
   {version = "^0.24.1", python = ">=3.8"},
 ]
+types-pyyaml = [
+  {version = "6.0.12.12", python = "<3.8"},
+  {version = "^6.0.12", python = "==3.7"}
+]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = [
@@ -178,33 +183,36 @@ pre-commit = [
   {version = "^3.6.0", python = ">=3.9"},
 ]
 mypy = {version = ">=1.8.0", python = ">=3.8"}
-black = {version = "^23.12.1", python = ">=3.8"}
+black = {version = ">=23.12.1,<25.0.0", python = ">=3.8"}
 isort = {version = "^5.13.2", python = ">=3.8"}
-flake8 = {version = "^6.0.0", python = ">=3.8.1"}
+flake8 = {version = ">=6,<8", python = ">=3.8.1"}
 bandit = {version = "^1.7.6", python = ">=3.8"}
 sqlalchemy = {extras = ["mypy"], version = "^2.0.25", python = ">=3.8"}
 wemake-python-styleguide = {version = "^0.18.0", python = ">=3.8.1"}
 flake8-pyproject = {version = "^1.2.3", python = ">=3.8"}
 types-python-jose = {version = "^3.3.4", python = ">=3.8"}
-types-pyyaml = {version = "^6.0.12", python = ">=3.8"}
 types-passlib = {version = "^1.7.7", python = ">=3.8"}
+types-pyyaml = [
+  {version = "6.0.12.12", python = "<3.8"},
+  {version = "^6.0.12", python = "==3.7"}
+]
 types-requests = {version = "^2.31.0", python = ">=3.8"}
 
 [tool.poetry.group.docs.dependencies]
-setuptools-git-versioning = {version = "^1.13.5", python = ">=3.8"}
 autodoc-pydantic = {version = "^2.0.1", python = ">=3.8"}
 numpydoc = {version = "^1.6.0", python = ">=3.8"}
 sphinx = [
   {version = "^7.1.2", python = ">=3.8"},
   {version = "^7.2.6", python = ">=3.9"},
 ]
-sphinx-rtd-theme = {version = "^2.0.0", python = ">=3.8"}
+furo = {version = "^2024.1.29", python = ">=3.8"}
 sphinx-copybutton = {version = "^0.5.2", python = ">=3.8"}
 sphinxcontrib-towncrier = {version = "^0.4.0a0", python = ">=3.8"}
 towncrier = {version = "^23.11.0", python = ">=3.8"}
-sphinx-issues = {version = "^3.0.1", python = ">=3.8"}
+sphinx-issues = {version = ">=3.0.1,<5.0.0", python = ">=3.8"}
 sphinx-design = {version = "^0.5.0", python = ">=3.8"}
 sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
+sphinx-argparse = {version = "^0.2.5", python = ">=3.8"}
 # uncomment after https://github.com/zqmillet/sphinx-plantuml/pull/4
 # sphinx-plantuml = {version = "^1.0.0", python = ">=3.8"}
 
@@ -239,7 +247,6 @@ relative_files = true
 concurrency = ["gevent"]
 omit = [
   "tests/*",
-  "horizon/db/migrations/*",
 ]
 data_file = "reports/.coverage"
 
@@ -257,6 +264,7 @@ exclude_lines = [
   "if sys.version_info",
   "@(abc\\.)?abstractmethod",
   "\\.\\.\\.",
+  "def downgrade\\(\\)",
 ]
 
 [tool.black]

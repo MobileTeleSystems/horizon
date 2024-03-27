@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from datetime import datetime
+from enum import Enum
 from typing import Optional, Union
 
 from pydantic import BaseModel, Field, root_validator
@@ -11,12 +12,19 @@ from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 MAX_NAME_LENGTH = 256
 
 
+class NamespaceUserRole(str, Enum):  # noqa: WPS60
+    DEVELOPER = "DEVELOPER"
+    MAINTAINER = "MAINTAINER"
+    OWNER = "OWNER"
+
+
 class NamespaceResponseV1(BaseModel):
     """Namespace response."""
 
     id: int = Field(description="Namespace id")
     name: str = Field(description="Namespace name, unique in the entire database")
     description: str = Field(description="Namespace description")
+    owned_by: str = Field(description="The namespace owner")
     changed_at: datetime = Field(description="Timestamp of last change of the namespace data")
     changed_by: Optional[str] = Field(default=None, description="Latest user who changed the namespace data")
 

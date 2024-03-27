@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, Field, root_validator
 
@@ -34,6 +34,10 @@ class HWMResponseV1(BaseModel):
         orm_mode = True
         # pydantic v2
         from_attributes = True
+
+
+class HWMListResponseV1(BaseModel):
+    hwms: List[HWMResponseV1]
 
 
 class HWMPaginateQueryV1(PaginateQueryV1):
@@ -80,3 +84,27 @@ class HWMUpdateRequestV1(BaseModel):
         if not values_set:
             raise ValueError("At least one field must be set.")
         return values
+
+
+class HWMBulkCopyRequestV1(BaseModel):
+    """Schema for request body of HWM copy operation."""
+
+    source_namespace_id: int = Field(description="Source namespace ID from which HWMs are copied.")
+    target_namespace_id: int = Field(description="Target namespace ID to which HWMs are copied.")
+    hwm_ids: List[int] = Field(min_length=1, description="List of HWM IDs to be copied.")
+    with_history: bool = Field(default=False, description="Whether to copy HWM history.")
+
+    @root_validator(skip_on_failure=True)
+    def _check_namespace_ids(cls, values):
+        """Validator to ensure source and target namespace IDs are different."""
+        source_namespace_id, target_namespace_id = values.get("source_namespace_id"), values.get("target_namespace_id")
+        if source_namespace_id == target_namespace_id:
+            raise ValueError("Source and target namespace IDs must not be the same.")
+        return values
+
+
+class HWMBulkDeleteRequestV1(BaseModel):
+    """Schema for request body of bulk delete HWM operation."""
+
+    namespace_id: int
+    hwm_ids: List[int] = Field(min_length=1)

@@ -247,31 +247,3 @@ async def test_paginate_hwm_filter_by_missing_name(
         },
         "items": [],
     }
-
-
-@pytest.mark.parametrize("hwm", [{"is_deleted": True}], indirect=True)
-async def test_paginate_hwm_deleted_not_included(
-    test_client: AsyncClient,
-    namespace: Namespace,
-    hwm: HWM,
-    access_token: str,
-):
-    response = await test_client.get(
-        "v1/hwm/",
-        headers={"Authorization": f"Bearer {access_token}"},
-        params={"namespace_id": namespace.id},
-    )
-    assert response.status_code == 200
-    assert response.json() == {
-        "meta": {
-            "page": 1,
-            "pages_count": 1,
-            "page_size": 20,
-            "total_count": 0,
-            "has_next": False,
-            "has_previous": False,
-            "next_page": None,
-            "previous_page": None,
-        },
-        "items": [],
-    }

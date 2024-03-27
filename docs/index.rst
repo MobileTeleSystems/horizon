@@ -17,6 +17,15 @@
 
     self
 
+
+.. toctree::
+    :maxdepth: 2
+    :caption: High-level design
+    :hidden:
+
+    design/entities
+    design/permissions
+
 .. toctree::
     :maxdepth: 2
     :caption: Backend
@@ -27,6 +36,8 @@
     backend/configuration/index
     backend/auth/index
     backend/openapi
+    backend/scripts/index
+
 
 .. toctree::
     :maxdepth: 2

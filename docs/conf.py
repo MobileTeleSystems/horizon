@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 
 from packaging import version as Version
-from setuptools_git_versioning import get_all_tags, get_sha, get_tag
 
 PROJECT_ROOT_DIR = Path(__file__).parent.parent.resolve()
 
@@ -25,7 +24,7 @@ sys.path.insert(0, os.fspath(PROJECT_ROOT_DIR))
 # -- Project information -----------------------------------------------------
 
 project = "horizon"
-copyright = "2023-2024, DataOps.ETL"
+copyright = "2023-2024 MTS (Mobile Telesystems)"
 author = "DataOps.ETL"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -35,7 +34,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("0.0.13")
+ver = Version.parse("0.1.0")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public
@@ -47,8 +46,8 @@ release = ver.public
 # ones.
 extensions = [
     "numpydoc",
-    "sphinx_rtd_theme",
     "sphinx_copybutton",
+    "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -58,6 +57,7 @@ extensions = [
     "sphinx_design",  # provides `dropdown` directive
     "sphinxcontrib.plantuml",
     "sphinx_favicon",
+    "sphinxarg.ext",
 ]
 swagger = [
     {
@@ -87,6 +87,12 @@ autodoc_pydantic_settings_member_order = "bysource"
 autodoc_pydantic_field_list_validators = False
 sphinx_tabs_disable_tab_closing = True
 
+# prevent >>>, ... and doctest outputs from copying
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
+copybutton_copy_empty_lines = False
+copybutton_only_copy_prompt_lines = True
+
 towncrier_draft_autoversion_mode = "draft"
 towncrier_draft_include_empty = False
 towncrier_draft_working_directory = PROJECT_ROOT_DIR
@@ -104,25 +110,25 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "logo_only": True,
-    "style_nav_header_background": "#68b0bc",
+    "sidebar_hide_name": True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_extra_path = ["robots.txt"]
 html_css_files = [
     "custom.css",
 ]
 
-html_logo = "./_static/logo.svg"
+html_logo = "./_static/logo_no_title.svg"
 favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
 ]
@@ -149,42 +155,8 @@ todo_include_todos = False
 htmlhelp_basename = "horizon-doc"
 
 
-# versioning
-tags = {ver}
-tags.update(Version.parse(tag) for tag in get_all_tags())
-tags = [tag.public for tag in reversed(sorted(list(tags)))]
-
-versions = [("latest", "/latest/")]
-versions.extend([(tag, f"/{tag}/") for tag in tags])
-
-tag = get_tag()
-tag_sha = get_sha(tag)
-head_sha = get_sha("HEAD")
-on_tag = tag and head_sha is not None and head_sha == tag_sha
-
-
 # which is the equivalent to:
 issues_uri = "https://github.com/MobileTeleSystems/horizon/issues/{issue}"
 issues_pr_uri = "https://github.com/MobileTeleSystems/horizon/pulls/{pr}"
 issues_commit_uri = "https://github.com/MobileTeleSystems/horizon/commit/{commit}"
 issues_user_uri = "https://github.com/{user}"
-
-context = {
-    "current_version": release,
-    "version_slug": release,
-    "versions": versions,
-    "single_version": False,
-    "github_host": "github.com",
-    "github_user": "MobileTeleSystems",
-    "github_repo": "horizon",
-    "github_version": version if on_tag else "master",
-    "conf_py_path": "/docs/",
-    "display_github": True,
-    "commit": head_sha[:7] if head_sha is not None else None,
-}
-
-if "html_context" in globals():
-    html_context.update(context)
-
-else:
-    html_context = context

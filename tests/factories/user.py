@@ -2,16 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import secrets
 from collections.abc import AsyncGenerator
 from random import randint
 from typing import AsyncContextManager, Callable
 
 import pytest
 import pytest_asyncio
-from sqlalchemy import delete
+from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from horizon.backend.db.models import User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceUser,
+    NamespaceUserRoleInt,
+    User,
+)
 from tests.factories.base import random_string
 
 
@@ -20,7 +26,6 @@ def user_factory(**kwargs):
         "id": randint(0, 10000000),
         "username": random_string(),
         "is_active": True,
-        "is_deleted": False,
     }
     data.update(kwargs)
     return User(**data)
@@ -64,9 +69,11 @@ async def user(
 
     yield user
 
-    query = delete(User).where(User.id == user_id)
+    namespace_query = delete(Namespace).where(Namespace.owner_id == user_id)
+    user_query = delete(User).where(User.id == user_id)
     async with async_session_factory() as async_session:
-        await async_session.execute(query)
+        await async_session.execute(namespace_query)
+        await async_session.execute(user_query)
         await async_session.commit()
 
 
@@ -95,4 +102,51 @@ async def users(
     query = delete(User).where(User.id.in_(user_ids))
     async with async_session_factory() as async_session:
         await async_session.execute(query)
+        await async_session.commit()
+
+
+@pytest_asyncio.fixture(params=[NamespaceUserRoleInt.DEVELOPER])
+async def user_with_role(
+    request: pytest.FixtureRequest,
+    user: User,
+    namespace: Namespace,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[None, None]:
+    role = request.param
+    fake_owner = None
+
+    async with async_session_factory() as async_session:
+        if role == NamespaceUserRoleInt.SUPERADMIN:
+            user.is_admin = True
+            async_session.add(user)
+        elif role != NamespaceUserRoleInt.OWNER:
+            fake_owner = User(username=secrets.token_hex(5), is_active=True)
+            async_session.add(fake_owner)
+            await async_session.commit()
+
+            namespace.owner_id = fake_owner.id
+            async_session.add(namespace)
+
+            if role != NamespaceUserRoleInt.GUEST:
+                namespace_user = NamespaceUser(namespace_id=namespace.id, user_id=user.id, role=role.name)
+                async_session.add(namespace_user)
+
+        await async_session.commit()
+
+    yield
+
+    async with async_session_factory() as async_session:
+        if role == NamespaceUserRoleInt.SUPERADMIN:
+            user.is_admin = False
+            async_session.add(user)
+        else:
+            if fake_owner:
+                await async_session.execute(
+                    update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id)
+                )
+
+                await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
+
+                await async_session.execute(delete(User).where(User.id == fake_owner.id))
+
         await async_session.commit()

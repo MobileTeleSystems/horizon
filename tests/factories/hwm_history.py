@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from random import randint
 from typing import AsyncContextManager, Callable
 
@@ -12,7 +13,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
-from tests.factories.base import random_datetime, random_string
+from tests.factories.base import random_string
 
 
 def hwm_history_factory(**kwargs):
@@ -24,8 +25,8 @@ def hwm_history_factory(**kwargs):
         "type": random_string(),
         "entity": random_string(),
         "expression": random_string(),
-        "changed_at": random_datetime(),
-        "is_deleted": False,
+        "changed_at": datetime.now(timezone.utc),
+        "action": "Created",
     }
     data.update(kwargs)
     return HWMHistory(**data)
@@ -66,3 +67,36 @@ async def hwm_history_items(
     async with async_session_factory() as async_session:
         await async_session.execute(query)
         await async_session.commit()
+
+
+@pytest_asyncio.fixture(params=[(5, {})])
+async def hwm_history_items_for_hwms(
+    user: User,
+    namespace: Namespace,
+    hwms: list[HWM],
+    request: pytest.FixtureRequest,
+    async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
+) -> AsyncGenerator[list[HWMHistory], None]:
+    size, params = request.param
+    hwm_history_records = []
+
+    async with async_session_factory() as async_session:
+        for hwm in hwms:
+            for _ in range(size):
+                hwm_history_record = hwm_history_factory(
+                    namespace_id=namespace.id,
+                    hwm_id=hwm.id,
+                    changed_by_user_id=user.id,
+                    **params,
+                )
+                async_session.add(hwm_history_record)
+                hwm_history_records.append(hwm_history_record)
+        await async_session.commit()
+
+    yield hwm_history_records
+
+    for hwm in hwms:
+        query = delete(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
+        async with async_session_factory() as async_session:
+            await async_session.execute(query)
+            await async_session.commit()

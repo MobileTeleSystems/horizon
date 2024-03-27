@@ -2,15 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+import secrets
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import (
+    HWM,
+    HWMHistory,
+    Namespace,
+    NamespaceUserRoleInt,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -87,11 +94,22 @@ async def test_create_hwm_missing_namespace(
     ],
     indirect=True,
 )
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRoleInt.SUPERADMIN,
+        NamespaceUserRoleInt.OWNER,
+        NamespaceUserRoleInt.MAINTAINER,
+        NamespaceUserRoleInt.DEVELOPER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_create_hwm(
     test_client: AsyncClient,
-    namespace: Namespace,
     access_token: str,
     user: User,
+    namespace: Namespace,
+    user_with_role: None,
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
@@ -139,7 +157,6 @@ async def test_create_hwm(
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
     assert created_hwm.changed_by_user_id == user.id
-    assert not created_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hmw_id)
     query_result = await async_session.scalars(query)
@@ -154,7 +171,7 @@ async def test_create_hwm(
     assert created_hwm_history.expression == content["expression"]
     assert created_hwm_history.changed_at == changed_at
     assert created_hwm_history.changed_by_user_id == user.id
-    assert not created_hwm_history.is_deleted
+    assert created_hwm_history.action == "Created"
 
 
 async def test_create_hwm_only_mandatory_fields(
@@ -206,7 +223,6 @@ async def test_create_hwm_only_mandatory_fields(
     assert created_hwm.expression == content["expression"]
     assert created_hwm.changed_at == changed_at
     assert created_hwm.changed_by_user_id == user.id
-    assert not created_hwm.is_deleted
 
 
 async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
@@ -462,3 +478,108 @@ async def test_create_hwm_invalid_field_length(
     created_hwm = result.one_or_none()
 
     assert not created_hwm
+
+
+async def test_create_hwm_with_same_name_after_deletion(
+    test_client: AsyncClient,
+    access_token: str,
+    namespace: Namespace,
+    new_hwm: HWM,
+    async_session: AsyncSession,
+):
+    hwm_data = {
+        "namespace_id": namespace.id,
+        "name": new_hwm.name,
+        "description": new_hwm.description,
+        "type": new_hwm.type,
+        "value": new_hwm.value,
+    }
+    create_response = await test_client.post(
+        "/v1/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=hwm_data,
+    )
+    assert create_response.status_code == 201
+    old_hwm_id = create_response.json()["id"]
+
+    delete_response = await test_client.delete(
+        f"/v1/hwm/{old_hwm_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert delete_response.status_code == 204
+    result = await async_session.execute(
+        select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id))
+    )
+    deleted_hwm_history = result.scalars().first()
+    assert deleted_hwm_history.action == "Deleted"
+
+    recreate_response = await test_client.post(
+        "/v1/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=hwm_data,
+    )
+    assert recreate_response.status_code == 201
+
+    new_hwm_id = recreate_response.json()["id"]
+    assert new_hwm_id != old_hwm_id
+
+    query = select(HWM).where(HWM.id == old_hwm_id)
+    result = await async_session.execute(query)
+    hwm_records = result.scalars().all()
+    assert len(hwm_records) == 0
+
+    query = select(HWM).where(HWM.id == new_hwm_id)
+    result = await async_session.execute(query)
+    recreated_hwm = result.scalars().first()
+    assert recreated_hwm is not None
+
+    result = await async_session.execute(select(HWMHistory).where(HWMHistory.hwm_id == new_hwm_id))
+    created_hwm_history = result.scalars().first()
+    assert created_hwm_history.action == "Created"
+    assert recreated_hwm.name == new_hwm.name
+    assert created_hwm_history.name == hwm_data["name"]
+    assert created_hwm_history.description == hwm_data["description"]
+    assert created_hwm_history.type == hwm_data["type"]
+    assert created_hwm_history.value == hwm_data["value"]
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRoleInt.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+                    "details": {
+                        "required_role": "DEVELOPER",
+                        "actual_role": "GUEST",
+                    },
+                }
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_create_hwm_permission_denied(
+    user_with_role: None,
+    namespace: Namespace,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+):
+    response = await test_client.post(
+        "/v1/hwm/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "namespace_id": namespace.id,
+            "name": secrets.token_hex(6),
+            "type": "abc",
+            "value": 123,
+        },
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

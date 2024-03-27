@@ -4,4 +4,4 @@
 Bug Fixes
 ---------
 
-- Fix empty ``/monitoring/metrics`` data
+- Fix empty ``/monitoring/metrics`` data.

@@ -7,3 +7,7 @@ User-related schemas
 
 .. autopydantic_model:: UserResponseV1
     :model-show-field-summary: false
+
+.. autopydantic_model:: UserResponseV1WithAdmin
+    :inherited-members: BaseModel
+    :model-show-field-summary: false

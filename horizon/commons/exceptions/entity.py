@@ -13,9 +13,10 @@ class EntityNotFoundError(ApplicationError):
     Examples
     --------
 
-    .. code-block:: python
-
-        raise EntityNotFoundError("User", "username", "test")
+    >>> from horizon.commons.exceptions import EntityNotFoundError
+    >>> raise EntityNotFoundError("User", "username", "test")
+    Traceback (most recent call last):
+    horizon.commons.exceptions.entity.EntityNotFoundError: User with username='test' not found
     """
 
     entity_type: str
@@ -53,9 +54,11 @@ class EntityAlreadyExistsError(ApplicationError):
     Examples
     --------
 
-    .. code-block:: python
 
-        raise EntityAlreadyExistsError("User", "username", "test")
+    >>> from horizon.commons.exceptions import EntityNotFoundError
+    >>> raise EntityAlreadyExistsError("User", "username", "test")
+    Traceback (most recent call last):
+    horizon.commons.exceptions.entity.EntityAlreadyExistsError: User with username='test' already exists
     """
 
     entity_type: str

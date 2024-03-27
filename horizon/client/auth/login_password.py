@@ -28,11 +28,8 @@ class LoginPassword(BaseAuth, BaseModel):
     Examples
     --------
 
-    .. code-block:: python
-
-        from horizon.client.auth import LoginPassword
-
-        auth = LoginPassword(login="me", password="12345")
+    >>> from horizon.client.auth import LoginPassword
+    >>> auth = LoginPassword(login="me", password="12345")
     """
 
     login: str

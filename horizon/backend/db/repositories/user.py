@@ -13,13 +13,19 @@ from horizon.commons.exceptions.entity import (
 
 class UserRepository(Repository[User]):
     async def count(self) -> int:
-        return await self._count(where=[User.is_deleted.is_(False), User.is_active.is_(True)])
+        return await self._count(where=[User.is_active.is_(True)])
 
     async def get_by_id(self, user_id: int) -> User:
-        result = await self._get_by_id(user_id, User.is_deleted.is_(False))
+        result = await self._get_by_id(user_id)
         if result is None:
             raise EntityNotFoundError("User", "id", user_id)
         return result
+
+    async def get_by_username(self, username: str) -> User:
+        user = await self._get(User.username == username)
+        if not user:
+            raise EntityNotFoundError("User", "username", username)
+        return user
 
     async def create(
         self,
@@ -39,6 +45,4 @@ class UserRepository(Repository[User]):
         result = await self._get(User.username == username)
         if not result:
             result = await self.create(username)
-        elif result.is_deleted:
-            raise EntityNotFoundError("User", "username", username)
         return result

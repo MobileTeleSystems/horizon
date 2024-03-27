@@ -10,7 +10,13 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
+from horizon.backend.db.models import (
+    HWM,
+    HWMHistory,
+    Namespace,
+    NamespaceUserRoleInt,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -73,9 +79,20 @@ async def test_update_hwm_missing(
     ],
     indirect=True,
 )
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRoleInt.SUPERADMIN,
+        NamespaceUserRoleInt.OWNER,
+        NamespaceUserRoleInt.MAINTAINER,
+        NamespaceUserRoleInt.DEVELOPER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_update_hwm(
     test_client: AsyncClient,
     access_token: str,
+    user_with_role: None,
     user: User,
     namespace: Namespace,
     hwm: HWM,
@@ -126,7 +143,6 @@ async def test_update_hwm(
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
     assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
     query_result = await async_session.scalars(query)
@@ -142,10 +158,10 @@ async def test_update_hwm(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert not updated_hwm_history.is_deleted
+    assert updated_hwm_history.action == "Updated"
 
 
-async def test_update_hwm_already_exist(
+async def test_update_hwm_already_exists(
     test_client: AsyncClient,
     access_token: str,
     hwms: list[HWM],
@@ -246,7 +262,6 @@ async def test_update_hwm_partial(
     assert updated_hwm.expression == content["expression"]
     assert updated_hwm.changed_at == changed_at
     assert updated_hwm.changed_by_user_id == user.id
-    assert not updated_hwm.is_deleted
 
     query = select(HWMHistory).where(HWMHistory.hwm_id == hwm.id)
     query_result = await async_session.scalars(query)
@@ -262,7 +277,7 @@ async def test_update_hwm_partial(
     assert updated_hwm_history.expression == content["expression"]
     assert updated_hwm_history.changed_at == changed_at
     assert updated_hwm_history.changed_by_user_id == user.id
-    assert not updated_hwm_history.is_deleted
+    assert updated_hwm_history.action == "Updated"
 
 
 @pytest.mark.parametrize(
@@ -483,3 +498,40 @@ async def test_update_hwm_invalid_field_length(
 
     # Nothing is changed
     assert naturally_equivalent(hwm_after, hwm)
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRoleInt.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+                    "details": {
+                        "required_role": "DEVELOPER",
+                        "actual_role": "GUEST",
+                    },
+                }
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_update_hwm_permission_denied(
+    user_with_role: None,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+    hwm: HWM,
+):
+    response = await test_client.patch(
+        f"v1/hwm/{hwm.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"value": "value"},
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

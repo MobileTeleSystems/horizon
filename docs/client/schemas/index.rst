@@ -12,8 +12,10 @@ All of then are based on Pydantic models.
     :caption: Horizon schemas
 
     namespace
+    namespace_history
     hwm
     hwm_history
+    permissions
 
     user
     ping

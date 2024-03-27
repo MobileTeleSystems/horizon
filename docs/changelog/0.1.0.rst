@@ -1,0 +1,33 @@
+0.1.0 (2024-03-27)
+==================
+
+Breaking Changes
+----------------
+
+Users now required to explicitly have a role assigned within a namespace to manipulate HWMs as they could before. These changes enforce stricter access control and better management of user permissions within the system.
+
+- Add role model to Horizon, documentation available at :ref:`role-permissions`. (:issue:`27`, :issue:`31`)
+- Restrict deletion of ``Namespace`` if there are any  ``hwms`` related to it. (:issue:`25`)
+
+Features
+--------
+
+- Add ``Namespace History``. Now it is possible to view paginated history of actions for specific namespace. (:issue:`24`)
+- Add ``owner_id`` field to ``Namespace`` model to keep track of the owner of the namespace. (:issue:`26`)
+- Add support for managing ``SUPERADMIN`` roles. (:issue:`36`)
+
+- Permissions Management:
+    - Add new API endpoint ``PATCH /namespace/:id/permissions`` for updating the permissions of users within a namespace.
+    - Add new API endpoint ``GET /namespace/:id/permissions`` for fetching the permissions of users within a specific namespace.
+    - Extend the Python client library with methods ``get_namespace_permissions`` and ``update_namespace_permissions`` to interact with the new API endpoints. (:issue:`29`)
+
+- High Water Marks (HWMs) Management:
+    - Add new API endpoint ``DELETE /hwm/`` for bulk deletion of High Water Marks (HWMs) by namespace_id and a list of hwm_ids.
+    - Extend the Python client library with the method ``bulk_delete_hwm`` to interact with the new bulk delete HWM API endpoint. (:issue:`37`)
+    - Add new API endpoint ``POST /hwm/copy`` endpoint for copying HWMs between namespaces, with optional history copying.
+    - Extend the Python client library with the method ``copy_hwms`` to support the new HWM copy functionality. (:issue:`42`)
+
+Improvements
+------------
+
+- Fix documentation examples. Make documentation more user-friendly. (:issue:`20`)

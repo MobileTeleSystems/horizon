@@ -26,7 +26,7 @@ class ChangedByMixin:
 
     @declared_attr
     def changed_by_user(cls):
-        return relationship(User, lazy="selectin")
+        return relationship(User, foreign_keys=[cls.changed_by_user_id], lazy="selectin")
 
     @declared_attr
     def changed_by(cls):

@@ -11,7 +11,12 @@ from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import Namespace, User
+from horizon.backend.db.models import (
+    Namespace,
+    NamespaceHistory,
+    NamespaceUserRoleInt,
+    User,
+)
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -110,14 +115,34 @@ async def test_update_namespace_name(
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
     assert namespace_after.changed_by_user_id == user.id
-    assert not namespace_after.is_deleted
+
+    query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace.id)
+    query_result = await async_session.scalars(query)
+    updated_namespace_history = query_result.one()
+
+    # Row is same as in body
+    assert updated_namespace_history.name == content["name"]
+    assert updated_namespace_history.namespace_id == namespace.id
+    assert updated_namespace_history.description == content["description"]
+    assert updated_namespace_history.changed_at == changed_at
+    assert updated_namespace_history.changed_by_user_id == user.id
+    assert updated_namespace_history.action == "Updated"
 
 
+@pytest.mark.parametrize(
+    "user_with_role",
+    [
+        NamespaceUserRoleInt.SUPERADMIN,
+        NamespaceUserRoleInt.OWNER,
+    ],
+    indirect=["user_with_role"],
+)
 async def test_update_namespace_description(
     test_client: AsyncClient,
     access_token: str,
     user: User,
     namespace: Namespace,
+    user_with_role: None,
     new_namespace: Namespace,
     async_session: AsyncSession,
 ):
@@ -149,7 +174,18 @@ async def test_update_namespace_description(
     assert namespace_after.description == content["description"]
     assert namespace_after.changed_at == changed_at
     assert namespace_after.changed_by_user_id == user.id
-    assert not namespace_after.is_deleted
+
+    query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace.id)
+    query_result = await async_session.scalars(query)
+    updated_namespace_history = query_result.one()
+
+    # Row is same as in body
+    assert updated_namespace_history.name == content["name"]
+    assert updated_namespace_history.namespace_id == namespace.id
+    assert updated_namespace_history.description == content["description"]
+    assert updated_namespace_history.changed_at == changed_at
+    assert updated_namespace_history.changed_by_user_id == user.id
+    assert updated_namespace_history.action == "Updated"
 
 
 @pytest.mark.parametrize(
@@ -179,7 +215,7 @@ async def test_update_namespace_no_data(
                 "location": ["body", "__root__"],
                 "code": "value_error",
                 "message": "At least one field must be set.",
-            }
+            },
         ]
     else:
         details = [
@@ -190,7 +226,7 @@ async def test_update_namespace_no_data(
                 "context": {},
                 "input": {"unexpected": "value"},
                 "url": "https://errors.pydantic.dev/2.5/v/value_error",
-            }
+            },
         ]
 
     assert response.json() == {
@@ -198,7 +234,7 @@ async def test_update_namespace_no_data(
             "code": "invalid_request",
             "message": "Invalid request",
             "details": details,
-        }
+        },
     }
 
 
@@ -328,3 +364,70 @@ async def test_update_namespace_invalid_name_length(
 
     # Nothing is changed
     assert naturally_equivalent(namespace_after, namespace)
+
+
+@pytest.mark.parametrize(
+    "user_with_role, expected_status, expected_response",
+    [
+        (
+            NamespaceUserRoleInt.MAINTAINER,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": "Permission denied. User has role MAINTAINER but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "MAINTAINER",
+                    },
+                },
+            },
+        ),
+        (
+            NamespaceUserRoleInt.DEVELOPER,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "DEVELOPER",
+                    },
+                },
+            },
+        ),
+        (
+            NamespaceUserRoleInt.GUEST,
+            403,
+            {
+                "error": {
+                    "code": "permission_denied",
+                    "message": "Permission denied. User has role GUEST but action requires at least OWNER.",
+                    "details": {
+                        "required_role": "OWNER",
+                        "actual_role": "GUEST",
+                    },
+                },
+            },
+        ),
+    ],
+    indirect=["user_with_role"],
+)
+async def test_update_namespace_permission_denied(
+    namespace: Namespace,
+    user_with_role: None,
+    expected_status: int,
+    expected_response: dict,
+    test_client: AsyncClient,
+    access_token: str,
+):
+    response = await test_client.patch(
+        f"v1/namespaces/{namespace.id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "name": namespace.name,
+        },
+    )
+    assert response.status_code == expected_status
+    assert response.json() == expected_response

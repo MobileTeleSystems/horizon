@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from random import randint
 from typing import AsyncContextManager, Callable
 
@@ -12,7 +13,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import HWM, Namespace, User
-from tests.factories.base import random_datetime, random_string
+from tests.factories.base import random_string
 
 
 def hwm_factory(**kwargs):
@@ -24,8 +25,7 @@ def hwm_factory(**kwargs):
         "type": random_string(),
         "entity": random_string(),
         "expression": random_string(),
-        "changed_at": random_datetime(),
-        "is_deleted": False,
+        "changed_at": datetime.now(timezone.utc),
     }
     data.update(kwargs)
     return HWM(**data)
@@ -40,7 +40,7 @@ async def new_hwm(
     item = hwm_factory(**params)
     yield item
 
-    query = delete(HWM).where(HWM.name == item.name)
+    query = delete(HWM).where(HWM.name == item.name, HWM.namespace_id == item.namespace_id)
 
     # do not use the same session in tests and fixture teardown
     # see https://github.com/MobileTeleSystems/horizon/pull/6

@@ -21,6 +21,20 @@ Authorization
 .. autoclass:: AuthorizationError
     :members: message, details
 
+
+Permissions
+-----------
+
+.. currentmodule:: horizon.commons.exceptions.permission
+
+.. autoclass:: PermissionDeniedError
+     :members: message, details, required_role, actual_role
+     :member-order: bysource
+
+.. autoclass:: BadRequestError
+     :members: reason
+     :member-order: bysource
+
 Entity
 ------
 

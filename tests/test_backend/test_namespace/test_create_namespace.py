@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy_utils.functions import naturally_equivalent
 
-from horizon.backend.db.models import Namespace, User
+from horizon.backend.db.models import Namespace, NamespaceHistory, User
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
@@ -84,7 +84,19 @@ async def test_create_namespace(
     assert created_namespace.description == content["description"]
     assert created_namespace.changed_at == changed_at
     assert created_namespace.changed_by_user_id == user.id
-    assert not created_namespace.is_deleted
+    assert created_namespace.owner_id == user.id
+
+    query = select(NamespaceHistory).where(NamespaceHistory.namespace_id == namespace_id)
+    query_result = await async_session.scalars(query)
+    created_namespace_history = query_result.one()
+
+    # Row is same as in body
+    assert created_namespace_history.name == content["name"]
+    assert created_namespace_history.description == content["description"]
+    assert created_namespace_history.changed_at == changed_at
+    assert created_namespace_history.changed_by_user_id == user.id
+    assert created_namespace_history.owner_id == user.id
+    assert created_namespace_history.action == "Created"
 
 
 async def test_create_namespace_duplicated_name(
@@ -203,3 +215,64 @@ async def test_create_namespace_invalid_name_length(
     created_namespace = result.one_or_none()
 
     assert not created_namespace
+
+
+async def test_create_namespace_with_same_name_after_deletion(
+    test_client: AsyncClient,
+    access_token: str,
+    new_namespace: Namespace,
+    async_session: AsyncSession,
+):
+    namespace_data = {
+        "name": new_namespace.name,
+        "description": new_namespace.description,
+    }
+    create_response = await test_client.post(
+        "/v1/namespaces/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=namespace_data,
+    )
+    assert create_response.status_code == 201
+    old_namespace_id = create_response.json()["id"]
+
+    delete_response = await test_client.delete(
+        f"/v1/namespaces/{old_namespace_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert delete_response.status_code == 204
+    result = await async_session.execute(
+        select(NamespaceHistory)
+        .where(NamespaceHistory.namespace_id == old_namespace_id)
+        .order_by(desc(NamespaceHistory.id))
+    )
+    deleted_namespace_history = result.scalars().first()
+    assert deleted_namespace_history.action == "Deleted"
+
+    recreate_response = await test_client.post(
+        "/v1/namespaces/",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=namespace_data,
+    )
+    assert recreate_response.status_code == 201
+
+    new_namespace_id = recreate_response.json()["id"]
+    assert new_namespace_id != old_namespace_id
+
+    query = select(Namespace).where(Namespace.id == old_namespace_id)
+    result = await async_session.execute(query)
+    namespace_records = result.scalars().all()
+    assert len(namespace_records) == 0
+
+    query = select(Namespace).where(Namespace.id == new_namespace_id)
+    result = await async_session.execute(query)
+    recreated_namespace = result.scalars().first()
+    assert recreated_namespace is not None
+
+    result = await async_session.execute(
+        select(NamespaceHistory).where(NamespaceHistory.namespace_id == new_namespace_id)
+    )
+    created_namespace_history = result.scalars().first()
+    assert created_namespace_history.action == "Created"
+    assert created_namespace_history.name == new_namespace.name
+    assert created_namespace_history.name == namespace_data["name"]
+    assert created_namespace_history.description == namespace_data["description"]

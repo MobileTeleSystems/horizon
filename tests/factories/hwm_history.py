@@ -69,7 +69,7 @@ async def hwm_history_items(
         await async_session.commit()
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(params=[(5, {})])
 async def hwm_history_items_for_hwms(
     user: User,
     namespace: Namespace,
@@ -77,7 +77,7 @@ async def hwm_history_items_for_hwms(
     request: pytest.FixtureRequest,
     async_session_factory: Callable[[], AsyncContextManager[AsyncSession]],
 ) -> AsyncGenerator[list[HWMHistory], None]:
-    size, params = getattr(request, "param", (5, {}))
+    size, params = request.param
     hwm_history_records = []
 
     async with async_session_factory() as async_session:

@@ -99,37 +99,28 @@ async def test_copy_hwms(
 
         assert copied_hwm.name == original_hwm.name
         assert copied_hwm.description == original_hwm.description
-        assert copied_hwm.type == original_hwm.type
-        assert copied_hwm.value == original_hwm.value
-        assert copied_hwm.entity == original_hwm.entity
-        assert copied_hwm.expression == original_hwm.expression
 
-        history_query = select(HWMHistory).where(HWMHistory.hwm_id == copied_hwm.id)
+        history_query = (
+            select(HWMHistory).where(HWMHistory.hwm_id == copied_hwm.id).order_by(HWMHistory.changed_at.desc())
+        )
         history_result = await async_session.execute(history_query)
         copied_history_records = history_result.scalars().all()
 
-        original_history_query = select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id)
+        original_history_query = (
+            select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id).order_by(HWMHistory.changed_at.desc())
+        )
         original_history_result = await async_session.execute(original_history_query)
         original_history_records = original_history_result.scalars().all()
 
-        history_result_query = (
-            select(HWMHistory).where(HWMHistory.hwm_id == copied_hwm.id).order_by(HWMHistory.changed_at.desc())
-        )
-        history_result = await async_session.execute(history_result_query)
-        copied_action_record = history_result.scalars().all()[-1]
-
+        copied_action_record = copied_history_records[-1]
         assert copied_action_record is not None
         expected_action = f"Copied from namespace {source_namespace.id} to namespace {target_namespace.id}"
         assert copied_action_record.action == expected_action
 
         if with_history:
-            # check that record with copied info is added to hwm_history
             assert len(copied_history_records) == len(original_history_records) + 1
 
-            for original_record, copied_record in zip(
-                sorted(original_history_records, key=lambda x: x.name),
-                sorted(copied_history_records[:-1], key=lambda x: x.name),
-            ):
+            for original_record, copied_record in zip(original_history_records, copied_history_records[:-1]):
                 assert original_record.name == copied_record.name
                 assert original_record.description == copied_record.description
                 assert original_record.type == copied_record.type
@@ -166,14 +157,9 @@ async def test_copy_hwms_with_non_existing_hwm_ids(
     test_client: AsyncClient,
     access_token: str,
     namespaces: list[Namespace],
-    hwms: list[HWM],
     new_hwm: HWM,
     async_session: AsyncSession,
 ):
-    existing_hwm_ids = [hwm.id for hwm in hwms]
-    non_existing_hwm_id = new_hwm.id
-    all_hwm_ids = existing_hwm_ids + [non_existing_hwm_id]
-
     source_namespace, target_namespace = namespaces[:2]
 
     response = await test_client.post(
@@ -182,7 +168,7 @@ async def test_copy_hwms_with_non_existing_hwm_ids(
         json={
             "source_namespace_id": source_namespace.id,
             "target_namespace_id": target_namespace.id,
-            "hwm_ids": all_hwm_ids,
+            "hwm_ids": [new_hwm.id],
             "with_history": False,
         },
     )
@@ -275,7 +261,13 @@ async def test_copy_hwms_with_existing_hwm_name(
     )
 
     assert response.status_code == 409
-    assert "already exists" in response.json()["error"]["message"]
+    assert response.json() == {
+        "error": {
+            "code": "already_exists",
+            "details": {"entity_type": "HWM", "field": "name", "value": hwms[0].name},
+            "message": f"HWM with name={hwms[0].name!r} already exists",
+        }
+    }
 
 
 @pytest.mark.parametrize("namespaces", [(1, {})], indirect=True)

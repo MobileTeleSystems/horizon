@@ -13,10 +13,12 @@ from horizon import __version__ as horizon_version
 from horizon.client.base import BaseClient
 from horizon.commons.schemas import PingResponse
 from horizon.commons.schemas.v1 import (
+    HWMBulkCopyRequestV1,
     HWMBulkDeleteRequestV1,
     HWMCreateRequestV1,
     HWMHistoryPaginateQueryV1,
     HWMHistoryResponseV1,
+    HWMListResponseV1,
     HWMPaginateQueryV1,
     HWMResponseV1,
     HWMUpdateRequestV1,
@@ -756,6 +758,49 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         self._request(
             "DELETE",
             f"{self.base_url}/v1/hwm/{hwm_id}",
+        )
+
+    def bulk_copy_hwm(self, data: HWMBulkCopyRequestV1) -> HWMListResponseV1:
+        """Copy HWMs from one namespace to another.
+
+        .. note::
+
+            Method ignores HWMs that are not related to provided source namespace, or does not exist.
+
+        Parameters
+        ----------
+        data : :obj:`HWMBulkCopyRequestV1 <horizon.commons.schemas.v1.hwm.HWMBulkCopyRequestV1>`
+            HWM copy data
+
+        Returns
+        -------
+        :obj:`HWMListResponseV1 <horizon.commons.schemas.v1.hwm.HWMListResponseV1>`
+            Copied HWMs
+
+        Raises
+        ------
+        :obj:`EntityNotFoundError <horizon.commons.exceptions.entity.EntityNotFoundError>`
+            Raised if any of the specified namespaces not found.
+        :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
+            Permission denied for performing the requested action.
+
+        Examples
+        --------
+        >>> from horizon.commons.schemas.v1 import HWMBulkCopyRequestV1
+        >>> copy_data = HWMBulkCopyRequestV1(
+        ...     source_namespace_id=123,
+        ...     target_namespace_id=456,
+        ...     hwm_ids=[1, 2, 3],
+        ...     with_history=True,
+        ... )
+        >>> copied_hwms = client.bulk_copy_hwm(data=copy_data)
+        [HWMResponseV1(...), HWMResponseV1(...), HWMResponseV1(...)]
+        """
+        return self._request(  # type: ignore[return-value]
+            "POST",
+            f"{self.base_url}/v1/hwm/copy",
+            json=data.dict(),
+            response_class=HWMListResponseV1,
         )
 
     def bulk_delete_hwm(self, namespace_id: int, hwm_ids: List[int]) -> None:

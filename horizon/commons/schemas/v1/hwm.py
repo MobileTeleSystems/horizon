@@ -36,6 +36,10 @@ class HWMResponseV1(BaseModel):
         from_attributes = True
 
 
+class HWMListResponseV1(BaseModel):
+    hwms: List[HWMResponseV1]
+
+
 class HWMPaginateQueryV1(PaginateQueryV1):
     """Query params for HWM pagination request."""
 
@@ -79,6 +83,23 @@ class HWMUpdateRequestV1(BaseModel):
         values_set = {k for k, v in values.items() if not isinstance(v, Unset)}
         if not values_set:
             raise ValueError("At least one field must be set.")
+        return values
+
+
+class HWMBulkCopyRequestV1(BaseModel):
+    """Schema for request body of HWM copy operation."""
+
+    source_namespace_id: int = Field(description="Source namespace ID from which HWMs are copied.")
+    target_namespace_id: int = Field(description="Target namespace ID to which HWMs are copied.")
+    hwm_ids: List[int] = Field(min_length=1, description="List of HWM IDs to be copied.")
+    with_history: bool = Field(default=False, description="Whether to copy HWM history.")
+
+    @root_validator(skip_on_failure=True)
+    def _check_namespace_ids(cls, values):
+        """Validator to ensure source and target namespace IDs are different."""
+        source_namespace_id, target_namespace_id = values.get("source_namespace_id"), values.get("target_namespace_id")
+        if source_namespace_id == target_namespace_id:
+            raise ValueError("Source and target namespace IDs must not be the same.")
         return values
 
 

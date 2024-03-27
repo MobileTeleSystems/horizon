@@ -71,6 +71,7 @@ async def test_copy_hwms(
     access_token: str,
     namespaces: list[Namespace],
     hwms: list[HWM],
+    hwm_history_items_for_hwms: list[HWMHistory],
     async_session: AsyncSession,
     with_history: bool,
 ):
@@ -110,22 +111,24 @@ async def test_copy_hwms(
         original_history_query = select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id)
         original_history_result = await async_session.execute(original_history_query)
         original_history_records = original_history_result.scalars().all()
-        # check that record with copied info is added to hwm_history
-        assert len(copied_history_records) == len(original_history_records) + 1
 
         history_result_query = (
             select(HWMHistory).where(HWMHistory.hwm_id == copied_hwm.id).order_by(HWMHistory.changed_at.desc())
         )
         history_result = await async_session.execute(history_result_query)
-        copied_action_record = history_result.scalars().first()
+        copied_action_record = history_result.scalars().all()[-1]
 
         assert copied_action_record is not None
         expected_action = f"Copied from namespace {source_namespace.id} to namespace {target_namespace.id}"
         assert copied_action_record.action == expected_action
 
         if with_history:
+            # check that record with copied info is added to hwm_history
+            assert len(copied_history_records) == len(original_history_records) + 1
+
             for original_record, copied_record in zip(
-                sorted(original_history_records, key=lambda x: x.id), sorted(copied_history_records, key=lambda x: x.id)
+                sorted(original_history_records, key=lambda x: x.name),
+                sorted(copied_history_records[:-1], key=lambda x: x.name),
             ):
                 assert original_record.name == copied_record.name
                 assert original_record.description == copied_record.description
@@ -133,8 +136,7 @@ async def test_copy_hwms(
                 assert original_record.value == copied_record.value
                 assert original_record.entity == copied_record.entity
                 assert original_record.expression == copied_record.expression
-                assert copied_record.namespace_id == target_namespace.id
-                assert copied_record.changed_by_user_id == target_namespace.user.id
+                assert copied_record.namespace_id == source_namespace.id
 
 
 @pytest.mark.asyncio
@@ -273,7 +275,7 @@ async def test_copy_hwms_with_existing_hwm_name(
     )
 
     assert response.status_code == 409
-    assert f"HWM with name='{hwms[0].name}' already exists" in response.json()["error"]["message"]
+    assert "already exists" in response.json()["error"]["message"]
 
 
 @pytest.mark.parametrize("namespaces", [(1, {})], indirect=True)

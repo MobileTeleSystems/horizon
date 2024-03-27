@@ -36,7 +36,7 @@ class HWMResponseV1(BaseModel):
         from_attributes = True
 
 
-class HWMResponseListV1(BaseModel):
+class HWMListResponseV1(BaseModel):
     hwms: List[HWMResponseV1]
 
 
@@ -86,7 +86,7 @@ class HWMUpdateRequestV1(BaseModel):
         return values
 
 
-class HWMCopyRequestV1(BaseModel):
+class HWMBulkCopyRequestV1(BaseModel):
     """Schema for request body of HWM copy operation."""
 
     source_namespace_id: int = Field(description="Source namespace ID from which HWMs are copied.")

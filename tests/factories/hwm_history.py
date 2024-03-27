@@ -84,7 +84,10 @@ async def hwm_history_items_for_hwms(
         for hwm in hwms:
             for _ in range(size):
                 hwm_history_record = hwm_history_factory(
-                    namespace_id=namespace.id, hwm_id=hwm.id, changed_by_user_id=user.id, **params
+                    namespace_id=namespace.id,
+                    hwm_id=hwm.id,
+                    changed_by_user_id=user.id,
+                    **params,
                 )
                 async_session.add(hwm_history_record)
                 hwm_history_records.append(hwm_history_record)

@@ -174,6 +174,7 @@ async def test_copy_hwms_with_non_existing_hwm_ids(
     )
     # we ignore hwms that are not related to namespace and copy only existing hws in namespace
     assert response.status_code == 201
+    assert response.json() == {"hwms": []}
 
     query = select(HWM).where(HWM.namespace_id == target_namespace.id, HWM.name == new_hwm.name)
     result = await async_session.execute(query)

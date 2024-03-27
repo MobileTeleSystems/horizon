@@ -8,7 +8,7 @@ HWM-related schemas
 .. autopydantic_model:: HWMResponseV1
     :model-show-field-summary: false
 
-.. autopydantic_model:: HWMResponseListV1
+.. autopydantic_model:: HWMListResponseV1
     :model-show-field-summary: false
 
 .. autopydantic_model:: HWMPaginateQueryV1
@@ -22,7 +22,7 @@ HWM-related schemas
 .. autopydantic_model:: HWMUpdateRequestV1
     :model-show-field-summary: false
 
-.. autopydantic_model:: HWMCopyRequestV1
+.. autopydantic_model:: HWMBulkCopyRequestV1
     :model-show-field-summary: false
 
 .. autopydantic_model:: HWMBulkDeleteRequestV1

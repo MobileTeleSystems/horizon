@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 from horizon.commons.schemas.v1.auth import AuthTokenResponseV1
 from horizon.commons.schemas.v1.hwm import (
+    HWMBulkCopyRequestV1,
     HWMBulkDeleteRequestV1,
-    HWMCopyRequestV1,
     HWMCreateRequestV1,
+    HWMListResponseV1,
     HWMPaginateQueryV1,
-    HWMResponseListV1,
     HWMResponseV1,
     HWMUpdateRequestV1,
 )
@@ -43,11 +43,11 @@ __all__ = [
     "HWMCreateRequestV1",
     "HWMPaginateQueryV1",
     "HWMResponseV1",
-    "HWMResponseListV1",
+    "HWMListResponseV1",
     "HWMUpdateRequestV1",
     "HWMHistoryPaginateQueryV1",
     "HWMHistoryResponseV1",
-    "HWMCopyRequestV1",
+    "HWMBulkCopyRequestV1",
     "HWMBulkDeleteRequestV1",
     "NamespaceCreateRequestV1",
     "NamespacePaginateQueryV1",

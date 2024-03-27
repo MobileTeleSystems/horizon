@@ -9,11 +9,11 @@ from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
 from horizon.commons.errors import get_error_responses
 from horizon.commons.schemas.v1 import (
+    HWMBulkCopyRequestV1,
     HWMBulkDeleteRequestV1,
-    HWMCopyRequestV1,
     HWMCreateRequestV1,
+    HWMListResponseV1,
     HWMPaginateQueryV1,
-    HWMResponseListV1,
     HWMResponseV1,
     HWMUpdateRequestV1,
     PageResponseV1,
@@ -160,14 +160,14 @@ async def bulk_delete_hwm(
 @router.post(
     "/copy",
     summary="Copy HWMs to another namespace",
-    response_model=HWMResponseListV1,
+    response_model=HWMListResponseV1,
     status_code=status.HTTP_201_CREATED,
 )
 async def copy_hwms(
-    copy_request: HWMCopyRequestV1,
+    copy_request: HWMBulkCopyRequestV1,
     user: Annotated[User, Depends(current_user)],
     unit_of_work: Annotated[UnitOfWork, Depends()],
-) -> HWMResponseListV1:
+) -> HWMListResponseV1:
     async with unit_of_work:
         await unit_of_work.namespace.check_user_permission(
             user_id=user.id,
@@ -195,4 +195,4 @@ async def copy_hwms(
             hwm_history_data.append(history_record)
 
         await unit_of_work.hwm_history.bulk_create(hwm_history_data)
-        return HWMResponseListV1(hwms=[HWMResponseV1.from_orm(hwm) for hwm in copied_hwms])
+        return HWMListResponseV1(hwms=[HWMResponseV1.from_orm(hwm) for hwm in copied_hwms])

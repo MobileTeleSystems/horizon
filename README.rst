@@ -47,7 +47,7 @@ Goals
 * Allow users to save and fetch High Water Mark (*HWM*) items. These are ``name+type+value`` triples with few optional fields.
 * Avoid confusion between different user's data by separating HWMs to different *namespaces*. Each HWM is bound to namespace.
 * Allow users to get HWM change history, to determine who and when changed a specific HWM value and other fields.
-* Provide RBAC model to ensure that interaction with ``HWMs`` and ``Namespaces`` are governed by role assigned to each user. Role are assigned per namespace.
+* Provide RBAC model to ensure that interaction with ``HWMs`` and ``Namespaces`` are governed by role assigned to each user. Roles are assigned per namespace.
 
 Non-goals
 ---------

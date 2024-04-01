@@ -22,10 +22,10 @@ class InvalidRequestBaseErrorSchema(BaseModel):
         input: Any = Field(default=None)
 
     class Config:
-        # pydantic v1
-        allow_population_by_field_name = True
-        # pydantic v2
-        populate_by_name = True
+        if pydantic_version >= "2":
+            populate_by_name = True
+        else:
+            allow_population_by_field_name = True
 
 
 @register_error_response(

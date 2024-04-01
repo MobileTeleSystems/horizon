@@ -42,7 +42,6 @@ jobs:
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-changelog-${{ hashFiles('**/poetry.lock') }}
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-changelog-
             ${{ runner.os }}-python
-            ${{ runner.os }}-
 
       - name: Install dependencies
         run: |

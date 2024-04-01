@@ -40,7 +40,10 @@ class PermissionsUpdateRequestV1(BaseModel):
     )
 
     @validator("permissions")
-    def _ensure_unique_usernames_and_single_owner(cls, permissions):
+    def _ensure_unique_usernames_and_single_owner(
+        cls,
+        permissions: List[PermissionUpdateRequestItemV1],
+    ) -> List[PermissionUpdateRequestItemV1]:
         seen: Set[str] = set()
         owner_count = 0
         for perm in permissions:

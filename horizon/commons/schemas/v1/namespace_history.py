@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from pydantic import __version__ as pydantic_version
 
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 
@@ -30,7 +31,7 @@ class NamespaceHistoryResponseV1(BaseModel):
     changed_by: Optional[str] = Field(default=None, description="User who changed the namespace data")
 
     class Config:
-        # pydantic v1
-        orm_mode = True
-        # pydantic v2
-        from_attributes = True
+        if pydantic_version >= "2":
+            from_attributes = True
+        else:
+            orm_mode = True

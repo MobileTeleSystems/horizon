@@ -12,7 +12,11 @@ from urllib.parse import urlparse
 from pydantic import AnyHttpUrl, BaseModel, PrivateAttr, ValidationError
 from pydantic import __version__ as pydantic_version
 from pydantic import parse_obj_as, validator
-from pydantic.generics import GenericModel
+
+if pydantic_version >= "2":
+    from pydantic import BaseModel as GenericModel
+else:
+    from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
 from typing_extensions import Protocol
 
 import horizon
@@ -58,9 +62,9 @@ class BaseClient(GenericModel, Generic[SessionClass]):
     @classmethod
     def session_class(cls) -> type[SessionClass]:
         # Get `Session` from `SyncClient(BaseClient[Session])`
-        if pydantic_version < "2":
-            return cls.__bases__[0].__annotations__["session"].__args__[0]
-        return cls.model_fields["session"].annotation.__args__[0]
+        if pydantic_version >= "2":
+            return cls.model_fields["session"].annotation.__args__[0]  # type: ignore[union-attr]
+        return cls.__bases__[0].__annotations__["session"].__args__[0]
 
     @validator("base_url")
     def _validate_url(cls, value: AnyHttpUrl):

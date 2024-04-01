@@ -51,7 +51,6 @@ jobs:
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-${{ hashFiles('**/poetry.lock') }}
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-codeql-
             ${{ runner.os }}-python
-            ${{ runner.os }}-
 
       - name: Install dependencies
         run: |

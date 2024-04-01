@@ -280,6 +280,7 @@ known_first_party = ["horizon", "tests"]
 [tool.mypy]
 python_version = "3.8"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+strict_optional = true
 
 [[tool.mypy.overrides]]
 module = "sqlalchemy_utils"

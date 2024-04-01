@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 
+# mypy: disable-error-code="pydantic-orm"
+
 from typing import Union
 
 from fastapi import APIRouter, Depends

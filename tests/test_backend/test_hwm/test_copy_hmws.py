@@ -5,9 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
 
-from horizon.backend.db.models import HWM, Namespace, NamespaceUserRoleInt, User
+from horizon.backend.db.models import HWM, Namespace, NamespaceUserRoleInt
 from horizon.backend.db.models.hwm_history import HWMHistory
 
 if TYPE_CHECKING:
@@ -49,19 +50,46 @@ async def test_copy_hwms_same_source_and_target_namespace(
     namespace: Namespace,
     hwms: list[HWM],
 ):
+    body = {
+        "source_namespace_id": namespace.id,
+        "target_namespace_id": namespace.id,
+        "hwm_ids": [hwm.id for hwm in hwms],
+        "with_history": False,
+    }
+
     response = await test_client.post(
         "v1/hwm/copy",
         headers={"Authorization": f"Bearer {access_token}"},
-        json={
-            "source_namespace_id": namespace.id,
-            "target_namespace_id": namespace.id,
-            "hwm_ids": [hwm.id for hwm in hwms],
-            "with_history": False,
-        },
+        json=body,
     )
 
     assert response.status_code == 422
-    assert "Source and target namespace IDs must not be the same" in response.text
+
+    if pydantic_version >= "2":
+        detail = {
+            "code": "value_error",
+            "context": {},
+            "input": body,
+            "location": ["body"],
+            "message": "Value error, Source and target namespace IDs must not be the same.",
+            "url": "https://errors.pydantic.dev/2.5/v/value_error",
+        }
+    else:
+        detail = {
+            "code": "value_error",
+            "location": ["body", "__root__"],
+            "message": "Source and target namespace IDs must not be the same.",
+        }
+
+    expected_body = {
+        "error": {
+            "code": "invalid_request",
+            "details": [detail],
+            "message": "Invalid request",
+        },
+    }
+
+    assert response.json() == expected_body
 
 
 @pytest.mark.asyncio
@@ -149,7 +177,32 @@ async def test_copy_hwms_empty_hwm_ids_list(
     )
 
     assert response.status_code == 422
-    assert "List should have at least 1 item after validation, not 0" in response.text
+
+    if pydantic_version >= "2":
+        detail = {
+            "code": "value_error",
+            "context": {},
+            "input": [],
+            "location": ["body", "hwm_ids"],
+            "message": "Value error, List should have at least 1 item after validation, not 0",
+            "url": "https://errors.pydantic.dev/2.5/v/value_error",
+        }
+    else:
+        detail = {
+            "code": "value_error",
+            "location": ["body", "hwm_ids"],
+            "message": "List should have at least 1 item after validation, not 0",
+        }
+
+    expected_body = {
+        "error": {
+            "code": "invalid_request",
+            "details": [detail],
+            "message": "Invalid request",
+        },
+    }
+
+    assert response.json() == expected_body
 
 
 @pytest.mark.asyncio
@@ -267,7 +320,7 @@ async def test_copy_hwms_with_existing_hwm_name(
             "code": "already_exists",
             "details": {"entity_type": "HWM", "field": "name", "value": hwms[0].name},
             "message": f"HWM with name={hwms[0].name!r} already exists",
-        }
+        },
     }
 
 
@@ -281,12 +334,12 @@ async def test_copy_hwms_with_existing_hwm_name(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least DEVELOPER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least DEVELOPER.",
                     "details": {
                         "required_role": "DEVELOPER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

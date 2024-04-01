@@ -5,7 +5,11 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 from pydantic import __version__ as pydantic_version
-from pydantic.generics import GenericModel
+
+if pydantic_version >= "2":
+    from pydantic import BaseModel as GenericModel
+else:
+    from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
 
 from horizon.commons.dto.unset import Unset
 

@@ -4,7 +4,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Union
 
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field
+from pydantic import __version__ as pydantic_version
+from pydantic import root_validator
 
 from horizon.commons.dto import Unset
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
@@ -29,10 +31,10 @@ class NamespaceResponseV1(BaseModel):
     changed_by: Optional[str] = Field(default=None, description="Latest user who changed the namespace data")
 
     class Config:
-        # pydantic v1
-        orm_mode = True
-        # pydantic v2
-        from_attributes = True
+        if pydantic_version >= "2":
+            from_attributes = True
+        else:
+            orm_mode = True
 
 
 class NamespacePaginateQueryV1(PaginateQueryV1):

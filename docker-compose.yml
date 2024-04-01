@@ -19,6 +19,9 @@ services:
     image: mtsrus/horizon-backend:develop
     restart: unless-stopped
     env_file: .env.docker
+    environment:
+      # list here usernames which should be assigned SUPERADMIN role on application start
+      - HORIZON__ENTRYPOINT__ADMIN_USERS=admin
     ports:
       - 8000:8000
     depends_on:

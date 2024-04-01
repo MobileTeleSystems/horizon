@@ -28,6 +28,8 @@ Options can be set via ``.env`` file or ``environment`` section in ``docker-comp
 
 After container is started and ready, open http://localhost:8000/docs.
 
+Users listed in ``HORIZON__ENTRYPOINT__ADMIN_USERS`` env variable will be automatically promoted to ``SUPERADMIN`` role.
+
 Without docker
 --------------
 
@@ -101,3 +103,14 @@ This is a thin wrapper around `uvicorn <https://www.uvicorn.org/#command-line-op
 options and commands are just the same.
 
 After server is started and ready, open http://localhost:8000/docs.
+
+Add admin users
+~~~~~~~~~~~~~~~
+
+To promote specific users to ``SUPERADMIN`` role, run the following script:
+
+.. code-block:: console
+
+    $ python -m horizon.backend.scripts.manage_admins add admin1 admin2
+
+See :ref:`scripts` documentation.

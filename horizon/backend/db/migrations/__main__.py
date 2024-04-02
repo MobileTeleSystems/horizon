@@ -2,18 +2,20 @@
 
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
 import os
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 from alembic.config import CommandLine
 
 here = Path(__file__).resolve()
-config_path = here.parent.parent.parent / "alembic.ini"
+config_path = here.parent / "alembic.ini"
 
 
-def main(prog_name: Optional[str] = None, args: Optional[List[str]] = None):
+def main(prog_name: str | None = None, args: list[str] | None = None):
     """Run alembic and pass the command line arguments to it."""
     if args is None:
         args = sys.argv.copy()

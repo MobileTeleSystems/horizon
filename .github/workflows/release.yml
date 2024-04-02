@@ -42,10 +42,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: pypi-release-${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}-${{ env.DEFAULT_PYTHON }}
+          key: ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-release-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            pypi-release-${{ runner.os }}-py-${{ hashFiles('**/poetry.lock') }}-
-            pypi-release-${{ runner.os }}-py-
+            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-release-${{ hashFiles('**/poetry.lock') }}
+            ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-release-
+            ${{ runner.os }}-python
 
       - name: Install dependencies
         run: |

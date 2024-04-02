@@ -46,7 +46,7 @@ def empty_db_url(settings: Settings) -> Generator[str, None, None]:
 
 @pytest.fixture
 def alembic_config(empty_db_url: str) -> AlembicConfig:
-    alembic_cfg = AlembicConfig(PROJECT_PATH / "alembic.ini")
+    alembic_cfg = AlembicConfig(PROJECT_PATH / "db/migrations/alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", empty_db_url)
     alembic_cfg.set_main_option(
         "script_location",

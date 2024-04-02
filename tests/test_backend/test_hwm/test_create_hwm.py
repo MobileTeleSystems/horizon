@@ -557,7 +557,7 @@ async def test_create_hwm_with_same_name_after_deletion(
                         "required_role": "DEVELOPER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

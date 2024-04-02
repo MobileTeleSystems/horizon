@@ -1,0 +1,15 @@
+0.1.2 (2024-04-02)
+==================
+
+Features
+--------
+
+- Add new environment variable ``HORIZON__ENTRYPOINT__ADMIN_USERS`` to Docker image entrypoint.
+  Here you can pass of usernames which should be automatically promoted to ``SUPERADMIN`` role during backend startup. (:issue:`45`)
+
+
+Improvements
+------------
+
+- Improve logging in ``manage_admins`` script. (:issue:`46`)
+- Fix Pydantic v2 model warnings while starting backend. (:issue:`47`)

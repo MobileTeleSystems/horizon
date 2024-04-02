@@ -1,2 +1,0 @@
-Add new environment variable ``HORIZON__ENTRYPOINT__ADMIN_USERS`` to Docker image entrypoint.
-Here you can pass of usernames which should be automatically promoted to ``SUPERADMIN`` role during backend startup.

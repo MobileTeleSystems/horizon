@@ -18,8 +18,8 @@ class SwaggerSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__SERVER__OPENAPI__SWAGGER__ENABLED=True
-        HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/app/horizon/backend/static/swagger/swagger-ui-bundle.js
-        HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/app/horizon/backend/static/swagger/swagger-ui.css
+        HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/static/swagger/swagger-ui-bundle.js
+        HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/static/swagger/swagger-ui.css
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable Swagger UI endpoint")
@@ -53,8 +53,7 @@ class RedocSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__SERVER__OPENAPI__REDOC__ENABLED=True
-        HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/app/horizon/backend/static/redoc/redoc.standalone.js
-        HORIZON__SERVER__OPENAPI__REDOC__FAVICON_URL=/app/horizon/backend/static/icon.svg
+        HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/static/redoc/redoc.standalone.js
     """
 
     enabled: bool = Field(default=True, description="Set to ``True`` to enable Redoc UI endpoint")

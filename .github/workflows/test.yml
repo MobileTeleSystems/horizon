@@ -43,8 +43,7 @@ jobs:
           file: docker/Dockerfile.backend
           push: false
           load: true
-          cache-to: type=gha,mode=max
-          cache-from: type=gha
+          cache-from: mtsrus/horizon-backend:develop
 
       - name: Start Backend Container
         run: |

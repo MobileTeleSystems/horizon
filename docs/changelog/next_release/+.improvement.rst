@@ -1,0 +1,1 @@
+Properly handle ``SIGTERM`` signals in Docker image entrypoint.

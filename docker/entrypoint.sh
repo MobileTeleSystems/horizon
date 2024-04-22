@@ -10,4 +10,4 @@ if [[ "x${HORIZON__ENTRYPOINT__ADMIN_USERS}" != "x" ]]; then
   python -m horizon.backend.scripts.manage_admins list
 fi
 
-python -m horizon.backend --host 0.0.0.0 --port 8000 "$@"
+exec python -m horizon.backend --host 0.0.0.0 --port 8000 "$@" &

@@ -51,7 +51,7 @@ async def test_paginate_namespace_history_not_enough_arguments(
                 "location": ["query", "namespace_id"],
                 "code": "value_error.missing",
                 "message": "field required",
-            }
+            },
         ]
     else:
         details = [

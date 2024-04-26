@@ -109,7 +109,10 @@ def test_sync_client_retry(
 
     # client.authorize() also calls /v1/users/me endpoint, so we need to mock it either
     mocked_responses.add(
-        responses.GET, f"{external_app_url}/v1/users/me", json={"id": "1", "username": "user"}, status=200
+        responses.GET,
+        f"{external_app_url}/v1/users/me",
+        json={"id": "1", "username": "user"},
+        status=200,
     )
 
     client.authorize()

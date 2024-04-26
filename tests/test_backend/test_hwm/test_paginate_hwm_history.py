@@ -51,7 +51,7 @@ async def test_paginate_hwm_history_not_enough_arguments(
                 "location": ["query", "hwm_id"],
                 "code": "value_error.missing",
                 "message": "field required",
-            }
+            },
         ]
     else:
         details = [

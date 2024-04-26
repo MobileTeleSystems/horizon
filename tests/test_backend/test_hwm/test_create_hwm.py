@@ -308,7 +308,7 @@ async def test_create_hwm_already_exist(
                 "field": "name",
                 "value": hwm.name,
             },
-        }
+        },
     }
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -508,7 +508,7 @@ async def test_create_hwm_with_same_name_after_deletion(
     )
     assert delete_response.status_code == 204
     result = await async_session.execute(
-        select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id))
+        select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id)),
     )
     deleted_hwm_history = result.scalars().first()
     assert deleted_hwm_history.action == "Deleted"

@@ -145,7 +145,7 @@ async def test_bulk_delete_empty_hwm_list(
                         "required_role": "MAINTAINER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -159,7 +159,7 @@ async def test_bulk_delete_empty_hwm_list(
                         "required_role": "MAINTAINER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

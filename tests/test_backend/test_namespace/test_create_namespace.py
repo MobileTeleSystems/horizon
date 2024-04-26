@@ -243,7 +243,7 @@ async def test_create_namespace_with_same_name_after_deletion(
     result = await async_session.execute(
         select(NamespaceHistory)
         .where(NamespaceHistory.namespace_id == old_namespace_id)
-        .order_by(desc(NamespaceHistory.id))
+        .order_by(desc(NamespaceHistory.id)),
     )
     deleted_namespace_history = result.scalars().first()
     assert deleted_namespace_history.action == "Deleted"
@@ -269,7 +269,7 @@ async def test_create_namespace_with_same_name_after_deletion(
     assert recreated_namespace is not None
 
     result = await async_session.execute(
-        select(NamespaceHistory).where(NamespaceHistory.namespace_id == new_namespace_id)
+        select(NamespaceHistory).where(NamespaceHistory.namespace_id == new_namespace_id),
     )
     created_namespace_history = result.scalars().first()
     assert created_namespace_history.action == "Created"

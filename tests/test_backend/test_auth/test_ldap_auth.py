@@ -238,7 +238,9 @@ async def test_ldap_auth_get_token_with_wrong_lookup_settings(
 
 @pytest.mark.parametrize("user", [{"username": "developer1"}], indirect=True)
 @pytest.mark.parametrize(
-    "settings", [{"auth": {"provider": LDAP, "ldap": {"lookup": {"enabled": False}}}}], indirect=True
+    "settings",
+    [{"auth": {"provider": LDAP, "ldap": {"lookup": {"enabled": False}}}}],
+    indirect=True,
 )
 async def test_ldap_auth_get_token_without_lookup(
     test_client: AsyncClient,
@@ -425,7 +427,7 @@ async def test_ldap_auth_get_token_with_malformed_input(
                 "location": ["body", "password"],
                 "message": "field required",
                 "code": "value_error.missing",
-            }
+            },
         ]
     else:
         details = [
@@ -436,7 +438,7 @@ async def test_ldap_auth_get_token_with_malformed_input(
                 "context": {},
                 "input": None,
                 "url": "https://errors.pydantic.dev/2.5/v/missing",
-            }
+            },
         ]
 
     expected = {

@@ -184,7 +184,7 @@ async def test_update_hwm_already_exists(
                 "field": "name",
                 "value": hwm2.name,
             },
-        }
+        },
     }
 
     query = select(HWM).where(HWM.id == hwm1.id)
@@ -307,7 +307,7 @@ async def test_update_hwm_no_data(
                 "location": ["body", "__root__"],
                 "code": "value_error",
                 "message": "At least one field must be set.",
-            }
+            },
         ]
     else:
         details = [
@@ -318,7 +318,7 @@ async def test_update_hwm_no_data(
                 "context": {},
                 "input": {"unexpected": "value"},
                 "url": "https://errors.pydantic.dev/2.5/v/value_error",
-            }
+            },
         ]
 
     assert response.json() == {
@@ -326,7 +326,7 @@ async def test_update_hwm_no_data(
             "code": "invalid_request",
             "message": "Invalid request",
             "details": details,
-        }
+        },
     }
 
 
@@ -514,7 +514,7 @@ async def test_update_hwm_invalid_field_length(
                         "required_role": "DEVELOPER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

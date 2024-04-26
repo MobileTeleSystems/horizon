@@ -29,13 +29,16 @@ pytestmark = [pytest.mark.client_sync, pytest.mark.client]
     indirect=["namespace_with_users"],
 )
 def test_sync_client_update_namespace_permissions(
-    namespace: Namespace, user: User, sync_client: HorizonClientSync, namespace_with_users: None
+    namespace: Namespace,
+    user: User,
+    sync_client: HorizonClientSync,
+    namespace_with_users: None,
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
             PermissionUpdateRequestItemV1(username=user.username, role=NamespaceUserRole.DEVELOPER),
             PermissionUpdateRequestItemV1(username="new_user", role=NamespaceUserRole.OWNER),
-        ]
+        ],
     )
     response = sync_client.update_namespace_permissions(namespace.id, changes)
 
@@ -47,12 +50,13 @@ def test_sync_client_update_namespace_permissions(
 
 
 def test_sync_client_update_namespace_permissions_namespace_missing(
-    new_namespace: Namespace, sync_client: HorizonClientSync
+    new_namespace: Namespace,
+    sync_client: HorizonClientSync,
 ):
     changes = PermissionsUpdateRequestV1(
         permissions=[
             PermissionUpdateRequestItemV1(username="someuser", role=NamespaceUserRole.DEVELOPER),
-        ]
+        ],
     )
     with pytest.raises(
         EntityNotFoundError,

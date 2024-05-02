@@ -895,7 +895,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             Namespace or provided user not found.
         :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
             Permission denied for performing the requested action.
-        :obj:`BadRequestError <horizon.commons.exceptions.permission.BadRequestError>`
+        :obj:`BadRequestError <horizon.commons.exceptions.bad_request.BadRequestError>`
             Bad request with incorrect operating logic.
 
         Examples

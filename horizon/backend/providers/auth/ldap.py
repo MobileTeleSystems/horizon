@@ -12,7 +12,7 @@ Similar to:
 """
 
 import logging
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from time import time
 from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple
 
@@ -155,15 +155,10 @@ class LDAPAuthProvider(AuthProvider):
             async with connect as connection:
                 try:  # noqa: WPS505
                     yield connection
-                except LDAPError as err:
-                    # Explicitly closing connection to avoid returning broken connection to a pool.
-                    # Also do that twice to avoid partially closing connection,
-                    # See https://github.com/noirello/bonsai/issues/87
-                    with suppress(LDAPError):
-                        connection.close()  # noqa: WPS220
-                    with suppress(LDAPError):
-                        connection.close()  # noqa: WPS220
-                    raise ServiceError("Failed to connect to LDAP") from err
+                except LDAPError:
+                    # avoid returning connection back to the pool
+                    connection.close()
+                    raise
 
         except LDAPError as e:
             raise ServiceError("Failed to connect to LDAP") from e

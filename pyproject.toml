@@ -97,7 +97,7 @@ authlib = [
   {version = ">=1.2.1", optional = true, python = ">=3.8"},
 ]
 requests = {version = "*", optional = true}
-bonsai = {version = "*", optional = true}
+bonsai = {version = "^1.5.3", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
 pyyaml = {version = "*", optional = true}

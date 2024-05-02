@@ -72,7 +72,6 @@ async def test_copy_hwms_same_source_and_target_namespace(
             "input": body,
             "location": ["body"],
             "message": "Value error, Source and target namespace IDs must not be the same.",
-            "url": "https://errors.pydantic.dev/2.5/v/value_error",
         }
     else:
         detail = {
@@ -185,7 +184,6 @@ async def test_copy_hwms_empty_hwm_ids_list(
             "input": [],
             "location": ["body", "hwm_ids"],
             "message": "Value error, List should have at least 1 item after validation, not 0",
-            "url": "https://errors.pydantic.dev/2.5/v/value_error",
         }
     else:
         detail = {

@@ -161,7 +161,6 @@ async def test_dummy_auth_get_token_with_malformed_input(
                 "message": "Field required",
                 "context": {},
                 "input": None,
-                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
         ]
 

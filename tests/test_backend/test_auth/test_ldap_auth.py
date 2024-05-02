@@ -437,7 +437,6 @@ async def test_ldap_auth_get_token_with_malformed_input(
                 "code": "missing",
                 "context": {},
                 "input": None,
-                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
         ]
 

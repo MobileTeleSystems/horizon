@@ -225,7 +225,6 @@ async def test_update_namespace_no_data(
                 "message": "Value error, At least one field must be set.",
                 "context": {},
                 "input": {"unexpected": "value"},
-                "url": "https://errors.pydantic.dev/2.5/v/value_error",
             },
         ]
 
@@ -330,7 +329,6 @@ async def test_update_namespace_invalid_name_length(
                     "location": ["body", "name"],
                     "message": "Value should have at most 256 items after validation, not 257",
                     "code": "too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
                     "context": {"max_length": 256, "actual_length": 257, "field_type": "Value"},
                     "input": new_namespace.name,
                 },
@@ -341,7 +339,6 @@ async def test_update_namespace_invalid_name_length(
                     "location": ["body", "name"],
                     "message": "Value should have at least 1 item after validation, not 0",
                     "code": "too_short",
-                    "url": "https://errors.pydantic.dev/2.5/v/too_short",
                     "context": {"min_length": 1, "actual_length": 0, "field_type": "Value"},
                     "input": "",
                 },

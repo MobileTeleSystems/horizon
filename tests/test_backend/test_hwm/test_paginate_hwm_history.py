@@ -61,7 +61,6 @@ async def test_paginate_hwm_history_not_enough_arguments(
                 "input": None,
                 "location": ["query", "hwm_id"],
                 "message": "Field required",
-                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
         ]
 

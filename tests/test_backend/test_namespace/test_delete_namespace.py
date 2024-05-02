@@ -176,7 +176,7 @@ async def test_delete_namespace_with_existing_hwm(
                         "required_role": "OWNER",
                         "actual_role": "MAINTAINER",
                     },
-                }
+                },
             },
         ),
         (
@@ -190,7 +190,7 @@ async def test_delete_namespace_with_existing_hwm(
                         "required_role": "OWNER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -204,7 +204,7 @@ async def test_delete_namespace_with_existing_hwm(
                         "required_role": "OWNER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

@@ -184,7 +184,7 @@ async def test_update_hwm_already_exists(
                 "field": "name",
                 "value": hwm2.name,
             },
-        }
+        },
     }
 
     query = select(HWM).where(HWM.id == hwm1.id)
@@ -307,7 +307,7 @@ async def test_update_hwm_no_data(
                 "location": ["body", "__root__"],
                 "code": "value_error",
                 "message": "At least one field must be set.",
-            }
+            },
         ]
     else:
         details = [
@@ -317,8 +317,7 @@ async def test_update_hwm_no_data(
                 "message": "Value error, At least one field must be set.",
                 "context": {},
                 "input": {"unexpected": "value"},
-                "url": "https://errors.pydantic.dev/2.5/v/value_error",
-            }
+            },
         ]
 
     assert response.json() == {
@@ -326,7 +325,7 @@ async def test_update_hwm_no_data(
             "code": "invalid_request",
             "message": "Invalid request",
             "details": details,
-        }
+        },
     }
 
 
@@ -453,7 +452,6 @@ async def test_update_hwm_invalid_field_length(
                     "location": ["body", "name"],
                     "message": "Value should have at most 2048 items after validation, not 2049",
                     "code": "too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
                     "context": {"max_length": 2048, "actual_length": 2049, "field_type": "Value"},
                     "input": new_hwm.name,
                 },
@@ -464,7 +462,6 @@ async def test_update_hwm_invalid_field_length(
                     "location": ["body", "type"],
                     "message": "Value should have at most 64 items after validation, not 65",
                     "code": "too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/too_long",
                     "context": {"max_length": 64, "actual_length": 65, "field_type": "Value"},
                     "input": new_hwm.type,
                 },
@@ -475,7 +472,6 @@ async def test_update_hwm_invalid_field_length(
                     "location": ["body", "type" if not new_hwm.type else "name"],
                     "message": "Value should have at least 1 item after validation, not 0",
                     "code": "too_short",
-                    "url": "https://errors.pydantic.dev/2.5/v/too_short",
                     "context": {"min_length": 1, "actual_length": 0, "field_type": "Value"},
                     "input": "",
                 },
@@ -514,7 +510,7 @@ async def test_update_hwm_invalid_field_length(
                         "required_role": "DEVELOPER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

@@ -120,7 +120,7 @@ async def test_delete_hwm(
                         "required_role": "MAINTAINER",
                         "actual_role": "DEVELOPER",
                     },
-                }
+                },
             },
         ),
         (
@@ -134,7 +134,7 @@ async def test_delete_hwm(
                         "required_role": "MAINTAINER",
                         "actual_role": "GUEST",
                     },
-                }
+                },
             },
         ),
     ],

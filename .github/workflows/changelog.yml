@@ -41,7 +41,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-changelog-${{ hashFiles('**/poetry.lock') }}
             ${{ runner.os }}-python-${{ env.DEFAULT_PYTHON }}-changelog-
-            ${{ runner.os }}-python
+            ${{ runner.os }}-python-
 
       - name: Install dependencies
         run: |

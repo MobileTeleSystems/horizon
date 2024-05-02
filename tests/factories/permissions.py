@@ -23,7 +23,7 @@ from horizon.backend.db.models import (
         ("user1", NamespaceUserRoleInt.DEVELOPER),
         ("user2", NamespaceUserRoleInt.DEVELOPER),
         ("user3", NamespaceUserRoleInt.MAINTAINER),
-    ]
+    ],
 )
 async def namespace_with_users(
     request: pytest.FixtureRequest,

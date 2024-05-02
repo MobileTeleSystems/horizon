@@ -1,0 +1,8 @@
+0.1.3 (2024-05-02)
+==================
+
+Improvements
+------------
+
+- Properly handle ``SIGTERM`` signals in Docker image entrypoint.
+- Update dependencies

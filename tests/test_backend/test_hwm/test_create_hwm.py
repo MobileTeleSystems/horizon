@@ -308,7 +308,7 @@ async def test_create_hwm_already_exist(
                 "field": "name",
                 "value": hwm.name,
             },
-        }
+        },
     }
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -433,7 +433,6 @@ async def test_create_hwm_invalid_field_length(
                     "location": ["body", "name"],
                     "message": "String should have at most 2048 characters",
                     "code": "string_too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
                     "context": {"max_length": 2048},
                     "input": new_hwm.name,
                 },
@@ -444,7 +443,6 @@ async def test_create_hwm_invalid_field_length(
                     "location": ["body", "type"],
                     "message": "String should have at most 64 characters",
                     "code": "string_too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
                     "context": {"max_length": 64},
                     "input": new_hwm.type,
                 },
@@ -455,7 +453,6 @@ async def test_create_hwm_invalid_field_length(
                     "location": ["body", "type" if not new_hwm.type else "name"],
                     "message": "String should have at least 1 character",
                     "code": "string_too_short",
-                    "url": "https://errors.pydantic.dev/2.5/v/string_too_short",
                     "context": {"min_length": 1},
                     "input": "",
                 },
@@ -508,7 +505,7 @@ async def test_create_hwm_with_same_name_after_deletion(
     )
     assert delete_response.status_code == 204
     result = await async_session.execute(
-        select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id))
+        select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id)),
     )
     deleted_hwm_history = result.scalars().first()
     assert deleted_hwm_history.action == "Deleted"

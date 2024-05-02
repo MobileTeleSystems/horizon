@@ -142,7 +142,7 @@ async def user_with_role(
         else:
             if fake_owner:
                 await async_session.execute(
-                    update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id)
+                    update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id),
                 )
 
                 await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))

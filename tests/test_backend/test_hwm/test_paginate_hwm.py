@@ -51,7 +51,7 @@ async def test_paginate_hwm_not_enough_arguments(
                 "location": ["query", "namespace_id"],
                 "code": "value_error.missing",
                 "message": "field required",
-            }
+            },
         ]
     else:
         details = [
@@ -61,7 +61,6 @@ async def test_paginate_hwm_not_enough_arguments(
                 "input": None,
                 "location": ["query", "namespace_id"],
                 "message": "Field required",
-                "url": "https://errors.pydantic.dev/2.5/v/missing",
             },
         ]
 

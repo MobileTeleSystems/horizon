@@ -17,7 +17,6 @@ class InvalidRequestBaseErrorSchema(BaseModel):
     type: str = Field(alias="code")
 
     if pydantic_version >= "2":
-        url: str
         ctx: dict = Field(default_factory=dict, alias="context")
         input: Any = Field(default=None)
 

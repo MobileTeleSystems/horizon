@@ -181,7 +181,6 @@ async def test_create_namespace_invalid_name_length(
                     "location": ["body", "name"],
                     "message": "String should have at most 256 characters",
                     "code": "string_too_long",
-                    "url": "https://errors.pydantic.dev/2.5/v/string_too_long",
                     "context": {"max_length": 256},
                     "input": new_namespace.name,
                 },
@@ -192,7 +191,6 @@ async def test_create_namespace_invalid_name_length(
                     "location": ["body", "name"],
                     "message": "String should have at least 1 character",
                     "code": "string_too_short",
-                    "url": "https://errors.pydantic.dev/2.5/v/string_too_short",
                     "context": {"min_length": 1},
                     "input": "",
                 },
@@ -243,7 +241,7 @@ async def test_create_namespace_with_same_name_after_deletion(
     result = await async_session.execute(
         select(NamespaceHistory)
         .where(NamespaceHistory.namespace_id == old_namespace_id)
-        .order_by(desc(NamespaceHistory.id))
+        .order_by(desc(NamespaceHistory.id)),
     )
     deleted_namespace_history = result.scalars().first()
     assert deleted_namespace_history.action == "Deleted"
@@ -269,7 +267,7 @@ async def test_create_namespace_with_same_name_after_deletion(
     assert recreated_namespace is not None
 
     result = await async_session.execute(
-        select(NamespaceHistory).where(NamespaceHistory.namespace_id == new_namespace_id)
+        select(NamespaceHistory).where(NamespaceHistory.namespace_id == new_namespace_id),
     )
     created_namespace_history = result.scalars().first()
     assert created_namespace_history.action == "Created"

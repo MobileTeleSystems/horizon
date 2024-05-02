@@ -110,7 +110,6 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
             ],
             "location": ["body", "permissions"],
             "message": "Value error, Duplicate username detected: user1. Each username must appear only once.",
-            "url": "https://errors.pydantic.dev/2.5/v/value_error",
         }
     else:
         detail = {
@@ -168,7 +167,6 @@ async def test_update_namespace_permissions_duplicates_owner(
             "input": changes["permissions"],
             "location": ["body", "permissions"],
             "message": "Value error, Multiple owner role assignments detected. Only one owner can be assigned.",
-            "url": "https://errors.pydantic.dev/2.5/v/value_error",
         }
     else:
         detail = {

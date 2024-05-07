@@ -32,7 +32,7 @@ def http_exception_handler(_request: Request, exc: HTTPException) -> Response:
 
 
 def unknown_exception_handler(request: Request, exc: Exception) -> Response:
-    logger.exception("Got unhandled error")
+    logger.exception("Got unhandled error", exc_info=exc)
 
     server: ServerSettings = request.app.state.settings.server
     details = None

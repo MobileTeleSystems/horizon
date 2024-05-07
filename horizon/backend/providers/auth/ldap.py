@@ -12,6 +12,7 @@ Similar to:
 """
 
 import logging
+from asyncio import TimeoutError
 from contextlib import asynccontextmanager
 from time import time
 from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple
@@ -36,6 +37,8 @@ from horizon.commons.exceptions import (
 )
 
 log = logging.getLogger(__name__)
+
+LDAPUnrecoverableError = (LDAPError, TimeoutError)
 
 
 class LDAPAuthProvider(AuthProvider):
@@ -156,12 +159,13 @@ class LDAPAuthProvider(AuthProvider):
             async with connect as connection:
                 try:  # noqa: WPS505
                     yield connection
-                except LDAPError:
+                except LDAPUnrecoverableError:
                     # avoid returning connection back to the pool
+                    # https://bonsai.readthedocs.io/en/latest/advanced.html#connection-timeouts
                     connection.close()
                     raise
 
-        except LDAPError as e:
+        except LDAPUnrecoverableError as e:
             raise ServiceError("Failed to connect to LDAP") from e
 
     async def _resolve_username_from_ldap(self, login: str, password: str) -> str:
@@ -225,7 +229,7 @@ class LDAPAuthProvider(AuthProvider):
                 await connection.whoami()
         except (AuthenticationError, InvalidDN) as e:
             raise AuthorizationError("Wrong credentials") from e
-        except LDAPError as e:
+        except LDAPUnrecoverableError as e:
             raise ServiceError("Failed to connect to LDAP") from e
 
     def _generate_access_token(self, user: User) -> Tuple[str, float]:

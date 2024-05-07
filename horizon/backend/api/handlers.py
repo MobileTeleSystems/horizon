@@ -53,7 +53,7 @@ def unknown_exception_handler(request: Request, exc: Exception) -> Response:
 
 
 def service_exception_handler(request: Request, exc: ServiceError) -> Response:
-    logger.exception("Got service error")
+    logger.exception("Got service error", exc_info=exc)
 
     server: ServerSettings = request.app.state.settings.server
     details = None

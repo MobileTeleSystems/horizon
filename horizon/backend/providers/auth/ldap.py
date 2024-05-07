@@ -136,6 +136,7 @@ class LDAPAuthProvider(AuthProvider):
             client,
             minconn=settings.ldap.lookup.pool.initial,
             maxconn=settings.ldap.lookup.pool.max,
+            timeout=settings.ldap.timeout_seconds,
         )
 
     @asynccontextmanager

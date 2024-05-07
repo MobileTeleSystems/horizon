@@ -1,0 +1,1 @@
+Use connection timeout while creating LDAP connections in the pool.

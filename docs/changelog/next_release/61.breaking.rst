@@ -1,0 +1,1 @@
+Rename ``/v1/namespace/:id/permissions`` endpoint to ``/v1/namespaces/:id/permissions``.

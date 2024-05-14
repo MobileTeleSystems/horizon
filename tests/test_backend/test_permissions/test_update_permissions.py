@@ -26,7 +26,7 @@ async def test_update_namespace_permissions_unauthorized_user(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         json=changes,
     )
     assert response.status_code == 401
@@ -50,7 +50,7 @@ async def test_update_namespace_permissions_namespace_missing(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{new_namespace.id}/permissions",
+        f"/v1/namespaces/{new_namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -93,7 +93,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -154,7 +154,7 @@ async def test_update_namespace_permissions_duplicates_owner(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -210,7 +210,7 @@ async def test_update_namespace_permissions_lose_owner(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -248,7 +248,7 @@ async def test_update_namespace_permissions_remove_role(
         ],
     }
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -287,7 +287,7 @@ async def test_update_namespace_permissions_add_or_update_roles(
     }
 
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -326,7 +326,7 @@ async def test_update_namespace_permissions_change_owner(
     }
 
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -365,7 +365,7 @@ async def test_update_namespace_permissions_unknown_user(
     }
 
     response = await test_client.patch(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
@@ -440,7 +440,7 @@ async def test_update_permissions_denied(
     access_token: str,
 ):
     response = await test_client.get(
-        f"v1/namespace/{namespace.id}/permissions",
+        f"v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == expected_status

@@ -1,0 +1,3 @@
+Allow using Horizon with multiple uvicorn workers:
+* Add ``pid`` to log formatters
+* Add ``PROMETHEUS_MULTIPROC_DIR`` to ``docker-compose.yml`` example

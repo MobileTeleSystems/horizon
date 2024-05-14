@@ -866,7 +866,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         return self._request(  # type: ignore[return-value]
             "GET",
-            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            f"{self.base_url}/v1/namespaces/{namespace_id}/permissions",
             response_class=PermissionsResponseV1,
         )
 
@@ -911,7 +911,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         """
         return self._request(  # type: ignore[return-value]
             "PATCH",
-            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            f"{self.base_url}/v1/namespaces/{namespace_id}/permissions",
             json=changes.dict(exclude_unset=True),
             response_class=PermissionsResponseV1,
         )

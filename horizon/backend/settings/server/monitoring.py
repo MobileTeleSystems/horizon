@@ -47,9 +47,9 @@ class MonitoringSettings(BaseModel):
         description=textwrap.dedent(
             """
             If ``True`` (recommended), add request path to metrics literally as described
-            in OpenAPI schema, e.g. ``/namespace/{id}``, without substitution with path real values.
+            in OpenAPI schema, e.g. ``/namespaces/{id}``, without substitution with path real values.
 
-            If ``False``, all real request paths to metrics, e.g. ``/namespace/123``.
+            If ``False``, all real request paths to metrics, e.g. ``/namespaces/123``.
             """,
         ),
     )

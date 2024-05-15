@@ -866,7 +866,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         return self._request(  # type: ignore[return-value]
             "GET",
-            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            f"{self.base_url}/v1/namespaces/{namespace_id}/permissions",
             response_class=PermissionsResponseV1,
         )
 
@@ -895,7 +895,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             Namespace or provided user not found.
         :obj:`PermissionDeniedError <horizon.commons.exceptions.permission.PermissionDeniedError>`
             Permission denied for performing the requested action.
-        :obj:`BadRequestError <horizon.commons.exceptions.permission.BadRequestError>`
+        :obj:`BadRequestError <horizon.commons.exceptions.bad_request.BadRequestError>`
             Bad request with incorrect operating logic.
 
         Examples
@@ -911,7 +911,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         """
         return self._request(  # type: ignore[return-value]
             "PATCH",
-            f"{self.base_url}/v1/namespace/{namespace_id}/permissions",
+            f"{self.base_url}/v1/namespaces/{namespace_id}/permissions",
             json=changes.dict(exclude_unset=True),
             response_class=PermissionsResponseV1,
         )

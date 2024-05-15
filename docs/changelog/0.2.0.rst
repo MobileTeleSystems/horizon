@@ -1,0 +1,22 @@
+0.2.0 (2024-05-15)
+==================
+
+Breaking Changes
+----------------
+
+- Rename ``/v1/namespace/:id/permissions`` endpoint to ``/v1/namespaces/:id/permissions``. (:issue:`61`)
+
+
+Features
+--------
+
+- Allow using Horizon with multiple uvicorn workers (:issue:`60`):
+  * Add ``pid`` to log formatters
+  * Add ``PROMETHEUS_MULTIPROC_DIR`` to ``docker-compose.yml`` example
+
+
+Bug Fixes
+---------
+
+- Use connection timeout while creating LDAP connections in the pool. (:issue:`58`)
+- Fix response schema for invalid JSON input.

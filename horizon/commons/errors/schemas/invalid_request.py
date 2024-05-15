@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
 # SPDX-License-Identifier: Apache-2.0
 import http
-from typing import Any, List
+from typing import Any, List, Union
 
 from pydantic import BaseModel, Field, ValidationError
 from pydantic import __version__ as pydantic_version
@@ -12,7 +12,7 @@ from horizon.commons.errors.registration import register_error_response
 
 
 class InvalidRequestBaseErrorSchema(BaseModel):
-    loc: List[str] = Field(alias="location")
+    loc: List[Union[str, int]] = Field(alias="location")
     msg: str = Field(alias="message")
     type: str = Field(alias="code")
 

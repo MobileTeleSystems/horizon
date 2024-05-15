@@ -19,7 +19,7 @@ async def test_get_namespace_permissions_unauthorized_user(
     namespace: Namespace,
 ):
     response = await test_client.get(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
     )
     assert response.status_code == 401
     assert response.json() == {
@@ -37,7 +37,7 @@ async def test_get_namespace_permissions_missing(
     new_namespace: Namespace,
 ):
     response = await test_client.get(
-        f"/v1/namespace/{new_namespace.id}/permissions",
+        f"/v1/namespaces/{new_namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 404
@@ -75,7 +75,7 @@ async def test_get_namespace_permissions(
     namespace: Namespace,
 ):
     response = await test_client.get(
-        f"/v1/namespace/{namespace.id}/permissions",
+        f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == 200
@@ -147,7 +147,7 @@ async def test_get_permissions_denied(
     access_token: str,
 ):
     response = await test_client.get(
-        f"v1/namespace/{namespace.id}/permissions",
+        f"v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert response.status_code == expected_status

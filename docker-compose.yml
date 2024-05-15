@@ -4,10 +4,17 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     env_file: .env.docker
+    # PROMETHEUS_MULTIPROC_DIR is required for multiple workers, see:
+    # https://prometheus.github.io/client_python/multiprocess/
+    environment:
+      PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus-metrics
     ports:
       - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # tmpfs dir is cleaned up each container restart
+    tmpfs:
+      - /tmp/prometheus-metrics
     healthcheck:
       test: pg_isready
       start_period: 5s

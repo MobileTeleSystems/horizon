@@ -31,6 +31,8 @@ Permissions
      :members: message, details, required_role, actual_role
      :member-order: bysource
 
+.. currentmodule:: horizon.commons.exceptions.bad_request
+
 .. autoclass:: BadRequestError
      :members: reason
      :member-order: bysource

@@ -502,7 +502,7 @@ async def test_cached_ldap_auth_get_token_with_malformed_input(
         "v1/auth/token",
         data={
             "username": username,
-            "passwor": password,
+            "password": password,
         },
     )
 

@@ -140,7 +140,7 @@ async def test_dummy_auth_get_token_with_malformed_input(
         "v1/auth/token",
         data={
             "username": username,
-            "passwor": password,
+            "passwd": password,
         },
     )
 

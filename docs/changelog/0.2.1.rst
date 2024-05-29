@@ -1,0 +1,10 @@
+0.2.1 (2024-05-29)
+==================
+
+Improvements
+------------
+
+- Fix LDAP connection pool configuration example.
+- Update uvicorn to 0.30.0, including new multiprocessing workers manager.
+- Update dependencies.
+

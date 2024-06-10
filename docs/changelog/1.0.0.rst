@@ -1,0 +1,9 @@
+1.0.0 (2024-06-10)
+==================
+
+First production-ready release!
+
+Improvements
+------------
+
+- Update dependencies

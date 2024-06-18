@@ -144,7 +144,8 @@ jobs:
       - name: Download all raw coverage data
         uses: actions/download-artifact@v4
         with:
-          path: coverage-data
+          path: coverage-data/
+          pattern: raw-coverage-*
 
       - name: Combine Coverage Data
         run: |

@@ -58,7 +58,9 @@ extensions = [
     "sphinxcontrib.plantuml",
     "sphinx_favicon",
     "sphinxarg.ext",
+    "sphinx_last_updated_by_git",
 ]
+
 swagger = [
     {
         "name": "Horizon REST API",
@@ -69,6 +71,7 @@ swagger = [
         },
     },
 ]
+
 numpydoc_show_class_members = True
 autodoc_pydantic_model_show_config = False
 autodoc_pydantic_model_show_config_summary = False
@@ -132,6 +135,9 @@ html_logo = "./_static/logo_no_title.svg"
 favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
 ]
+
+# TODO: remove after https://github.com/mgeier/sphinx-last-updated-by-git/pull/77
+git_exclude_patterns = ["docs/_static/logo.svg"]
 
 # The master toctree document.
 master_doc = "index"

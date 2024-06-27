@@ -1,0 +1,12 @@
+1.0.1 (2024-06-27)
+==================
+
+Dependencies
+------------
+
+- Bump minimal ``urllib3`` version to ``1.26.0``, to avoid exceptions like:
+
+.. code::
+
+    ValidationError: 1 validation error for HorizonClientSync__root__
+        __init__() got an unexpected keyword argument 'allowed_methods' (type=type_error)

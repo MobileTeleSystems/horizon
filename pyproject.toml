@@ -97,6 +97,7 @@ authlib = [
   {version = ">=1.2.1", optional = true, python = ">=3.8"},
 ]
 requests = {version = "*", optional = true}
+urllib3 = {version = ">=1.26.0", optional = true}
 bonsai = {version = "^1.5.3", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
@@ -143,6 +144,7 @@ ldap = [
 client-sync = [
   "authlib",
   "requests",
+  "urllib3",
 ]
 
 [tool.poetry.group.test.dependencies]

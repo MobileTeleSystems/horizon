@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "data-horizon"
-version = "1.0.0"
+version = "1.0.1"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
@@ -97,6 +97,7 @@ authlib = [
   {version = ">=1.2.1", optional = true, python = ">=3.8"},
 ]
 requests = {version = "*", optional = true}
+urllib3 = {version = ">=1.26.0", optional = true}
 bonsai = {version = "^1.5.3", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
@@ -143,6 +144,7 @@ ldap = [
 client-sync = [
   "authlib",
   "requests",
+  "urllib3",
 ]
 
 [tool.poetry.group.test.dependencies]
@@ -217,6 +219,7 @@ sphinx-issues = {version = ">=3.0.1,<5.0.0", python = ">=3.8"}
 sphinx-design = {version = "^0.5.0", python = ">=3.8"}
 sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
 sphinx-argparse = {version = ">=0.2.5,<0.5.0", python = ">=3.8"}
+sphinx-last-updated-by-git = {version = "^0.3.7", python = ">=3.8"}
 # uncomment after https://github.com/zqmillet/sphinx-plantuml/pull/4
 # sphinx-plantuml = {version = "^1.0.0", python = ">=3.8"}
 

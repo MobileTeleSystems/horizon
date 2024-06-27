@@ -988,7 +988,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
         optional_retry_args = {}
         if retry_config.backoff_jitter is not None:
-            # added to Retry class onlu in urllib3 2.0+
+            # added to Retry class only in urllib3 2.0+
             optional_retry_args["backoff_jitter"] = retry_config.backoff_jitter
 
         retries = Retry(

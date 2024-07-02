@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
+from copy import copy
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -156,7 +157,7 @@ async def test_paginate_namespace_history(
     response_items = response_dict["items"]
 
     for i, namespace_history_item in enumerate(namespace_history_items):
-        response_item = response_items[i]
+        response_item = copy(response_items[i])
         response_item["changed_at"] = datetime.fromisoformat(response_item["changed_at"].replace("Z", "+00:00"))
 
         assert response_item == {

@@ -3805,6 +3805,7 @@ files = [
 
 [package.dependencies]
 greenlet = {version = "!=0.4.17", markers = "python_version < \"3.13\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"}
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 mypy = {version = ">=0.910", optional = true, markers = "extra == \"mypy\""}
 typing-extensions = ">=4.6.0"
 
@@ -4619,4 +4620,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "0263840d7c8894a3d70ed9344e6d4ba190a0b4ca85eaa1e7e4eaf79e90506eef"
+content-hash = "afcaf1428d843a0bd4d90d11c23bc3294c90b8ae76c07f00719dca049134a77e"

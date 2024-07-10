@@ -1,7 +1,7 @@
 .. _readme:
 
-Horizon
-=======
+Data.Horizon
+============
 
 |Repo Status| |PyPI| |PyPI License| |PyPI Python Version| |Docker image| |Documentation|
 |Build Status| |Coverage|  |pre-commit.ci|
@@ -33,10 +33,10 @@ Horizon
     :alt: Horizon logo
     :target: https://github.com/MobileTeleSystems/horizon/
 
-What is Horizon?
-----------------
+What is Data.Horizon?
+---------------------
 
-Horizon is an application that implements simple HWM Store. Right now it includes:
+Data.Horizon is an application that implements simple HWM Store. Right now it includes:
 
 * REST API
 * Python client

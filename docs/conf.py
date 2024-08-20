@@ -136,9 +136,6 @@ favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
 ]
 
-# TODO: remove after https://github.com/mgeier/sphinx-last-updated-by-git/pull/77
-git_exclude_patterns = ["docs/_static/logo.svg"]
-
 # The master toctree document.
 master_doc = "index"
 

@@ -96,12 +96,6 @@ jobs:
           images: mtsrus/horizon-backend
           dest: ./logs
 
-      - name: Upload Coverage Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: raw-coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
-          path: reports/.coverage*
-
       - name: Shutdown Backend Container
         if: always()
         run: |
@@ -114,6 +108,13 @@ jobs:
           name: backend-logs-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
           path: logs/*
 
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
+          path: reports/.coverage*
+          # https://github.com/actions/upload-artifact/issues/602
+          include-hidden-files: true
 
   all_done:
     name: Tests done

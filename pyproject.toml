@@ -10,7 +10,7 @@ description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
 readme = "README.rst"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Pydantic",
     "Framework :: Pydantic :: 1",
     "Framework :: Pydantic :: 2",

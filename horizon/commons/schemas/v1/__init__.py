@@ -55,6 +55,7 @@ __all__ = [
     "NamespaceUpdateRequestV1",
     "NamespaceHistoryPaginateQueryV1",
     "NamespaceHistoryResponseV1",
+    "NamespaceUserRole",
     "PageMetaResponseV1",
     "PageResponseV1",
     "PaginateQueryV1",

@@ -6,3 +6,8 @@ from horizon.backend.middlewares.monitoring.metrics import (
 from horizon.backend.middlewares.monitoring.stats import (
     apply_monitoring_stats_middleware,
 )
+
+__all__ = [
+    "apply_monitoring_metrics_middleware",
+    "apply_monitoring_stats_middleware",
+]

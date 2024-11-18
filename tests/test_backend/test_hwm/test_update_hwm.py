@@ -450,9 +450,9 @@ async def test_update_hwm_invalid_field_length(
             details = [
                 {
                     "location": ["body", "name"],
-                    "message": "Value should have at most 2048 items after validation, not 2049",
-                    "code": "too_long",
-                    "context": {"max_length": 2048, "actual_length": 2049, "field_type": "Value"},
+                    "message": "String should have at most 2048 characters",
+                    "code": "string_too_long",
+                    "context": {"max_length": 2048},
                     "input": new_hwm.name,
                 },
             ]
@@ -460,9 +460,9 @@ async def test_update_hwm_invalid_field_length(
             details = [
                 {
                     "location": ["body", "type"],
-                    "message": "Value should have at most 64 items after validation, not 65",
-                    "code": "too_long",
-                    "context": {"max_length": 64, "actual_length": 65, "field_type": "Value"},
+                    "message": "String should have at most 64 characters",
+                    "code": "string_too_long",
+                    "context": {"max_length": 64},
                     "input": new_hwm.type,
                 },
             ]
@@ -470,9 +470,9 @@ async def test_update_hwm_invalid_field_length(
             details = [
                 {
                     "location": ["body", "type" if not new_hwm.type else "name"],
-                    "message": "Value should have at least 1 item after validation, not 0",
-                    "code": "too_short",
-                    "context": {"min_length": 1, "actual_length": 0, "field_type": "Value"},
+                    "message": "String should have at least 1 character",
+                    "code": "string_too_short",
+                    "context": {"min_length": 1},
                     "input": "",
                 },
             ]

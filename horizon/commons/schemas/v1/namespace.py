@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 from pydantic import BaseModel, Field
 from pydantic import __version__ as pydantic_version
@@ -58,8 +58,8 @@ class NamespaceUpdateRequestV1(BaseModel):
     If field value is not set, it will not be updated.
     """
 
-    name: Union[str, Unset] = Field(default=Unset(), min_length=1, max_length=MAX_NAME_LENGTH)
-    description: Union[str, Unset] = Unset()
+    name: str = Field(default_factory=Unset, min_length=1, max_length=MAX_NAME_LENGTH)  # type: ignore[assignment]
+    description: str = Field(default_factory=Unset)  # type: ignore[assignment]
 
     class Config:
         arbitrary_types_allowed = True

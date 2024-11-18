@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2024 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from datetime import datetime
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 from pydantic import __version__ as pydantic_version
@@ -69,12 +69,12 @@ class HWMUpdateRequestV1(BaseModel):
     If field value is not set, it will not be updated.
     """
 
-    name: Union[str, Unset] = Field(default=Unset(), min_length=1, max_length=MAX_NAME_LENGTH)
-    description: Union[str, Unset] = Unset()
-    type: Union[str, Unset] = Field(default=Unset(), min_length=1, max_length=MAX_TYPE_LENGTH)
-    value: Union[Any, Unset] = Unset()
-    entity: Union[str, None, Unset] = Unset()
-    expression: Union[str, None, Unset] = Unset()
+    name: str = Field(default_factory=Unset, min_length=1, max_length=MAX_NAME_LENGTH)  # type: ignore[assignment]
+    description: str = Field(default_factory=Unset)  # type: ignore[assignment]
+    type: str = Field(default_factory=Unset, min_length=1, max_length=MAX_TYPE_LENGTH)  # type: ignore[assignment]
+    value: Any = Field(default_factory=Unset)  # type: ignore[assignment]
+    entity: Optional[str] = Field(default_factory=Unset)  # type: ignore[assignment]
+    expression: Optional[str] = Field(default_factory=Unset)  # type: ignore[assignment]
 
     class Config:
         arbitrary_types_allowed = True

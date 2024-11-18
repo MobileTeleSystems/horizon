@@ -490,18 +490,16 @@ ignore = [
   "E704",
 # WPS220 Found too deep nesting: 34 > 20
   "WPS220",
+# WPS410 Found wrong metadata variable: __all__
+  "WPS410",
 ]
 
 per-file-ignores = [
-# F401 imported but unused
-# WPS410 Found wrong metadata variable: __all__
-  "__init__.py:F401,WPS410",
 # WPS102 Found incorrect module name pattern
 # WPS432 Found magic number: 256
   "*migrations/*.py:WPS102,WPS432",
 # WPS237 Found a too complex `f` string
   "*exceptions/*.py:WPS237",
-  "*exceptions/__init__.py:F40,WPS410",
 # TAE001 too few type annotations
 # WPS231 Found function with too much cognitive complexity
 # S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.

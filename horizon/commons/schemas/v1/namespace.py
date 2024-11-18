@@ -58,8 +58,8 @@ class NamespaceUpdateRequestV1(BaseModel):
     If field value is not set, it will not be updated.
     """
 
-    name: str = Field(default_factory=Unset, min_length=1, max_length=MAX_NAME_LENGTH)  # type: ignore[assignment]
-    description: str = Field(default_factory=Unset)  # type: ignore[assignment]
+    name: str = Field(default=Unset(), min_length=1, max_length=MAX_NAME_LENGTH)  # type: ignore[assignment]
+    description: str = Unset()  # type: ignore[assignment]
 
     class Config:
         arbitrary_types_allowed = True

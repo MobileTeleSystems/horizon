@@ -303,11 +303,6 @@ async def test_update_namespace_invalid_name_length(
                     "message": "ensure this value has at most 256 characters",
                     "code": "value_error.any_str.max_length",
                 },
-                {
-                    "location": ["body", "name"],
-                    "message": "instance of Unset expected",
-                    "code": "type_error.arbitrary_type",
-                },
             ]
         else:
             details = [
@@ -315,11 +310,6 @@ async def test_update_namespace_invalid_name_length(
                     "location": ["body", "name"],
                     "message": "ensure this value has at least 1 characters",
                     "code": "value_error.any_str.min_length",
-                },
-                {
-                    "location": ["body", "name"],
-                    "message": "instance of Unset expected",
-                    "code": "type_error.arbitrary_type",
                 },
             ]
     else:

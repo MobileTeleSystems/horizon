@@ -413,11 +413,6 @@ async def test_update_hwm_invalid_field_length(
                     "message": "ensure this value has at most 2048 characters",
                     "code": "value_error.any_str.max_length",
                 },
-                {
-                    "location": ["body", "name"],
-                    "message": "instance of Unset expected",
-                    "code": "type_error.arbitrary_type",
-                },
             ]
         elif len(new_hwm.type) > 64:
             details = [
@@ -426,11 +421,6 @@ async def test_update_hwm_invalid_field_length(
                     "message": "ensure this value has at most 64 characters",
                     "code": "value_error.any_str.max_length",
                 },
-                {
-                    "location": ["body", "type"],
-                    "message": "instance of Unset expected",
-                    "code": "type_error.arbitrary_type",
-                },
             ]
         else:
             details = [
@@ -438,11 +428,6 @@ async def test_update_hwm_invalid_field_length(
                     "location": ["body", "type" if not new_hwm.type else "name"],
                     "message": "ensure this value has at least 1 characters",
                     "code": "value_error.any_str.min_length",
-                },
-                {
-                    "location": ["body", "type" if not new_hwm.type else "name"],
-                    "message": "instance of Unset expected",
-                    "code": "type_error.arbitrary_type",
                 },
             ]
     else:

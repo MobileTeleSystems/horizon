@@ -1,0 +1,32 @@
+1.0.2 (2024-11-21)
+==================
+
+Bug fixes
+---------
+
+- Previously client after receiving 4xx responses from the server, raised ``requests.exceptions.HTTPError`` like:
+
+  >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
+  Traceback (most recent call last):
+  File "horizon/horizon/client/base.py", line 135, in _handle_response
+      response.raise_for_status()
+  File "horizon/.venv/lib/python3.12/site-packages/requests/models.py", line 1021, in raise_for_status
+      raise HTTPError(http_error_msg, response=self)
+  requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://localhost:8000/v1/namespaces/234/permissions
+
+  Now it wraps all these exceptions with ``horizon.commons.exceptions`` classes, like:
+
+  >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "horizon/horizon/client/sync.py", line 914, in update_namespace_permissions
+      return self._request(  # type: ignore[return-value]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "horizon/horizon/client/sync.py", line 1031, in _request
+      return self._handle_response(response, response_class)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "horizon/horizon/client/base.py", line 170, in _handle_response
+      raise get_exception() from http_exception
+  horizon.commons.exceptions.entity.EntityNotFoundError: Namespace with id=234 not found
+
+  ``horizon.commons.exceptions`` exception types were documented long time ago, so this is not a breaking change, but a bug fix.

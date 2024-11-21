@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from horizon.commons.schemas.v1.auth import AuthTokenResponseV1
 from horizon.commons.schemas.v1.hwm import (
@@ -55,6 +55,7 @@ __all__ = [
     "NamespaceUpdateRequestV1",
     "NamespaceHistoryPaginateQueryV1",
     "NamespaceHistoryResponseV1",
+    "NamespaceUserRole",
     "PageMetaResponseV1",
     "PageResponseV1",
     "PaginateQueryV1",

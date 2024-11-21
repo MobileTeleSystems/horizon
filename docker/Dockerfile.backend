@@ -1,4 +1,4 @@
-FROM python:3.12-slim as prod
+FROM python:3.12-slim AS prod
 LABEL maintainer="DataOps.ETL"
 
 RUN apt-get update && apt-get install -y \

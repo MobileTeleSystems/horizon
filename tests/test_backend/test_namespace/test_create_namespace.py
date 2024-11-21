@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -207,8 +207,8 @@ async def test_create_namespace_invalid_name_length(
     assert response.status_code == 422
     assert response.json() == expected
 
-    # HWM is not created
-    query = select(User).where(Namespace.name == new_namespace.name)
+    # Namespace is not created
+    query = select(Namespace).where(Namespace.name == new_namespace.name)
     result = await async_session.scalars(query)
     created_namespace = result.one_or_none()
 

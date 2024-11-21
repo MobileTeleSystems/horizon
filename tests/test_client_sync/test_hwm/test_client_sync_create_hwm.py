@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations

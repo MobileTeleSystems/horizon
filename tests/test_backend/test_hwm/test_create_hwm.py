@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -470,7 +470,7 @@ async def test_create_hwm_invalid_field_length(
     assert response.json() == expected
 
     # HWM is not created
-    query = select(User).where(HWM.name == new_hwm.name)
+    query = select(HWM).where(HWM.name == new_hwm.name)
     result = await async_session.scalars(query)
     created_hwm = result.one_or_none()
 

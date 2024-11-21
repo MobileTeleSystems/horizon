@@ -4,13 +4,13 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "data-horizon"
-version = "1.0.1"
+version = "1.0.2"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
 readme = "README.rst"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Pydantic",
     "Framework :: Pydantic :: 1",
     "Framework :: Pydantic :: 2",
@@ -98,7 +98,7 @@ authlib = [
 ]
 requests = {version = "*", optional = true}
 urllib3 = {version = ">=1.26.0", optional = true}
-bonsai = {version = "^1.5.3", optional = true}
+bonsai = {version = ">=1.5.3", optional = true}
 python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
 pyyaml = {version = "*", optional = true}
@@ -214,12 +214,14 @@ sphinx = [
 furo = {version = "^2024.1.29", python = ">=3.8"}
 sphinx-copybutton = {version = "^0.5.2", python = ">=3.8"}
 sphinxcontrib-towncrier = {version = "^0.4.0a0", python = ">=3.8"}
-towncrier = {version = "^23.11.0", python = ">=3.8"}
+# TODO: remove upper limit after https://github.com/sphinx-contrib/sphinxcontrib-towncrier/issues/92
+towncrier = {version = ">=23.11,<24.7", python = ">=3.8"}
 sphinx-issues = {version = ">=3.0.1,<5.0.0", python = ">=3.8"}
 sphinx-design = {version = "^0.5.0", python = ">=3.8"}
 sphinx-favicon = {version = "^1.0.1", python = ">=3.8"}
 sphinx-argparse = {version = ">=0.2.5,<0.5.0", python = ">=3.8"}
-sphinx-last-updated-by-git = {version = "^0.3.7", python = ">=3.8"}
+# https://github.com/mgeier/sphinx-last-updated-by-git/pull/77
+sphinx-last-updated-by-git = {version = "^0.3.8", python = ">=3.8"}
 # uncomment after https://github.com/zqmillet/sphinx-plantuml/pull/4
 # sphinx-plantuml = {version = "^1.0.0", python = ">=3.8"}
 
@@ -488,18 +490,16 @@ ignore = [
   "E704",
 # WPS220 Found too deep nesting: 34 > 20
   "WPS220",
+# WPS410 Found wrong metadata variable: __all__
+  "WPS410",
 ]
 
 per-file-ignores = [
-# F401 imported but unused
-# WPS410 Found wrong metadata variable: __all__
-  "__init__.py:F401,WPS410",
 # WPS102 Found incorrect module name pattern
 # WPS432 Found magic number: 256
   "*migrations/*.py:WPS102,WPS432",
 # WPS237 Found a too complex `f` string
   "*exceptions/*.py:WPS237",
-  "*exceptions/__init__.py:F40,WPS410",
 # TAE001 too few type annotations
 # WPS231 Found function with too much cognitive complexity
 # S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.

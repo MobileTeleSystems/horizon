@@ -1,28 +1,40 @@
 .. _readme:
 
-Horizon
-=======
+Data.Horizon
+============
 
-|Repo Status| |PyPI| |PyPI License| |PyPI Python Version| |Docker image| |Documentation|
-|Build Status| |Coverage|  |pre-commit.ci|
+|Repo Status| |DockerHub Latest Release| |PyPI Latest Release| |PyPI License| |PyPI Python Version| |PyPI Downloads|
+|Documentation| |CI Status| |Test Coverage| |pre-commit.ci Status|
 
 .. |Repo Status| image:: https://www.repostatus.org/badges/latest/active.svg
+    :alt: Repo status - Active
     :target: https://github.com/MobileTeleSystems/horizon
-.. |PyPI| image:: https://img.shields.io/pypi/v/data-horizon
+.. |DockerHub Latest Release| image:: https://img.shields.io/docker/v/mtsrus/horizon-backend?sort=semver&label=docker
+    :alt: DockerHub - Latest release
+    :target: https://hub.docker.com/r/mtsrus/horizon-backend
+.. |PyPI Latest Release| image:: https://img.shields.io/pypi/v/data-horizon
+    :alt: PyPI - Latest Release
     :target: https://pypi.org/project/data-horizon/
 .. |PyPI License| image:: https://img.shields.io/pypi/l/data-horizon.svg
+    :alt: PyPI - License
     :target: https://github.com/MobileTeleSystems/horizon/blob/develop/LICENSE.txt
 .. |PyPI Python Version| image:: https://img.shields.io/pypi/pyversions/data-horizon.svg
-    :target: https://badge.fury.io/py/data-horizon
-.. |Docker image| image:: https://img.shields.io/docker/v/mtsrus/horizon-backend?sort=semver&label=docker
-    :target: https://hub.docker.com/r/mtsrus/horizon-backend
+    :alt: PyPI - Python Version
+    :target: https://pypi.org/project/data-horizon/
+.. |PyPI Downloads| image:: https://img.shields.io/pypi/dm/data-horizon
+    :alt: PyPI - Downloads
+    :target: https://pypi.org/project/data-horizon/
 .. |Documentation| image:: https://readthedocs.org/projects/data-horizon/badge/?version=stable
+    :alt: Documentation - ReadTheDocs
     :target: https://data-horizon.readthedocs.io/
-.. |Build Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
+.. |CI Status| image:: https://github.com/MobileTeleSystems/horizon/workflows/Tests/badge.svg
+    :alt: Github Actions - latest CI build status
     :target: https://github.com/MobileTeleSystems/horizon/actions
-.. |Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/graph/badge.svg?token=BIRWPTWEE0
+.. |Test Coverage| image:: https://codecov.io/gh/MobileTeleSystems/horizon/branch/develop/graph/badge.svg?token=BIRWPTWEE0
+    :alt: Test coverage - percent
     :target: https://codecov.io/gh/MobileTeleSystems/horizon
-.. |pre-commit.ci| image:: https://results.pre-commit.ci/badge/github/MobileTeleSystems/horizon/develop.svg
+.. |pre-commit.ci Status| image:: https://results.pre-commit.ci/badge/github/MobileTeleSystems/horizon/develop.svg
+    :alt: pre-commit.ci - status
     :target: https://results.pre-commit.ci/latest/github/MobileTeleSystems/horizon/develop
 
 
@@ -33,10 +45,10 @@ Horizon
     :alt: Horizon logo
     :target: https://github.com/MobileTeleSystems/horizon/
 
-What is Horizon?
-----------------
+What is Data.Horizon?
+---------------------
 
-Horizon is an application that implements simple HWM Store. Right now it includes:
+Data.Horizon is an application that implements simple HWM Store. Right now it includes:
 
 * REST API
 * Python client

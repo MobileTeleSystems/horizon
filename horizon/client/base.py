@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS (Mobile Telesystems)
+# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ if pydantic_version >= "2":
     from pydantic import BaseModel as GenericModel
 else:
     from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
+
 from typing_extensions import Protocol
 
 import horizon

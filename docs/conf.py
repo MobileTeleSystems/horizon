@@ -24,7 +24,7 @@ sys.path.insert(0, os.fspath(PROJECT_ROOT_DIR))
 # -- Project information -----------------------------------------------------
 
 project = "horizon"
-copyright = "2023-2024 MTS (Mobile Telesystems)"
+copyright = "2023-2024 MTS PJSC"
 author = "DataOps.ETL"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -34,7 +34,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("1.0.1")
+ver = Version.parse("1.0.2")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public
@@ -135,9 +135,6 @@ html_logo = "./_static/logo_no_title.svg"
 favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
 ]
-
-# TODO: remove after https://github.com/mgeier/sphinx-last-updated-by-git/pull/77
-git_exclude_patterns = ["docs/_static/logo.svg"]
 
 # The master toctree document.
 master_doc = "index"

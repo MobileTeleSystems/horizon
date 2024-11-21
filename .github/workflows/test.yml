@@ -96,24 +96,25 @@ jobs:
           images: mtsrus/horizon-backend
           dest: ./logs
 
-      - name: Upload Coverage Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: raw-coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
-          path: reports/.coverage*
-
       - name: Shutdown Backend Container
         if: always()
         run: |
           docker compose -f docker-compose.test.yml down -v --remove-orphans
 
-      - name: Upload worker logs
+      - name: Upload server logs
         uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: backend-logs-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
           path: logs/*
 
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-coverage-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.pydantic-version }}
+          path: reports/.coverage*
+          # https://github.com/actions/upload-artifact/issues/602
+          include-hidden-files: true
 
   all_done:
     name: Tests done
@@ -153,12 +154,12 @@ jobs:
           coverage xml -o combined_coverage.xml
 
       - name: Check Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./combined_coverage.xml
+          files: ./combined_coverage.xml
           fail_ci_if_error: true
-          plugin: noop
+          plugins: noop
 
       - name: All done
         run: echo 1

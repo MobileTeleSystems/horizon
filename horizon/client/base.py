@@ -17,6 +17,7 @@ if pydantic_version >= "2":
     from pydantic import BaseModel as GenericModel
 else:
     from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
+
 from typing_extensions import Protocol
 
 import horizon

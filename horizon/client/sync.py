@@ -902,11 +902,13 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         --------
 
         >>> from horizon.commons.schemas.v1 import PermissionsUpdateRequestV1, PermissionUpdateRequestItemV1
-        >>> to_update = PermissionsUpdateRequestV1([
-        ...     PermissionUpdateRequestItemV1(username="new_owner", role="OWNER"),
-        ...     PermissionUpdateRequestItemV1(username="add_developer", role="DEVELOPER"),
-        ...     PermissionUpdateRequestItemV1(username="make_read_only", role=None),
-        ... ])
+        >>> to_update = PermissionsUpdateRequestV1(
+        ...     permissions=[
+        ...         PermissionUpdateRequestItemV1(username="new_owner", role="OWNER"),
+        ...         PermissionUpdateRequestItemV1(username="add_developer", role="DEVELOPER"),
+        ...         PermissionUpdateRequestItemV1(username="make_read_only", role=None),
+        ...     ]
+        ... )
         >>> client.update_namespace_permissions(namespace_id=234, changes=to_update)
         """
         return self._request(  # type: ignore[return-value]

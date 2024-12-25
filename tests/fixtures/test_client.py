@@ -4,10 +4,11 @@ from collections.abc import AsyncGenerator
 
 import pytest_asyncio
 from fastapi import FastAPI
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture
 async def test_client(test_app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=test_app, base_url="http://horizon") as result:
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://horizon") as result:
         yield result

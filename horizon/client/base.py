@@ -14,7 +14,7 @@ from pydantic import __version__ as pydantic_version
 from pydantic import parse_obj_as, validator
 
 if pydantic_version >= "2":
-    from pydantic import BaseModel as GenericModel
+    from pydantic import BaseModel as GenericModel  # noqa: WPS474
 else:
     from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
 

@@ -3782,7 +3782,7 @@ description = "A streaming multipart parser for Python"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "(python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\") and extra == \"backend\""
+markers = "python_version == \"3.7\" and extra == \"backend\""
 files = [
     {file = "python_multipart-0.0.8-py3-none-any.whl", hash = "sha256:999725bf08cf7a071073d157a27cc34f8669af98da0d2435bde1cc1493a50ec3"},
     {file = "python_multipart-0.0.8.tar.gz", hash = "sha256:613015c642c2f6dc6d22e2d3a4d993683bb4752509ccd87f831dced121ed2f1d"},
@@ -3790,6 +3790,19 @@ files = [
 
 [package.extras]
 dev = ["atomicwrites (==1.2.1)", "attrs (==19.2.0)", "coverage (==6.5.0)", "hatch", "invoke (==2.2.0)", "more-itertools (==4.3.0)", "pbr (==4.3.0)", "pluggy (==1.0.0)", "py (==1.11.0)", "pytest (==7.2.0)", "pytest-cov (==4.0.0)", "pytest-timeout (==2.1.0)", "pyyaml (==5.1)"]
+
+[[package]]
+name = "python-multipart"
+version = "0.0.20"
+description = "A streaming multipart parser for Python"
+optional = true
+python-versions = ">=3.8"
+groups = ["main"]
+markers = "python_version == \"3.8\" and extra == \"backend\" or python_version >= \"3.9\" and extra == \"backend\""
+files = [
+    {file = "python_multipart-0.0.20-py3-none-any.whl", hash = "sha256:8a62d3a8335e06589fe01f2a3e178cdcc632f3fbe0d492ad9ee0ec35aab1f104"},
+    {file = "python_multipart-0.0.20.tar.gz", hash = "sha256:8dd0cab45b8e23064ae09147625994d090fa46f5b0d1e13af944c331a7fa9d13"},
+]
 
 [[package]]
 name = "pytz"
@@ -5338,7 +5351,7 @@ test = ["coverage[toml]", "zope.event", "zope.testing"]
 testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [extras]
-backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "importlib-resources", "importlib-resources", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
+backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "coloredlogs", "devtools", "fastapi", "fastapi", "importlib-resources", "importlib-resources", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
 client-sync = ["authlib", "authlib", "requests", "urllib3"]
 ldap = ["argon2-cffi", "bonsai"]
 postgres = ["asyncpg", "asyncpg"]
@@ -5346,4 +5359,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.7"
-content-hash = "7ff91561598900d2b9ac7972aa74a5bec61a197c8833a3ccdd50d7bbde0fa32d"
+content-hash = "9c71eb4450c0a77b5dd283864878628ce58cd6e48a39d556494609beb6967d16"

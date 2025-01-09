@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "data-horizon"
-version = "1.0.3"
+version = "1.1.0"
 license = "Apache-2.0"
 description = "Horizon REST API + client"
 authors = ["DataOps.ETL <onetools@mts.ru>"]
@@ -57,7 +57,6 @@ typing-extensions = [
   {version = ">=4.0.0,<4.8.0", python = "3.7"},
   {version = ">=4.0.0", python = ">=3.8"},
 ]
-python-jose = {version = "*", extras=["cryptography"]}
 fastapi = [
   {version = "^0.103.2", optional = true, python = "3.7"},
   {version = ">=0.103.0", optional = true, python = ">=3.8"},
@@ -141,6 +140,7 @@ backend = [
   "pydantic-settings",
   "devtools",
   "passlib",
+  "authlib",
 ]
 postgres = [
   "asyncpg",
@@ -214,7 +214,6 @@ wemake-python-styleguide = [
     {version = "^1.0.0", python = ">=3.10"},
 ]
 flake8-pyproject = {version = "^1.2.3", python = ">=3.8"}
-types-python-jose = {version = "^3.3.4", python = ">=3.8"}
 types-passlib = {version = "^1.7.7", python = ">=3.8"}
 types-pyyaml = [
   {version = "6.0.12.12", python = "3.7"},

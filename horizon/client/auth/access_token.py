@@ -3,8 +3,9 @@
 
 from __future__ import annotations
 
+from authlib.jose import JWTClaims, jwt
+from authlib.jose.errors import BadSignatureError, ExpiredTokenError
 from authlib.oauth2.auth import OAuth2Token as AuthlibToken
-from jose import ExpiredSignatureError, jwt
 from pydantic import AnyHttpUrl, BaseModel, validator
 from typing_extensions import Literal
 
@@ -37,13 +38,14 @@ class AccessToken(BaseAuth, BaseModel):
         if session.token:
             return session
 
-        # https://github.com/lepture/authlib/issues/600
-        token_decoded = jwt.decode(self.token, key="NONE", options={"verify_signature": False})
+        # AuthlibToken expiration is optional, and JWT token is not parsed.
+        # We have to extract expiration time manually.
+        claims = self._parse_token(self.token)
         session.token = AuthlibToken.from_dict(
             {
                 "access_token": self.token,
                 "token_type": "Bearer",
-                "expires_at": token_decoded["exp"],
+                "expires_at": claims["exp"],
             },
         )
         return session
@@ -51,9 +53,27 @@ class AccessToken(BaseAuth, BaseModel):
     def fetch_token_kwargs(self, base_url: AnyHttpUrl) -> dict[str, str]:
         return {}
 
+    @classmethod
+    def _parse_token(cls, token) -> JWTClaims:
+        try:
+            # As client don't have private key used for signing JWT, this call will always raise this exception
+            # https://github.com/lepture/authlib/issues/600
+            jwt.decode(token, key="")
+        except BadSignatureError as e:
+            token_decoded = e.result.payload
+            claims = JWTClaims(
+                header=token_decoded,
+                payload=token_decoded,
+            )
+
+        if "exp" not in claims:
+            raise ExpiredTokenError("Missing expiration time in token")
+
+        claims.validate()
+        return claims
+
     @validator("token")
-    def _validate_token(cls, value):
-        token_decoded = jwt.decode(value, key="NONE", options={"verify_signature": False})
-        if "exp" not in token_decoded:
-            raise ExpiredSignatureError("Missing expiration time in token")
+    def _validate_access_token(cls, value):
+        # AuthlibToken doesn't perform any validation, so we have to
+        cls._parse_token(value)
         return value

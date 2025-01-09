@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from horizon.commons.schemas.v1.auth import AuthTokenResponseV1
 from horizon.commons.schemas.v1.hwm import (

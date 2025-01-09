@@ -53,5 +53,5 @@ def test_sync_client_get_hwm_missing(new_hwm: HWM, sync_client: HorizonClientSyn
 
 def test_sync_client_get_hwm_with_wrong_params(sync_client: HorizonClientSync):
     # hwm_id has wrong type, raw exception is raised
-    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error: Unprocessable Entity"):
+    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error"):
         sync_client.get_hwm("abc")

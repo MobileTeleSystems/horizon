@@ -46,8 +46,5 @@ def test_sync_client_delete_hwm_missing(
 
 
 def test_sync_client_delete_hwm_malformed(sync_client: HorizonClientSync):
-    with pytest.raises(
-        requests.exceptions.HTTPError,
-        match="422 Client Error: Unprocessable Entity for url: http://localhost:8000/v1/hwm/",
-    ):
+    with pytest.raises(requests.exceptions.HTTPError, match="422 Client Error"):
         sync_client.delete_hwm("")

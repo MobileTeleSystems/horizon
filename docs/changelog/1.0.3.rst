@@ -1,0 +1,8 @@
+1.0.3 (2025-01-28)
+==================
+
+Improvements
+------------
+
+- Add compatibility with ``Python 3.13`` (:issue:`94`)
+- Replace outdated ``python-jose`` dependency with ``authlib.jose``, to fix security issues. (:issue:`97`)

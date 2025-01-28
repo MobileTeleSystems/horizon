@@ -31,11 +31,10 @@ venv-cleanup: ##@Env Cleanup venv
 	@rm -rf .venv || true
 	python3 -m venv .venv
 	${PIP} install -U setuptools wheel pip
-	${PIP} install poetry
+	${PIP} install "poetry<2" poetry-bumpversion
 
 venv-install: ##@Env Install requirements to venv
 	${POETRY} config virtualenvs.create false
-	${POETRY} self add poetry-bumpversion
 	${POETRY} install --no-root --all-extras --with dev,test,docs $(ARGS)
 
 

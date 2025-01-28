@@ -24,7 +24,7 @@ sys.path.insert(0, os.fspath(PROJECT_ROOT_DIR))
 # -- Project information -----------------------------------------------------
 
 project = "horizon"
-copyright = "2023-2024 MTS PJSC"
+copyright = "2023-2025 MTS PJSC"
 author = "DataOps.ETL"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -34,7 +34,7 @@ author = "DataOps.ETL"
 # The short X.Y version.
 
 # this value is updated automatically by `poetry version ...` and poetry-bumpversion plugin
-ver = Version.parse("1.0.2")
+ver = Version.parse("1.0.3")
 version = ver.base_version
 # The full version, including alpha/beta/rc tags.
 release = ver.public

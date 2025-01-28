@@ -1,29 +1,29 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-from jose import ExpiredSignatureError, JWTError, jwt
+from authlib.jose import JsonWebToken
+from authlib.jose.errors import ExpiredTokenError, JoseError
 
 from horizon.commons.exceptions import AuthorizationError
 
 
 def sign_jwt(payload: dict, secret_key: str, security_algorithm: str) -> str:
+    jwt = JsonWebToken([security_algorithm])
     return jwt.encode(
-        payload,
-        secret_key,
-        algorithm=security_algorithm,
-    )
+        header={"alg": security_algorithm},
+        payload=payload,
+        key=secret_key,
+    ).decode("utf-8")
 
 
 def decode_jwt(token: str, secret_key: str, security_algorithm: str) -> dict:
     try:
-        result = jwt.decode(
-            token,
-            secret_key,
-            algorithms=[security_algorithm],
-        )
+        result = JsonWebToken([security_algorithm]).decode(token, key=secret_key)
         if "exp" not in result:
-            raise ExpiredSignatureError("Missing expiration time in token")
+            raise ExpiredTokenError("Missing expiration time in token")
+
+        result.validate()
 
         return result
-    except JWTError as e:
+    except JoseError as e:
         raise AuthorizationError("Invalid token") from e

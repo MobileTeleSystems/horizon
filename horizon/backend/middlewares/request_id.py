@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
@@ -15,6 +15,7 @@ def apply_request_id_middleware(app: FastAPI, settings: RequestIDSettings) -> Fa
     app.add_middleware(
         CorrelationIdMiddleware,
         generator=lambda: uuid7().hex,
+        validator=None,
         **settings.dict(exclude={"enabled"}),
     )
     return app

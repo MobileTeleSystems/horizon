@@ -1,9 +1,10 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
 import http
 import logging
+from typing import Mapping
 
 from asgi_correlation_id import correlation_id
 from fastapi import HTTPException, Request, Response
@@ -115,7 +116,7 @@ def application_exception_handler(request: Request, exc: ApplicationError) -> Re
 def exception_json_response(
     status: int,
     content: BaseErrorSchema,
-    headers: dict[str, str] | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> Response:
     # Using Response + `model.json()` because JSONResponse + `model.dict()` does not convert Unset() to JSON value "<unset>"
     content_type = type(content)

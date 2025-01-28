@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
 import textwrap
@@ -33,7 +33,7 @@ class JWTSettings(BaseModel):
             """
             Algorithm used for signing JWT tokens.
 
-            See `python-jose <https://python-jose.readthedocs.io/en/latest/jws/index.html#supported-algorithms>`_
+            See `authlib <https://docs.authlib.org/en/latest/specs/rfc7518.html>`_
             documentation.
             """,
         ),

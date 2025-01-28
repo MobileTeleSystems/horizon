@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 MTS PJSC
+# SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 from typing import Generic, List, Optional, TypeVar
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from pydantic import __version__ as pydantic_version
 
 if pydantic_version >= "2":
-    from pydantic import BaseModel as GenericModel
+    from pydantic import BaseModel as GenericModel  # noqa: WPS474
 else:
     from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
 

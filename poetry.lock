@@ -2081,7 +2081,7 @@ files = [
     {file = "greenlet-3.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:3319aa75e0e0639bc15ff54ca327e8dc7a6fe404003496e3c6925cd3142e0e22"},
     {file = "greenlet-3.1.1.tar.gz", hash = "sha256:4ce3ac6cdb6adf7946475d7ef31777c26d94bccc377e070a7986bd2d5c515467"},
 ]
-markers = {main = "(python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\") and extra == \"backend\" and python_version < \"3.13\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")", dev = "(extra == \"backend\" or python_version == \"3.8\" or python_version >= \"3.9\") and python_version < \"3.13\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") and (python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\")", test = "(python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\") and platform_python_implementation == \"CPython\""}
+markers = {main = "(python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\") and extra == \"backend\"", dev = "(extra == \"backend\" or python_version == \"3.8\" or python_version >= \"3.9\") and (extra == \"backend\" or python_version < \"3.13\") and (extra == \"backend\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") and (python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\")", test = "(python_version == \"3.7\" or python_version == \"3.8\" or python_version >= \"3.9\") and (extra == \"backend\" or platform_python_implementation == \"CPython\") and (python_version == \"3.7\" or platform_python_implementation == \"CPython\" or python_version >= \"3.9\")"}
 
 [package.extras]
 docs = ["Sphinx", "furo"]
@@ -5249,7 +5249,7 @@ test = ["coverage[toml]", "zope.event", "zope.testing"]
 testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [extras]
-backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "authlib", "authlib", "coloredlogs", "devtools", "fastapi", "fastapi", "importlib-resources", "importlib-resources", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
+backend = ["alembic", "alembic", "asgi-correlation-id", "asgi-correlation-id", "authlib", "authlib", "coloredlogs", "devtools", "fastapi", "fastapi", "greenlet", "importlib-resources", "importlib-resources", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
 client-sync = ["authlib", "authlib", "requests", "urllib3"]
 ldap = ["argon2-cffi", "bonsai"]
 postgres = ["asyncpg", "asyncpg"]
@@ -5257,4 +5257,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.7"
-content-hash = "8bc74d31f55629684901731997355f48370381d0a97fe87bfdc3df7ba6ed669a"
+content-hash = "fd6be2ed032ea01f675b74e23072105dc40b5f9b41a5bb2c0fdcb411a94e4abf"

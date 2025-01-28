@@ -31,7 +31,7 @@ jobs:
             pydantic-version: '2'
             os: ubuntu-latest
     env:
-      POETRY_VERSION: ${{ matrix.python-version == '3.7' && '1.5.1' || '1.8.2' }}
+      POETRY_VERSION: ${{ matrix.python-version == '3.7' && '1.5.1' || '2.0.1' }}
 
     steps:
       - name: Checkout code

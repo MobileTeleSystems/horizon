@@ -94,7 +94,7 @@ repos:
         require_serial: true
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.0
     hooks:
       - id: isort
         name: isort
@@ -111,7 +111,7 @@ repos:
         args: [--autofix, --indent, '2', --offset, '2']
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.0
     hooks:
       - id: codespell
         args: [-w]

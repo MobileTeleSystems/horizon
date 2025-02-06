@@ -2,7 +2,10 @@ services:
   db:
     image: postgres:alpine
     restart: unless-stopped
-    env_file: .env.docker
+    environment:
+      POSTGRES_DB: horizon
+      POSTGRES_USER: horizon
+      POSTGRES_PASSWORD: 123UsedForTestOnly
     ports:
       - 5432:5432
     volumes:

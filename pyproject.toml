@@ -198,6 +198,10 @@ responses = [
   {version = "^0.23.2", python = "3.7"},
   {version = "^0.25.6", python = ">=3.8"},
 ]
+types-pyyaml = [
+  {version = "6.0.12.12", python = "3.7"},
+  {version = "^6.0.12", python = ">=3.8"},
+]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = {version = "^4.1.0", python = ">=3.9"}

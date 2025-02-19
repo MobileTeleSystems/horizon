@@ -81,6 +81,14 @@ alembic = [
   {version = "<=1.12.1", optional = true, python = "3.7"},
   {version = "*", optional = true, python = ">=3.8"},
 ]
+mako = [
+  {version = "<=1.2.4", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
+]
+markupsafe = [
+  {version = "<=2.1.5", optional = true, python = "<=3.7,<3.9"},
+  {version = "*", optional = true, python = ">=3.9"},
+]
 importlib-resources = [
   {version = "<=5.12.0", optional = true, python = "3.7"},
   {version = "*", optional = true, python = ">=3.8"},
@@ -128,6 +136,8 @@ backend = [
   "starlette",
   "uvicorn",
   "alembic",
+  "mako",
+  "markupsafe",
   "importlib-resources",
   "sqlalchemy",
   "greenlet",

@@ -4563,4 +4563,4 @@ postgres = ["asyncpg", "asyncpg"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "4083606f644609de8332e603e29f07c0a97e43fd7a0ca0c2494064d09da1ebf5"
+content-hash = "6a3ab9bd93f44d4edae583703238ff33d5303de6dcfe6cc26b07bc1fb4737ed7"

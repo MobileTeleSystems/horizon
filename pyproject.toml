@@ -62,43 +62,43 @@ fastapi = [
   {version = ">=0.103.0", optional = true, python = ">=3.8"},
 ]
 starlette = [
-  {version = "^0.27.0", optional = true, python = "3.7"},
-  {version = ">=0.27.0", optional = true, python = ">=3.8"},
+  {version = "<=0.29.0", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 starlette-exporter = [
-  {version = "^0.17.1", optional = true, python = "3.7"},
-  {version = ">=0.17.1", optional = true, python = ">=3.8"},
+  {version = "<=0.17.1", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 uvicorn = [
-  {version = "^0.22.0", optional = true, python = "3.7"},
-  {version = ">=0.22.0", optional = true, python = ">=3.8"},
+  {version = "<=0.22.0", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 pydantic-settings = [
-  {version = "^2.0.3", optional = true, python = "3.7"},
-  {version = ">=2.0.3", optional = true, python = ">=3.8"},
+  {version = "<=2.0.3", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 alembic = [
-  {version = "^1.12.1", optional = true, python = "3.7"},
-  {version = ">=1.12.1", optional = true, python = ">=3.8"},
+  {version = "<=1.12.1", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 importlib-resources = [
-  {version = "^5.12.0", optional = true, python = "3.7"},
-  {version = ">=5.12.0", optional = true, python = ">=3.8"},
+  {version = "<=5.12.0", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 sqlalchemy = {version = ">=2.0", optional = true}
 greenlet = {version = ">=3.1.1", optional = true}
 asyncpg = [
-  {version = "^0.28.0", optional = true, python = "3.7"},
-  {version = ">=0.28.0", optional = true, python = ">=3.8"},
+  {version = "<=0.28.0", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 python-multipart = [
-    {version = "^0.0.8", optional = true, python = "3.7"},
-    {version = ">=0.0.18", optional = true, python = ">=3.8"},
+    {version = "<=0.0.8", optional = true, python = "3.7"},
+    {version = "*", optional = true, python = ">=3.8"},
 ]
 sqlalchemy-utils = {version = "*", optional = true}
 authlib = [
-  {version = "^1.2.1", optional = true, python = "3.7"},
-  {version = ">=1.2.1", optional = true, python = ">=3.8"},
+  {version = "<=1.2.1", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 requests = {version = "*", optional = true}
 urllib3 = {version = ">=1.26.0", optional = true}
@@ -107,12 +107,12 @@ python-json-logger = {version = "*", optional = true}
 coloredlogs = {version = "*", optional = true}
 pyyaml = {version = "*", optional = true}
 asgi-correlation-id = [
-  {version = "^4.2.0", optional = true, python = "3.7"},
-  {version = ">=4.2.0", optional = true, python = ">=3.8"},
+  {version = "<=4.2.0", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 uuid6 = [
-  {version = "^2022.10.25", optional = true, python = "3.7"},
-  {version = ">=2022.10.25", optional = true, python = ">=3.8"},
+  {version = "<=2022.10.25", optional = true, python = "3.7"},
+  {version = "*", optional = true, python = ">=3.8"},
 ]
 cffi = [
   {version = "^1.15", optional = true, python = "3.7"},

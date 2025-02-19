@@ -739,7 +739,7 @@ files = [
     {file = "cffi-1.15.1-cp39-cp39-win_amd64.whl", hash = "sha256:70df4e3b545a17496c9b3f41f5115e69a4f2e77e94e1d2a8e1070bc0c38c8a3c"},
     {file = "cffi-1.15.1.tar.gz", hash = "sha256:d400bfb9a37b1351253cb402671cea7e89bdecc294e8016a707f6d1d8ac934f9"},
 ]
-markers = {main = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\") and (platform_python_implementation != \"PyPy\" or extra == \"ldap\")", test = "python_version == \"3.7\" and extra == \"ldap\" or python_version == \"3.7\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
+markers = {main = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\")", test = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"ldap\" or extra == \"client-sync\") or python_version == \"3.7\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
 
 [package.dependencies]
 pycparser = "*"
@@ -820,7 +820,7 @@ files = [
     {file = "cffi-1.17.1-cp39-cp39-win_amd64.whl", hash = "sha256:d016c76bdd850f3c626af19b0542c9677ba156e4ee4fccfdd7848803533ef662"},
     {file = "cffi-1.17.1.tar.gz", hash = "sha256:1c39c6016c32bc48dd54561950ebd6836e1670f2ae46128f67cf49e789c52824"},
 ]
-markers = {main = "(extra == \"ldap\" or extra == \"backend\" or extra == \"client-sync\") and (extra == \"ldap\" or platform_python_implementation != \"PyPy\") and python_version >= \"3.8\"", test = "python_version >= \"3.8\" and extra == \"ldap\" or python_version >= \"3.8\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
+markers = {main = "python_version >= \"3.8\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\")", test = "python_version >= \"3.8\" and (extra == \"backend\" or extra == \"ldap\" or extra == \"client-sync\") or python_version >= \"3.8\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
 
 [package.dependencies]
 pycparser = "*"
@@ -3056,7 +3056,7 @@ files = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
     {file = "pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},
 ]
-markers = {main = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\") and (platform_python_implementation != \"PyPy\" or extra == \"ldap\")", test = "python_version == \"3.7\" and extra == \"ldap\" or python_version == \"3.7\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
+markers = {main = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\")", test = "python_version == \"3.7\" and (extra == \"backend\" or extra == \"ldap\" or extra == \"client-sync\") or python_version == \"3.7\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
 
 [[package]]
 name = "pycparser"
@@ -3069,7 +3069,7 @@ files = [
     {file = "pycparser-2.22-py3-none-any.whl", hash = "sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc"},
     {file = "pycparser-2.22.tar.gz", hash = "sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6"},
 ]
-markers = {main = "(extra == \"ldap\" or extra == \"backend\" or extra == \"client-sync\") and (extra == \"ldap\" or platform_python_implementation != \"PyPy\") and python_version >= \"3.8\"", test = "python_version >= \"3.8\" and extra == \"ldap\" or python_version >= \"3.8\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
+markers = {main = "python_version >= \"3.8\" and (extra == \"backend\" or extra == \"client-sync\" or extra == \"ldap\")", test = "python_version >= \"3.8\" and (extra == \"backend\" or extra == \"ldap\" or extra == \"client-sync\") or python_version >= \"3.8\" and platform_python_implementation == \"CPython\" and sys_platform == \"win32\""}
 
 [[package]]
 name = "pydantic"
@@ -5045,12 +5045,12 @@ test = ["coverage[toml]", "zope.event", "zope.testing"]
 testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [extras]
-backend = ["alembic", "alembic", "anyio", "anyio", "anyio", "asgi-correlation-id", "asgi-correlation-id", "authlib", "authlib", "coloredlogs", "devtools", "fastapi", "fastapi", "greenlet", "importlib-resources", "importlib-resources", "mako", "mako", "markupsafe", "markupsafe", "packaging", "packaging", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
-client-sync = ["authlib", "authlib", "requests", "requests", "urllib3"]
+backend = ["alembic", "alembic", "anyio", "anyio", "anyio", "asgi-correlation-id", "asgi-correlation-id", "authlib", "authlib", "cffi", "cffi", "coloredlogs", "devtools", "fastapi", "fastapi", "greenlet", "importlib-resources", "importlib-resources", "mako", "mako", "markupsafe", "markupsafe", "packaging", "packaging", "passlib", "pydantic-settings", "pydantic-settings", "python-json-logger", "python-multipart", "python-multipart", "pyyaml", "sqlalchemy", "sqlalchemy-utils", "starlette", "starlette", "starlette-exporter", "starlette-exporter", "uuid6", "uuid6", "uvicorn", "uvicorn"]
+client-sync = ["authlib", "authlib", "cffi", "cffi", "requests", "requests", "urllib3"]
 ldap = ["argon2-cffi", "bonsai", "cffi", "cffi"]
 postgres = ["asyncpg", "asyncpg"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.7"
-content-hash = "7d90301a116f6437e85bc091e4cd0b159676858417abc40ec2c0758a13ba520b"
+content-hash = "232f70c2826d5da580fda60c9daa1d58a798dd7beb304aca24b4be9eea051b49"

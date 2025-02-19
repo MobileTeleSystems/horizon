@@ -167,6 +167,7 @@ backend = [
   "devtools",
   "passlib",
   "authlib",
+  "cffi",
 ]
 postgres = [
   "asyncpg",
@@ -178,6 +179,7 @@ ldap = [
 ]
 client-sync = [
   "authlib",
+  "cffi",
   "requests",
   "urllib3",
 ]

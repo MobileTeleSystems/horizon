@@ -94,7 +94,7 @@ repos:
         require_serial: true
 
   - repo: https://github.com/pycqa/isort
-    rev: 6.0.0
+    rev: 6.0.1
     hooks:
       - id: isort
         name: isort
@@ -119,7 +119,7 @@ repos:
           - tomli
 
   - repo: https://github.com/sbrunner/hooks
-    rev: 1.3.0
+    rev: 1.4.0
     hooks:
       - id: poetry-check
         additional_dependencies:

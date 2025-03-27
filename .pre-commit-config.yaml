@@ -118,7 +118,6 @@ repos:
 
 ci:
   skip:
-    - flake8 # checked with Github Actions
     - mypy # checked with Github Actions
     - docker-compose-check # cannot run on pre-commit.ci
     - chmod # failing in pre-commit.ci

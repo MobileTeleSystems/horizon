@@ -13,10 +13,9 @@ Similar to:
 
 import logging
 from asyncio import TimeoutError  # noqa: A004
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from time import time
-from typing import Any, AsyncContextManager, Dict, List, Optional, Tuple
+from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple
 
 from bonsai import InvalidDN, LDAPClient
 from bonsai.asyncio import AIOConnectionPool, AIOLDAPConnection

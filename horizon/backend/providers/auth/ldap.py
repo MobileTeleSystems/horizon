@@ -16,13 +16,14 @@ from asyncio import TimeoutError  # noqa: A004
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from time import time
-from typing import Annotated, Any, AsyncContextManager, Dict, List, Optional, Tuple
+from typing import Any, AsyncContextManager, Dict, List, Optional, Tuple
 
 from bonsai import InvalidDN, LDAPClient
 from bonsai.asyncio import AIOConnectionPool, AIOLDAPConnection
 from bonsai.errors import AuthenticationError, LDAPError
 from devtools import pformat
 from fastapi import Depends, FastAPI
+from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.dependencies import Stub

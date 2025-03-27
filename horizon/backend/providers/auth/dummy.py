@@ -3,10 +3,11 @@
 
 import logging
 from time import time
-from typing import Annotated, Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from devtools import pformat
 from fastapi import Depends, FastAPI
+from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.dependencies import Stub

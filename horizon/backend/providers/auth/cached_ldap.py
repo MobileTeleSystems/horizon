@@ -7,13 +7,14 @@ AuthProvider using LDAP, but
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bonsai.asyncio import AIOConnectionPool
 from devtools import pformat
 from fastapi import Depends, FastAPI
 from passlib.ifc import PasswordHash
 from passlib.registry import get_crypt_handler
+from typing_extensions import Annotated
 
 from horizon.backend.dependencies import Stub
 from horizon.backend.providers.auth.base import AuthProvider

@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from typing import Annotated, Union
+from typing import Union
 
 from fastapi import APIRouter, Depends
+from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.services import current_user

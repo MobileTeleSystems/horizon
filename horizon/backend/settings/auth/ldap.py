@@ -8,12 +8,12 @@ Basic LDAP terminology is explained here: `LDAP Overview <https://www.zytrax.com
 """
 
 import textwrap
-from typing import TYPE_CHECKING, Annotated, Optional, Type, Union
+from typing import TYPE_CHECKING, Optional, Type, Union
 
 from bonsai import LDAPSearchScope
 from pydantic import AnyUrl, BaseModel, Field, SecretStr, validator
 from pydantic import __version__ as pydantic_version
-from typing_extensions import Literal
+from typing_extensions import Annotated, Literal
 
 from horizon.backend.settings.auth.jwt import JWTSettings
 

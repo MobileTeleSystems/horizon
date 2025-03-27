@@ -146,7 +146,8 @@ class HWMRepository(Repository[HWM]):
             constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
             if constraint == "hwm_name_unique_per_namespace":
                 hwm_name = re.search(
-                    r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.__cause__.__cause__.detail
+                    r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.",
+                    e.__cause__.__cause__.detail,
                 ).group(1)  # type: ignore[union-attr]
                 msg = "HWM"
                 raise EntityAlreadyExistsError(msg, "name", hwm_name) from e

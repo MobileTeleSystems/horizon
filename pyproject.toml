@@ -318,7 +318,7 @@ extend-exclude = ["docs/", "Makefile"]
 
 [tool.ruff.lint]
 select = ["ALL"]
-# UP035, UP006 - Set -> set, Dict -> dict... ignore for suport python verstion before 3.9
+# UP035, UP006 - Set -> set, Dict -> dict... ignore for support python verstion before 3.9
 # FA100 - Optional[str] -> str | None, doesn't work before 3.10
 ignore = ["ARG", "ANN", "D", "COM812", "TD", "FIX002", "UP035", "UP006", "UP007", "FA100"]
 

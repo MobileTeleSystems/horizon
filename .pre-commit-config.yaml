@@ -34,16 +34,16 @@ repos:
     hooks:
       - id: forbid-tabs
       - id: remove-tabs
-        args: [--whitespaces-count, "2"]
+        args: [--whitespaces-count, '2']
       - id: chmod
-        args: ["644"]
+        args: ['644']
         exclude_types: [shell]
         exclude: ^(.*__main__\.py|horizon/backend/export_openapi_schema\.py|horizon/backend/scripts/manage_admins\.py)$
       - id: chmod
-        args: ["755"]
+        args: ['755']
         types: [shell]
       - id: chmod
-        args: ["755"]
+        args: ['755']
         files: ^(.*__main__\.py)$
       - id: insert-license
         files: .*\.py$
@@ -74,7 +74,7 @@ repos:
     rev: v2.14.0
     hooks:
       - id: pretty-format-yaml
-        args: [--autofix, --indent, "2", --offset, "2"]
+        args: [--autofix, --indent, '2', --offset, '2']
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-# mypy: disable-error-code="pydantic-orm"
 
 from typing import Annotated
 
@@ -147,7 +146,8 @@ async def get_namespace_permissions(
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
 
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+            PermissionResponseItemV1(username=user.username, role=role.name)  # type: ignore[arg-type]
+            for user, role in permissions_dict.items()
         ]
 
     return PermissionsResponseV1(permissions=permissions_response)
@@ -199,6 +199,7 @@ async def update_namespace_permissions(
 
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+            PermissionResponseItemV1(username=user.username, role=role.name)  # type: ignore[arg-type]
+            for user, role in permissions_dict.items()
         ]
         return PermissionsResponseV1(permissions=permissions_response)

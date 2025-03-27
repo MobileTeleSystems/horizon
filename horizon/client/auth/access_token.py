@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import BadSignatureError, ExpiredTokenError
-from authlib.oauth2.auth import OAuth2Token as AuthlibToken
+from authlib.oauth2.auth import OAuth2Token as AuthlibToken  # type: ignore[attr-defined]
 from pydantic import AnyHttpUrl, BaseModel, validator
 from typing_extensions import Literal
 

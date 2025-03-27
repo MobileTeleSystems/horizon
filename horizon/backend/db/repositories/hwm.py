@@ -146,7 +146,8 @@ class HWMRepository(Repository[HWM]):
             constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
             if constraint == "hwm_name_unique_per_namespace":
                 hwm_name = re.search(
-                    r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.__cause__.__cause__.detail
+                    r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.",
+                    e.__cause__.__cause__.detail,  # type: ignore[union-attr]
                 ).group(1)  # type: ignore[union-attr]
                 msg = "HWM"
                 raise EntityAlreadyExistsError(msg, "name", hwm_name) from e
@@ -156,7 +157,7 @@ class HWMRepository(Repository[HWM]):
                 history = await self._session.execute(
                     select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id),
                 )
-                history = history.scalars().all()
+                history = history.scalars().all()  # type: ignore[assignment]
                 for record in history:
                     new_history_record = HWMHistory(
                         **record.to_dict(exclude={"id", "hwm_id"}),

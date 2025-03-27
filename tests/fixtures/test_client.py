@@ -6,7 +6,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+    from typing import AsyncGenerator
 
     from fastapi import FastAPI
 

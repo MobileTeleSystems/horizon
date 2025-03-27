@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-from collections.abc import AsyncGenerator
+from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 

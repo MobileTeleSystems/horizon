@@ -18,7 +18,7 @@ from horizon.backend.db.models import (
 from tests.factories.base import random_string
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+    from typing import AsyncGenerator
 
     from sqlalchemy.ext.asyncio import AsyncSession
 

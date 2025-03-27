@@ -3,10 +3,9 @@
 
 # mypy: disable-error-code="pydantic-orm"
 
-from typing import Union
+from typing import Annotated, Union
 
 from fastapi import APIRouter, Depends
-from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.services import current_user

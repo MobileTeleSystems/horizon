@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, FastAPI, Request
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
@@ -8,7 +10,6 @@ from prometheus_client import (
     generate_latest,
 )
 from starlette.responses import PlainTextResponse
-from typing_extensions import Annotated
 
 from horizon.backend.dependencies.stub import Stub
 from horizon.backend.services.uow import UnitOfWork

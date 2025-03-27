@@ -51,7 +51,8 @@ class NamespaceRepository(Repository[Namespace]):
             Namespace.id == namespace_id,
         )
         if not result:
-            raise EntityNotFoundError("Namespace", "id", namespace_id)
+            msg = "Namespace"
+            raise EntityNotFoundError(msg, "id", namespace_id)
         return result
 
     async def create(
@@ -70,9 +71,11 @@ class NamespaceRepository(Repository[Namespace]):
                 },
             )
             await self._session.flush()
-            return result
         except IntegrityError as e:
-            raise EntityAlreadyExistsError("Namespace", "name", name) from e
+            msg = "Namespace"
+            raise EntityAlreadyExistsError(msg, "name", name) from e
+        else:
+            return result
 
     async def update(
         self,
@@ -86,16 +89,19 @@ class NamespaceRepository(Repository[Namespace]):
                 changes={**changes, "changed_by_user_id": user.id},
             )
             if result is None:
-                raise EntityNotFoundError("Namespace", "id", namespace_id)
+                msg = "Namespace"
+                raise EntityNotFoundError(msg, "id", namespace_id)
 
             await self._session.flush()
-            return result
         except IntegrityError as e:
+            msg = "Namespace"
             raise EntityAlreadyExistsError(
-                "Namespace",
+                msg,
                 "name",
                 changes.get("name"),
             ) from e
+        else:
+            return result
 
     async def delete(
         self,
@@ -108,7 +114,6 @@ class NamespaceRepository(Repository[Namespace]):
         return namespace
 
     async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRoleInt) -> None:
-
         # if the user is a SUPERADMIN, they inherently have all permissions
         superadmin_user = await self._session.execute(select(User.is_admin).where(User.id == user_id))
         if superadmin_user.scalar_one_or_none():
@@ -117,7 +122,8 @@ class NamespaceRepository(Repository[Namespace]):
         owner_check = await self._session.execute(select(Namespace.owner_id).where(Namespace.id == namespace_id))
         owner_id = owner_check.scalar_one_or_none()
         if owner_id is None:
-            raise EntityNotFoundError("Namespace", "id", namespace_id)
+            msg = "Namespace"
+            raise EntityNotFoundError(msg, "id", namespace_id)
 
         if owner_id == user_id:
             user_role = NamespaceUserRoleInt.OWNER
@@ -139,7 +145,7 @@ class NamespaceRepository(Repository[Namespace]):
 
         namespace = await self.get(namespace_id)
         owner = await self._session.get(User, namespace.owner_id)
-        owner = cast(User, owner)
+        owner = cast("User", owner)
         permissions_dict[owner] = NamespaceUserRoleInt.OWNER
 
         query = (

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import secrets
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -27,7 +28,7 @@ async def test_update_namespace_permissions_unauthorized_user(
         f"/v1/namespaces/{namespace.id}/permissions",
         json=changes,
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -52,7 +53,7 @@ async def test_update_namespace_permissions_namespace_missing(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -95,7 +96,7 @@ async def test_update_namespace_permissions_with_duplicates_usernames(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     if pydantic_version >= "2":
         detail = {
@@ -156,7 +157,7 @@ async def test_update_namespace_permissions_duplicates_owner(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     if pydantic_version >= "2":
         detail = {
@@ -212,7 +213,7 @@ async def test_update_namespace_permissions_lose_owner(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {
         "error": {
             "code": "bad_request",
@@ -250,7 +251,7 @@ async def test_update_namespace_permissions_remove_role(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "permissions": [
             {"username": user.username, "role": "OWNER"},
@@ -290,7 +291,7 @@ async def test_update_namespace_permissions_add_or_update_roles(
         json=changes,
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "permissions": [
             {"username": user.username, "role": "OWNER"},
@@ -329,7 +330,7 @@ async def test_update_namespace_permissions_change_owner(
         json=changes,
     )
 
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "permissions": [
             {"username": "user_to_become_owner", "role": "OWNER"},
@@ -367,7 +368,7 @@ async def test_update_namespace_permissions_unknown_user(
         headers={"Authorization": f"Bearer {access_token}"},
         json=changes,
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -382,7 +383,7 @@ async def test_update_namespace_permissions_unknown_user(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.MAINTAINER,

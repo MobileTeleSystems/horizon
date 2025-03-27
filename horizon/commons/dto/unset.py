@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import ClassVar, Optional
 
 
-class Unset:  # noqa: WPS600
+class Unset:
     _instance: ClassVar[Optional[Unset]] = None
 
     def __new__(cls, *args, **kwargs):

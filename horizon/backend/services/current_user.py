@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import Annotated
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
-from typing_extensions import Annotated
 
 from horizon.backend.db.models import User
 from horizon.backend.dependencies import Stub

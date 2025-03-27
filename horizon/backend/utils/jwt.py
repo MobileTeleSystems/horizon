@@ -20,10 +20,13 @@ def decode_jwt(token: str, secret_key: str, security_algorithm: str) -> dict:
     try:
         result = JsonWebToken([security_algorithm]).decode(token, key=secret_key)
         if "exp" not in result:
-            raise ExpiredTokenError("Missing expiration time in token")
+            msg = "Missing expiration time in token"
+            raise ExpiredTokenError(msg)
 
         result.validate()
 
-        return result
     except JoseError as e:
-        raise AuthorizationError("Invalid token") from e
+        msg = "Invalid token"
+        raise AuthorizationError(msg) from e
+    else:
+        return result

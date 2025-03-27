@@ -67,13 +67,14 @@ class AccessToken(BaseAuth, BaseModel):
             )
 
         if "exp" not in claims:
-            raise ExpiredTokenError("Missing expiration time in token")
+            msg = "Missing expiration time in token"
+            raise ExpiredTokenError(msg)
 
         claims.validate()
         return claims
 
     @validator("token")
-    def _validate_access_token(cls, value):
+    def _validate_access_token(cls, value):  # noqa: N805
         # AuthlibToken doesn't perform any validation, so we have to
         cls._parse_token(value)
         return value

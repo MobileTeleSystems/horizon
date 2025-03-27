@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from copy import copy
 from datetime import datetime
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
 
-from horizon.backend.db.models import HWM, HWMHistory
-
 if TYPE_CHECKING:
     from httpx import AsyncClient
+
+    from horizon.backend.db.models import HWM, HWMHistory
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
@@ -23,7 +24,7 @@ async def test_paginate_hwm_history_anonymous_user(
         "v1/hwm-history/",
         params={"hwm_id": hwm.id},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -41,7 +42,7 @@ async def test_paginate_hwm_history_not_enough_arguments(
         "v1/hwm-history/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
@@ -82,7 +83,7 @@ async def test_paginate_hwm_history_missing_hwm(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"hwm_id": new_hwm.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,
@@ -108,7 +109,7 @@ async def test_paginate_hwm_history_empty_hwm_history(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"hwm_id": hwm.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,
@@ -137,7 +138,7 @@ async def test_paginate_hwm_history(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"hwm_id": hwm.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     assert response_dict.keys() == {"meta", "items"}

@@ -3,11 +3,11 @@ from __future__ import annotations
 import secrets
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
+from http import HTTPStatus
 from time import time
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from fastapi import FastAPI
 from passlib.hash import argon2
 from pydantic import __version__ as pydantic_version
 from sqlalchemy import select
@@ -15,13 +15,15 @@ from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import CredentialsCache, User
 from horizon.backend.providers.auth.cached_ldap import CachedLDAPAuthProvider
-from horizon.backend.settings import Settings
-from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
 if TYPE_CHECKING:
+    from fastapi import FastAPI
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from horizon.backend.settings import Settings
+    from horizon.backend.settings.auth.jwt import JWTSettings
 
 CACHED_LDAP = "horizon.backend.providers.auth.cached_ldap.CachedLDAPAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.ldap_auth, pytest.mark.auth, pytest.mark.backend]
@@ -45,7 +47,7 @@ async def test_cached_ldap_auth_get_token_creates_user(
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -98,7 +100,7 @@ async def test_cached_ldap_auth_get_token_for_existing_user(
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -145,7 +147,7 @@ async def test_cached_ldap_auth_get_token_with_wrong_password(
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -194,7 +196,7 @@ async def test_cached_ldap_auth_get_token_with_lookup_by_custom_attribute(
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -252,7 +254,7 @@ async def test_cached_ldap_auth_get_token_with_wrong_lookup_settings(
             "password": "password",
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -301,7 +303,7 @@ async def test_cached_ldap_auth_get_token_without_lookup(
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -356,7 +358,7 @@ async def test_cached_ldap_auth_get_token_without_lookup_wrong_settings(
             "password": "password",
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -394,7 +396,7 @@ async def test_cached_ldap_auth_get_token_for_missing_user_from_both_ldap_and_in
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -435,7 +437,7 @@ async def test_cached_ldap_auth_get_token_for_missing_user_from_ldap(
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -470,7 +472,7 @@ async def test_cached_ldap_auth_get_token_for_inactive_user(
             "password": "password",
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -532,7 +534,7 @@ async def test_cached_ldap_auth_get_token_with_malformed_input(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     # user is not created
@@ -562,7 +564,7 @@ async def test_cached_ldap_auth_check_inactive_user(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -652,7 +654,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
             "password": "password",
         },
     )
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
 
     details: str | None = None
     if settings.server.debug:
@@ -732,7 +734,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_credentials_ca
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -809,7 +811,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
             "password": "password",
         },
     )
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
     assert response.json() == {
         "error": {
             "code": "service_unavailable",
@@ -885,7 +887,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_and_credentials_ca
             "password": "password",
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -953,7 +955,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_then_restored(
             "password": "password",
         },
     )
-    assert response.status_code == 503
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
 
     settings.auth = valid_settings
     CachedLDAPAuthProvider.setup(test_app)
@@ -964,7 +966,7 @@ async def test_cached_ldap_auth_get_token_ldap_is_unavailable_but_then_restored(
             "password": "password",
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
 
 # LDAP is not accessed while checking access token to avoid calling it on each incoming request
@@ -979,7 +981,7 @@ async def test_cached_ldap_auth_check(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize("new_user", [{"username": "developer1"}, {"username": "unknown"}], indirect=True)
@@ -993,7 +995,7 @@ async def test_cached_ldap_auth_check_missing_user(
         "v1/users/me",
         headers={"Authorization": f"Bearer {fake_access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -1016,7 +1018,7 @@ async def test_cached_ldap_auth_check_invalid_token(
         "v1/users/me",
         headers={"Authorization": f"Bearer {invalid_access_token}"},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",

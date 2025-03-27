@@ -34,11 +34,11 @@ class Repository(ABC, Generic[Model]):
 
     async def _get_by_id(
         self,
-        id: int,
+        _id: int,
         *where: ColumnElement,
     ) -> Model | None:
         model_type = self.model_type()
-        query: Select = select(model_type).filter_by(id=id)
+        query: Select = select(model_type).filter_by(id=_id)
         if where:
             query = query.where(*where)
 
@@ -70,10 +70,10 @@ class Repository(ABC, Generic[Model]):
         query: ReturningUpdate[tuple[Model]] = update(model_type).where(*where).values(**changes).returning(model_type)
         return await self._session.scalar(query)
 
-    async def _delete(self, id: int) -> Model | None:
+    async def _delete(self, _id: int) -> Model | None:
         model_type = self.model_type()
         query: ReturningDelete[tuple[Model]] = (
-            delete(model_type).where(model_type.id == id).returning(model_type)  # type: ignore[attr-defined]
+            delete(model_type).where(model_type.id == _id).returning(model_type)  # type: ignore[attr-defined]
         )
         return await self._session.scalar(query)
 

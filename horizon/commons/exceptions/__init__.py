@@ -12,11 +12,11 @@ from horizon.commons.exceptions.permission import PermissionDeniedError
 from horizon.commons.exceptions.service import ServiceError
 
 __all__ = [
-    "AuthorizationError",
     "ApplicationError",
-    "EntityAlreadyExistsError",
-    "PermissionDeniedError",
+    "AuthorizationError",
     "BadRequestError",
+    "EntityAlreadyExistsError",
     "EntityNotFoundError",
+    "PermissionDeniedError",
     "ServiceError",
 ]

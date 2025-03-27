@@ -18,13 +18,15 @@ class UserRepository(Repository[User]):
     async def get_by_id(self, user_id: int) -> User:
         result = await self._get_by_id(user_id)
         if result is None:
-            raise EntityNotFoundError("User", "id", user_id)
+            msg = "User"
+            raise EntityNotFoundError(msg, "id", user_id)
         return result
 
     async def get_by_username(self, username: str) -> User:
         user = await self._get(User.username == username)
         if not user:
-            raise EntityNotFoundError("User", "username", username)
+            msg = "User"
+            raise EntityNotFoundError(msg, "username", username)
         return user
 
     async def create(
@@ -34,9 +36,11 @@ class UserRepository(Repository[User]):
         try:
             result = await self._create(data={"username": username})
             await self._session.flush()
-            return result
         except IntegrityError as e:
-            raise EntityAlreadyExistsError("User", "username", username) from e
+            msg = "User"
+            raise EntityAlreadyExistsError(msg, "username", username) from e
+        else:
+            return result
 
     async def get_or_create(
         self,

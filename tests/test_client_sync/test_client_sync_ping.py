@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.schemas import PingResponse
+
+if TYPE_CHECKING:
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 

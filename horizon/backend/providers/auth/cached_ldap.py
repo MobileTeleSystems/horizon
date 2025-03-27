@@ -7,14 +7,13 @@ AuthProvider using LDAP, but
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List, Optional
 
 from bonsai.asyncio import AIOConnectionPool
 from devtools import pformat
 from fastapi import Depends, FastAPI
 from passlib.ifc import PasswordHash
 from passlib.registry import get_crypt_handler
-from typing_extensions import Annotated
 
 from horizon.backend.dependencies import Stub
 from horizon.backend.providers.auth.base import AuthProvider
@@ -57,7 +56,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
         client_secret: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not login or not password:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         # firstly check if user credentials already exists in cache
         from_cache = True
@@ -75,7 +75,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
             log.info("User id %r found", user.id)
             if not user.is_active:
                 # TODO: check if user is locked in LDAP
-                raise AuthorizationError(f"User {username!r} is disabled")
+                msg = f"User {username!r} is disabled"
+                raise AuthorizationError(msg)
 
             if not from_cache:
                 # updating cache without checking user in LDAP means cache item will never expire,
@@ -111,7 +112,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
 
         hasher = self._get_hasher()
         if not hasher.verify(password, user_cache.password_hash):
-            raise AuthorizationError("Wrong credentials")
+            msg = "Wrong credentials"
+            raise AuthorizationError(msg)
 
         log.info("Credentials match the cache")
         return user_cache.user.username

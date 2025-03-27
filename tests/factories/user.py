@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import secrets
-from collections.abc import AsyncGenerator
 from random import randint
-from typing import AsyncContextManager, Callable
+from typing import TYPE_CHECKING, AsyncContextManager, Callable
 
-import pytest
+import pytest  # noqa: TC002
 import pytest_asyncio
 from sqlalchemy import delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +16,11 @@ from horizon.backend.db.models import (
     User,
 )
 from tests.factories.base import random_string
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def user_factory(**kwargs):
@@ -137,14 +141,13 @@ async def user_with_role(
         if role == NamespaceUserRoleInt.SUPERADMIN:
             user.is_admin = False
             async_session.add(user)
-        else:
-            if fake_owner:
-                await async_session.execute(
-                    update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id),
-                )
+        elif fake_owner:
+            await async_session.execute(
+                update(Namespace).where(Namespace.owner_id == fake_owner.id).values(owner_id=user.id),
+            )
 
-                await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
+            await async_session.execute(delete(NamespaceUser).where(NamespaceUser.namespace_id == namespace.id))
 
-                await async_session.execute(delete(User).where(User.id == fake_owner.id))
+            await async_session.execute(delete(User).where(User.id == fake_owner.id))
 
         await async_session.commit()

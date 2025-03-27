@@ -3,8 +3,9 @@
 
 # mypy: disable-error-code="pydantic-orm"
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
-from typing_extensions import Annotated
 
 from horizon.backend.db.models import NamespaceUserRoleInt, User
 from horizon.backend.services import UnitOfWork, current_user
@@ -161,7 +162,6 @@ async def bulk_delete_hwm(
 @router.post(
     "/copy",
     summary="Copy HWMs to another namespace",
-    response_model=HWMListResponseV1,
     status_code=status.HTTP_201_CREATED,
 )
 async def copy_hwms(

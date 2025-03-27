@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 import responses
 from authlib.integrations.base_client.errors import OAuthError
@@ -10,10 +12,12 @@ from requests.exceptions import ConnectionError, RetryError
 from urllib3 import __version__ as urllib3_version
 from urllib3.exceptions import ReadTimeoutError
 
-from horizon.backend.db.models import User
 from horizon.client.auth import AccessToken, LoginPassword
 from horizon.client.sync import HorizonClientSync, RetryConfig, TimeoutConfig
 from horizon.commons.exceptions.auth import AuthorizationError
+
+if TYPE_CHECKING:
+    from horizon.backend.db.models import User
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client, pytest.mark.auth]
 
@@ -58,7 +62,7 @@ def test_sync_client_authorize_with_wrong_access_token(external_app_url: str, wr
 
 
 @pytest.mark.parametrize(
-    "retry_config, use_custom_session",
+    ["retry_config", "use_custom_session"],
     [
         (RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2), False),
         (RetryConfig(total=4, backoff_factor=1, status_forcelist=[503, 504], backoff_jitter=0.2), True),

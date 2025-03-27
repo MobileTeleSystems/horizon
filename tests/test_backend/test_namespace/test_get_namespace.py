@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -22,7 +23,7 @@ async def test_get_namespace_anonymous_user(
     response = await test_client.get(
         f"v1/namespaces/{namespace.id}",
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -41,7 +42,7 @@ async def test_get_namespace_missing(
         f"v1/namespaces/{new_namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -69,7 +70,7 @@ async def test_get_namespace(
         f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     response_dict["changed_at"] = datetime.fromisoformat(response_dict["changed_at"].replace("Z", "+00:00"))

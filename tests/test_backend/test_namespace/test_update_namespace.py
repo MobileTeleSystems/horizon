@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -33,7 +34,7 @@ async def test_update_namespace_anonymous_user(
             "name": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -55,7 +56,7 @@ async def test_update_namespace_missing(
             "name": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -93,7 +94,7 @@ async def test_update_namespace_name(
             "name": new_namespace.name,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["id"]
@@ -152,7 +153,7 @@ async def test_update_namespace_description(
             "description": new_namespace.description,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["id"]
@@ -204,7 +205,7 @@ async def test_update_namespace_no_data(
         headers={"Authorization": f"Bearer {access_token}"},
         json={"unexpected": "value"},
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
@@ -250,7 +251,7 @@ async def test_update_namespace_duplicated_name(
             "name": namespace2.name,
         },
     )
-    assert response.status_code == 409
+    assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {
         "error": {
             "code": "already_exists",
@@ -294,7 +295,7 @@ async def test_update_namespace_invalid_name_length(
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
-        if len(new_namespace.name) > 256:
+        if len(new_namespace.name) > 256:  # noqa: PLR2004
             details = [
                 {
                     "location": ["body", "name"],
@@ -310,27 +311,26 @@ async def test_update_namespace_invalid_name_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
+    elif len(new_namespace.name) > 256:  # noqa: PLR2004
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at most 256 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 256},
+                "input": new_namespace.name,
+            },
+        ]
     else:
-        if len(new_namespace.name) > 256:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at most 256 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 256},
-                    "input": new_namespace.name,
-                },
-            ]
-        else:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at least 1 character",
-                    "code": "string_too_short",
-                    "context": {"min_length": 1},
-                    "input": "",
-                },
-            ]
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at least 1 character",
+                "code": "string_too_short",
+                "context": {"min_length": 1},
+                "input": "",
+            },
+        ]
 
     expected = {
         "error": {
@@ -340,7 +340,7 @@ async def test_update_namespace_invalid_name_length(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     query = select(Namespace).where(Namespace.id == namespace.id)
@@ -352,7 +352,7 @@ async def test_update_namespace_invalid_name_length(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.MAINTAINER,

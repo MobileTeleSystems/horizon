@@ -3,15 +3,15 @@
 
 from pydantic import Field
 
-BaseSettings: type
-try:
-    from pydantic import BaseSettings  # type: ignore[no-redef] # noqa: WPS440
-except ImportError:
-    from pydantic_settings import BaseSettings  # type: ignore[no-redef] # noqa: WPS440
-
 from horizon.backend.settings.auth import AuthSettings
 from horizon.backend.settings.database import DatabaseSettings
 from horizon.backend.settings.server import ServerSettings
+
+BaseSettings: type
+try:
+    from pydantic import BaseSettings  # type: ignore[no-redef]
+except ImportError:
+    from pydantic_settings import BaseSettings  # type: ignore[no-redef]
 
 
 class Settings(BaseSettings):
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
         # same as settings.auth.provider = horizon.backend.providers.auth.dummy.DummyAuthProvider
         HORIZON__AUTH__PROVIDER=horizon.backend.providers.auth.dummy.DummyAuthProvider
-    """
+    """  # noqa: E501
 
     database: DatabaseSettings = Field(description=":ref:`Database settings <backend-configuration-database>`")
     server: ServerSettings = Field(

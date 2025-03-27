@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -23,7 +24,7 @@ async def test_delete_hwm_anonymous_user(
     response = await test_client.delete(
         f"v1/hwm/{new_hwm.id}",
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -42,7 +43,7 @@ async def test_delete_hwm_missing(
         f"v1/hwm/{new_hwm.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -80,7 +81,7 @@ async def test_delete_hwm(
     )
     post_delete_timestamp = datetime.now(timezone.utc)
 
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
     assert not response.content
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -105,7 +106,7 @@ async def test_delete_hwm(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.DEVELOPER,

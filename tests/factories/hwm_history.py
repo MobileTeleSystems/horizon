@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from random import randint
-from typing import AsyncContextManager, Callable
+from typing import TYPE_CHECKING, AsyncContextManager, Callable
 
-import pytest
+import pytest  # noqa: TC002
 import pytest_asyncio
 from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import HWM, HWMHistory, Namespace, User
 from tests.factories.base import random_string
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def hwm_history_factory(**kwargs):

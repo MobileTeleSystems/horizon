@@ -145,7 +145,7 @@ async def get_namespace_permissions(
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
 
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name)  # type: ignore[arg-type]
+            PermissionResponseItemV1(username=user.username, role=NamespaceUserRole[role.name])
             for user, role in permissions_dict.items()
         ]
 
@@ -198,7 +198,7 @@ async def update_namespace_permissions(
 
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name)  # type: ignore[arg-type]
+            PermissionResponseItemV1(username=user.username, role=NamespaceUserRole[role.name])
             for user, role in permissions_dict.items()
         ]
         return PermissionsResponseV1(permissions=permissions_response)

@@ -39,12 +39,14 @@ class DummyAuthProvider(AuthProvider):
 
     async def get_current_user(self, access_token: str) -> User:
         if not access_token:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         user_id = self._get_user_id_from_token(access_token)
         user = await self._uow.user.get_by_id(user_id)
         if not user.is_active:
-            raise AuthorizationError(f"User {user.username!r} is disabled")
+            msg = f"User {user.username!r} is disabled"
+            raise AuthorizationError(msg)
         return user
 
     async def get_token(
@@ -57,7 +59,8 @@ class DummyAuthProvider(AuthProvider):
         client_secret: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not login or not password:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         log.info("Get/create user %r in database", login)
         async with self._uow:
@@ -65,7 +68,8 @@ class DummyAuthProvider(AuthProvider):
 
         log.info("Used with id %r found", user.id)
         if not user.is_active:
-            raise AuthorizationError(f"User {user.username!r} is disabled")
+            msg = f"User {user.username!r} is disabled"
+            raise AuthorizationError(msg)
 
         log.info("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user_id=user.id)
@@ -97,4 +101,5 @@ class DummyAuthProvider(AuthProvider):
             )
             return int(payload["user_id"])
         except (KeyError, TypeError, ValueError) as e:
-            raise AuthorizationError("Invalid token") from e
+            msg = "Invalid token"
+            raise AuthorizationError(msg) from e

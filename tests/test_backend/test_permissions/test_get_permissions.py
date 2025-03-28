@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -19,7 +20,7 @@ async def test_get_namespace_permissions_unauthorized_user(
     response = await test_client.get(
         f"/v1/namespaces/{namespace.id}/permissions",
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -38,7 +39,7 @@ async def test_get_namespace_permissions_missing(
         f"/v1/namespaces/{new_namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -76,7 +77,7 @@ async def test_get_namespace_permissions(
         f"/v1/namespaces/{namespace.id}/permissions",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     assert response.json() == {
         "permissions": [
@@ -89,7 +90,7 @@ async def test_get_namespace_permissions(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.MAINTAINER,

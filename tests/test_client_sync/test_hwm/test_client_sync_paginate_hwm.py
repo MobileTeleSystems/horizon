@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.schemas.v1 import (
     HWMPaginateQueryV1,
     HWMResponseV1,
@@ -14,6 +13,7 @@ from horizon.commons.schemas.v1 import (
 
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, Namespace
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 

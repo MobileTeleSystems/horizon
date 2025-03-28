@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import re
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
 import requests
 
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions.entity import EntityNotFoundError
 from horizon.commons.schemas.v1 import NamespaceResponseV1, NamespaceUpdateRequestV1
 
 if TYPE_CHECKING:
     from horizon.backend.db.models import Namespace, User
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
@@ -26,13 +27,13 @@ def test_sync_client_update_namespace_name(
     response = sync_client.update_namespace(namespace.id, to_update)
 
     assert isinstance(response, NamespaceResponseV1)
-    assert response.dict(exclude={"changed_at"}) == dict(
-        id=namespace.id,
-        name=new_namespace.name,
-        description=namespace.description,
-        changed_by=user.username,
-        owned_by=user.username,
-    )
+    assert response.dict(exclude={"changed_at"}) == {
+        "id": namespace.id,
+        "name": new_namespace.name,
+        "description": namespace.description,
+        "changed_by": user.username,
+        "owned_by": user.username,
+    }
 
 
 def test_sync_client_update_namespace_description(
@@ -45,13 +46,13 @@ def test_sync_client_update_namespace_description(
     response = sync_client.update_namespace(namespace.id, to_update)
 
     assert isinstance(response, NamespaceResponseV1)
-    assert response.dict(exclude={"changed_at"}) == dict(
-        id=namespace.id,
-        name=namespace.name,
-        description=new_namespace.description,
-        changed_by=user.username,
-        owned_by=user.username,
-    )
+    assert response.dict(exclude={"changed_at"}) == {
+        "id": namespace.id,
+        "name": namespace.name,
+        "description": new_namespace.description,
+        "changed_by": user.username,
+        "owned_by": user.username,
+    }
 
 
 def test_sync_client_update_namespace_missing(new_namespace: Namespace, sync_client: HorizonClientSync):
@@ -71,7 +72,7 @@ def test_sync_client_update_namespace_missing(new_namespace: Namespace, sync_cli
 
     # original HTTP exception is attached as reason
     assert isinstance(e.value.__cause__, requests.exceptions.HTTPError)
-    assert e.value.__cause__.response.status_code == 404
+    assert e.value.__cause__.response.status_code == HTTPStatus.NOT_FOUND
 
 
 def test_sync_client_update_namespace_malformed(new_namespace: Namespace, sync_client: HorizonClientSync):

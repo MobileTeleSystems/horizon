@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions.entity import EntityNotFoundError
 
 if TYPE_CHECKING:
     from horizon.backend.db.models import HWM, Namespace
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
 
-def test_sync_client_bulk_delete_hwm(namespace: Namespace, hwms: List[HWM], sync_client: HorizonClientSync):
+def test_sync_client_bulk_delete_hwm(namespace: Namespace, hwms: list[HWM], sync_client: HorizonClientSync):
     hwm_ids = [hwm.id for hwm in hwms]
     response = sync_client.bulk_delete_hwm(namespace_id=namespace.id, hwm_ids=hwm_ids)
     assert response is None
@@ -37,5 +37,5 @@ def test_sync_client_bulk_delete_hwm_missing(
 
 
 def test_sync_client_bulk_delete_hwm_malformed(sync_client: HorizonClientSync):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         sync_client.bulk_delete_hwm("", "")

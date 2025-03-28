@@ -20,6 +20,6 @@ class NamespaceUser(Base):
         primary_key=True,
     )
     role: Mapped[str] = mapped_column(
-        String(50),  # noqa: WPS432
+        String(50),
         nullable=False,
     )

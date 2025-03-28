@@ -70,9 +70,10 @@ class NamespaceRepository(Repository[Namespace]):
                 },
             )
             await self._session.flush()
-            return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError("Namespace", "name", name) from e
+        else:
+            return result
 
     async def update(
         self,
@@ -89,13 +90,14 @@ class NamespaceRepository(Repository[Namespace]):
                 raise EntityNotFoundError("Namespace", "id", namespace_id)
 
             await self._session.flush()
-            return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError(
                 "Namespace",
                 "name",
                 changes.get("name"),
             ) from e
+        else:
+            return result
 
     async def delete(
         self,
@@ -108,7 +110,6 @@ class NamespaceRepository(Repository[Namespace]):
         return namespace
 
     async def check_user_permission(self, user_id: int, namespace_id: int, required_role: NamespaceUserRoleInt) -> None:
-
         # if the user is a SUPERADMIN, they inherently have all permissions
         superadmin_user = await self._session.execute(select(User.is_admin).where(User.id == user_id))
         if superadmin_user.scalar_one_or_none():

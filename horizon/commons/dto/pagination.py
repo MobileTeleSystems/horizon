@@ -39,4 +39,4 @@ class Pagination(Generic[T]):
 
     @property
     def pages_count(self) -> int:
-        return int(math.ceil(self.total_count / float(self.page_size))) or 1
+        return int(math.ceil(self.total_count / float(self.page_size))) or 1  # noqa: RUF046

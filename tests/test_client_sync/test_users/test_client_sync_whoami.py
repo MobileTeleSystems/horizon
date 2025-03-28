@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from horizon.backend.db.models import NamespaceUserRoleInt, User
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.schemas.v1 import UserResponseV1, UserResponseV1WithAdmin
+
+if TYPE_CHECKING:
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 

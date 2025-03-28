@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-import horizon.commons.errors.schemas  # register all error responses, # noqa: WPS301, F401
+import horizon.commons.errors.schemas  # register all error responses, # noqa: F401
 from horizon.commons.errors.base import BaseErrorSchema
 from horizon.commons.errors.registration import (
     APIErrorResponse,

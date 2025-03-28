@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from copy import copy
 from datetime import datetime
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
 
-from horizon.backend.db.models import Namespace
-
 if TYPE_CHECKING:
     from httpx import AsyncClient
+
+    from horizon.backend.db.models import Namespace
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
@@ -18,7 +19,7 @@ async def test_paginate_namespaces_anonymous_user(
     test_client: AsyncClient,
 ):
     response = await test_client.get("v1/namespaces/")
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -36,7 +37,7 @@ async def test_paginate_namespaces_empty(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,
@@ -63,7 +64,7 @@ async def test_paginate_namespaces(
         "v1/namespaces/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     assert response_dict.keys() == {"meta", "items"}
@@ -106,7 +107,7 @@ async def test_paginate_namespaces_filter_by_name(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"name": namespace.name},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     assert response_dict.keys() == {"meta", "items"}
@@ -147,7 +148,7 @@ async def test_paginate_namespaces_filter_by_missing_name(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"name": new_namespace.name},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,

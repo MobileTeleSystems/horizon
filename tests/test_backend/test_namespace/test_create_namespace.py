@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -27,7 +28,7 @@ async def test_create_namespace_anonymous_user(
             "name": "test",
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -61,7 +62,7 @@ async def test_create_namespace(
             "description": new_namespace.description,
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
 
     content = response.json()
     namespace_id = content["id"]
@@ -111,7 +112,7 @@ async def test_create_namespace_duplicated_name(
             "description": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 409
+    assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {
         "error": {
             "code": "already_exists",
@@ -172,27 +173,26 @@ async def test_create_namespace_invalid_name_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
+    elif len(new_namespace.name) > 256:
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at most 256 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 256},
+                "input": new_namespace.name,
+            },
+        ]
     else:
-        if len(new_namespace.name) > 256:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at most 256 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 256},
-                    "input": new_namespace.name,
-                },
-            ]
-        else:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at least 1 character",
-                    "code": "string_too_short",
-                    "context": {"min_length": 1},
-                    "input": "",
-                },
-            ]
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at least 1 character",
+                "code": "string_too_short",
+                "context": {"min_length": 1},
+                "input": "",
+            },
+        ]
 
     expected = {
         "error": {
@@ -202,7 +202,7 @@ async def test_create_namespace_invalid_name_length(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     # Namespace is not created
@@ -228,14 +228,14 @@ async def test_create_namespace_with_same_name_after_deletion(
         headers={"Authorization": f"Bearer {access_token}"},
         json=namespace_data,
     )
-    assert create_response.status_code == 201
+    assert create_response.status_code == HTTPStatus.CREATED
     old_namespace_id = create_response.json()["id"]
 
     delete_response = await test_client.delete(
         f"/v1/namespaces/{old_namespace_id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert delete_response.status_code == 204
+    assert delete_response.status_code == HTTPStatus.NO_CONTENT
     result = await async_session.execute(
         select(NamespaceHistory)
         .where(NamespaceHistory.namespace_id == old_namespace_id)
@@ -249,7 +249,7 @@ async def test_create_namespace_with_same_name_after_deletion(
         headers={"Authorization": f"Bearer {access_token}"},
         json=namespace_data,
     )
-    assert recreate_response.status_code == 201
+    assert recreate_response.status_code == HTTPStatus.CREATED
 
     new_namespace_id = recreate_response.json()["id"]
     assert new_namespace_id != old_namespace_id

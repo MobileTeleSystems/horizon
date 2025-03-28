@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-# mypy: disable-error-code="pydantic-orm"
 
 from fastapi import APIRouter, Depends, status
 from typing_extensions import Annotated
@@ -161,7 +160,6 @@ async def bulk_delete_hwm(
 @router.post(
     "/copy",
     summary="Copy HWMs to another namespace",
-    response_model=HWMListResponseV1,
     status_code=status.HTTP_201_CREATED,
 )
 async def copy_hwms(

@@ -233,19 +233,12 @@ types-pyyaml = [
 [tool.poetry.group.dev.dependencies]
 pre-commit = {version = "^4.1.0", python = ">=3.9"}
 mypy = {version = "^1.14.0", python = ">=3.9"}
-black = {version = "^24.10.0", python = ">=3.9"}
-isort = {version = "^5.13.2", python = ">=3.9"}
-flake8 = {version = ">=6,<8", python = ">=3.9"}
-bandit = {version = "^1.8.2", python = ">=3.9"}
 sqlalchemy = {extras = ["mypy"], version = "^2.0.37", python = ">=3.9"}
-wemake-python-styleguide = [
-    {version = "^0.19.2", python = ">=3.9,<3.10"},
-    {version = "^1.0.0", python = ">=3.10"},
-]
-flake8-pyproject = {version = "^1.2.3", python = ">=3.9"}
 types-passlib = {version = "^1.7.7", python = ">=3.9"}
 types-pyyaml = {version = "^6.0.12", python = ">=3.9"}
 types-requests = {version = "^2.32.0", python = ">=3.9"}
+types-authlib = {version= "^1.4.0", python = ">=3.9"}
+ruff = "^0.11.2"
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = {version = "^2.2.0", python = ">=3.9"}
@@ -320,244 +313,45 @@ exclude_lines = [
   "\\.\\.\\.",
   "def downgrade\\(\\)",
 ]
-
-[tool.black]
+[tool.ruff]
 line-length = 120
-target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
-include = "\\.pyi?$"
-exclude = "(\\.eggs|\\.git|\\.mypy_cache|\\.tox|\\.venv|_build|buck-out|build|dist)"
+extend-exclude = ["docs/", "Makefile"]
 
-[tool.isort]
-profile = "black"
-known_first_party = ["horizon", "tests"]
+[tool.ruff.lint]
+select = ["ALL"]
+# UP035, UP006 - Set -> set, Dict -> dict... ignore for support python verstion before 3.9
+# FA100 - Optional[str] -> str | None, doesn't work before 3.10
+ignore = ["ARG", "ANN", "D", "COM812", "TD", "FIX002", "UP035", "UP006", "UP007", "FA100"]
 
-[tool.mypy]
-python_version = "3.8"
-plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
-strict_optional = true
+[tool.ruff.lint.per-file-ignores]
+"horizon/commons/schemas/*" = ["TC"]
+"horizon/backend/middlewares/*" = ["TC"]
+"horizon/backend/db/repositories/*" = ["TC"]
+"horizon/backend/db/migrations/*" = ["INP001", "E501"]
+# Using root logger example: logging.info()
+"horizon/backend/scripts/manage_admins.py" = ["LOG015"]
+"horizon/backend/providers/auth/*" = ["PLR0913"]
 
-[[tool.mypy.overrides]]
-module = "sqlalchemy_utils"
-ignore_missing_imports = true
+"tests/*" = ["S", "A", "PLR0913", "PLR2004", "FBT001", "SLF001"]
+"tests/*/fixtures/*" = ["INP001"]
+"tests/fixtures/*" = ["INP001"]
 
-[[tool.mypy.overrides]]
-module = "authlib.*"
-ignore_missing_imports = true
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "list"
+parametrize-values-type = "list"
+parametrize-values-row-type = "tuple"
 
-[[tool.mypy.overrides]]
-module = "starlette_exporter"
-ignore_missing_imports = true
-
-[tool.autoflake]
-imports = ["tests", "app"]
-ignore-init-module-imports = true
-remove-unused-variables = true
-
-[tool.darglint]
-docstring_style = "sphinx"
-
-[tool.codespell]
-ignore-words-list = "selectin"
-exclude-file = "poetry.lock"
-
-[tool.flake8]
-jobs = 4
-# We don't control ones who use our code
-i-control-code = false
-# Max of noqa in a module
-max-noqa-comments = 10
-max-annotation-complexity = 4
-max-returns = 5
-max-awaits = 5
-max-local-variables = 20
-max-name-length = 60
-# Max of expressions in a function
-max-expressions = 15
-# Max args in a function
-max-arguments = 15
-# Max classes and functions in a single module
-max-module-members = 35
-max-import-from-members = 35
-max-methods = 25
-# Max line complexity measured in AST nodes
-max-line-complexity = 24
-# Max Jones Score for a module: the median of all lines complexity sum
-max-jones-score = 15
-# Max amount of cognitive complexity per function
-max-cognitive-score = 20
-# Max amount of cognitive complexity per module
-max-cognitive-average = 25
-max-imports = 25
-max-imported-names = 50
-# Max of expression usages in a module
-max-module-expressions = 15
-# Max of expression usages in a function
-max-function-expressions = 15
-max-base-classes = 5
-max-decorators = 6
-# Max of repeated string constants in your modules
-max-string-usages = 15
-max-try-body-length = 15
-max-asserts = 15
-# Max number of access level in an expression
-max-access-level = 6
-# maximum number of public instance attributes
-max-attributes = 20
-
-max-line-length = 120
-max-doc-length = 120
-
-# https://pypi.org/project/flake8-quotes/
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "double"
 multiline-quotes = "double"
 docstring-quotes = "double"
 
-# https://wemake-python-stylegui.de/en/latest/pages/usage/formatter.html
-show-source = true
-# Print total number of errors
-count = true
-statistics = true
+[tool.ruff.lint.flake8-errmsg]
+max-string-length=20
 
-exclude = [
-  ".tox",
-  "migrations",
-  "dist",
-  "build",
-  "hadoop_archive_plugin",
-  "virtualenv",
-  "venv",
-  "venv36",
-  "ve",
-  ".venv",
-  "tox.ini",
-  "docker",
-  "Jenkinsfile",
-  "dags",
-  "setup.py",
-  "docs"
-]
-rst-directives = [
-  "autosummary",
-  "data",
-  "currentmodule",
-  "deprecated",
-  "glossary",
-  "moduleauthor",
-  "plot",
-  "testcode",
-  "versionadded",
-  "versionchanged"
-]
-# https://github.com/peterjc/flake8-rst-docstrings/pull/16
-rst-roles = [
-  "attr",
-  "class",
-  "func",
-  "meth",
-  "mod",
-  "obj",
-  "ref",
-  "term",
-  "py:func",
-  "py:mod"
-]
-
-ignore = [
-  "ANN",
-  "FI1",
-# Found upper-case constant in a class: DB_URL
-  "WPS115",
-# Found statement that has no effect
-  "WPS428",
-# Found `f` string [opinionated]
-  "WPS305",
-# Found class without a base class (goes against PEP8) [opinionated]
-  "WPS306",
-# Found line break before binary operator [goes against PEP8] [opinionated]
-  "W503",
-# Found multiline conditions [opinionated]
-  "WPS337",
-# Found mutable module constant [opinionated]
-  "WPS407",
-# Found empty module:
-  "WPS411",
-# Found nested import [opinionated]
-  "WPS433",
-# Found negated condition [opinionated]
-  "WPS504",
-# Found implicit `.get()` dict usage
-  "WPS529",
-# Docstrings [opinionated]
-  "D",
-# string does contain unindexed parameters'
-  "P101",
-  "P103",
-# Found implicit string concatenation [optional]
-  "WPS326",
-# Found wrong function call: locals'
-  "WPS421",
-# module level import not at top of file
-  "E402",
-# Document or section may not begin with a transition.
-  "RST399",
-# Error in "code" directive
-  "RST307",
-# Found `%` string formatting
-  "WPS323",
-# doc line too long
-  "W505",
-# line too long
-  "E501",
-# Found wrong module name: util
-  "WPS100",
-# Found wrong keyword: pass
-  "WPS420",
-# Found incorrect node inside `class` body: pass
-  "WPS604",
-# Found wrong variable name: data
-  "WPS110",
-# Found builtin shadowing: id
-  "WPS125",
-# Found too short name: e < 2
-  "WPS111",
-# Found a line that starts with a dot
-  "WPS348",
-# first argument of a method should be named 'self'
-  "N805",
-# Found `finally` in `try` block without `except`
-  "WPS501",
-# Wrong multiline string usage: textwrap.dedent + multiline comment
-  "WPS462",
-# Found incorrect multi-line string: 3-quoted docstring with just one line
-  "WPS322",
-# https://github.com/wemake-services/wemake-python-styleguide/issues/2847
-# E704 multiple statements on one line (def)
-  "E704",
-# WPS220 Found too deep nesting: 34 > 20
-  "WPS220",
-# WPS410 Found wrong metadata variable: __all__
-  "WPS410",
-# WPS412 Found `__init__.py` module with logic
-  "WPS412",
-]
-
-per-file-ignores = [
-# WPS102 Found incorrect module name pattern
-# WPS432 Found magic number: 256
-  "*migrations/*.py:WPS102,WPS432",
-# WPS237 Found a too complex `f` string
-  "*exceptions/*.py:WPS237",
-# TAE001 too few type annotations
-# WPS231 Found function with too much cognitive complexity
-# S101 Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
-# WPS442 Found outer scope names shadowing
-# WPS432 Found magic number
-# WPS334 Found reversed complex comparison
-# WPS218 Found too many `assert` statements: 19 > 15
-# WPS226 Found string literal over-use: value > 15
-# WPS118 Found too long name:
-  "*tests/*.py:TAE001,WPS231,S101,WPS442,WPS432,WPS334,WPS218,WPS226,WPS118",
-]
+[tool.codespell]
+exclude-file = "poetry.lock"
+ignore-words-list = "selectin"
 
 [tool.towncrier]
 name = "Horizon"

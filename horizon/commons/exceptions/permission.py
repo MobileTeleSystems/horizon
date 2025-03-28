@@ -18,7 +18,7 @@ class PermissionDeniedError(ApplicationError):
     >>> raise PermissionDeniedError(required_role="DEVELOPER", actual_role="GUEST")
     Traceback (most recent call last):
     horizon.commons.exceptions.PermissionDeniedError: Permission denied. User has role GUEST but action requires at least DEVELOPER.
-    """
+    """  # noqa: E501
 
     required_role: str
     """Required role to perform action"""

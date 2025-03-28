@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from fastapi import FastAPI
 
 from horizon.backend import application_factory
-from horizon.backend.settings import Settings
+
+if TYPE_CHECKING:
+    from fastapi import FastAPI
+
+    from horizon.backend.settings import Settings
 
 
 @pytest.fixture(scope="session")

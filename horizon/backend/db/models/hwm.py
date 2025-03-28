@@ -24,9 +24,9 @@ class HWM(Base, ChangedByMixin):
     )
     namespace = relationship(Namespace, lazy="selectin")
 
-    name: Mapped[str] = mapped_column(String(2048), nullable=False, index=True)  # noqa: WPS432
+    name: Mapped[str] = mapped_column(String(2048), nullable=False, index=True)
     description: Mapped[str] = mapped_column(Text(), nullable=False, default="")
-    type: Mapped[str] = mapped_column(String(64), nullable=False)  # noqa: WPS432
+    type: Mapped[str] = mapped_column(String(64), nullable=False)
     value: Mapped[str] = mapped_column(JSON(), nullable=False)
     entity: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     expression: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)

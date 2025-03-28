@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from pydantic import __version__ as pydantic_version
 
 if pydantic_version >= "2":
-    from pydantic import BaseModel as GenericModel  # noqa: WPS474
+    from pydantic import BaseModel as GenericModel
 else:
-    from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
+    from pydantic.generics import GenericModel  # type: ignore[no-redef]
 
 from horizon.commons.dto.unset import Unset
 
@@ -30,6 +30,6 @@ class APIErrorSchema(GenericModel, Generic[ErrorModel]):
 
         class Config:
             # https://github.com/pydantic/pydantic/issues/2277
-            json_encoders = {
+            json_encoders = {  # noqa: RUF012
                 Unset: str,
             }

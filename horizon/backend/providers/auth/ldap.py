@@ -8,11 +8,11 @@ Based on `bonsai <https://github.com/noirello/bonsai>`_
 
 Similar to:
 * `JupyterHub LDAPAuthenticator <https://github.com/jupyterhub/ldapauthenticator>`_
-* `Flask-AppBuilder LDAP integration <https://github.com/dpgaspar/Flask-AppBuilder/blob/master/docs/config.rst>`_, used in Apache Airflow
+* `Flask-AppBuilder LDAP integration <https://github.com/dpgaspar/Flask-AppBuilder/blob/master/docs/config.rst>`_,
+used in Apache Airflow
 """
 
 import logging
-from asyncio import TimeoutError
 from contextlib import asynccontextmanager
 from time import time
 from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple
@@ -64,12 +64,14 @@ class LDAPAuthProvider(AuthProvider):
 
     async def get_current_user(self, access_token: str) -> User:
         if not access_token:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         user_id = self._get_user_id_from_token(access_token)
         user = await self._uow.user.get_by_id(user_id)
         if not user.is_active:
-            raise AuthorizationError(f"User {user.username!r} is disabled")
+            msg = f"User {user.username!r} is disabled"
+            raise AuthorizationError(msg)
         return user
 
     async def get_token(
@@ -82,7 +84,8 @@ class LDAPAuthProvider(AuthProvider):
         client_secret: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not login or not password:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         # firstly check if user exists in LDAP and credentials are valid
         username = await self._resolve_username_from_ldap(login, password)
@@ -96,7 +99,8 @@ class LDAPAuthProvider(AuthProvider):
         log.info("User id %r found", user.id)
         if not user.is_active:
             # TODO: check if user is locked in LDAP
-            raise AuthorizationError(f"User {username!r} is disabled")
+            msg = f"User {username!r} is disabled"
+            raise AuthorizationError(msg)
 
         log.info("Generate access token for user id %r", user.id)
         access_token, expires_at = self._generate_access_token(user)
@@ -129,7 +133,8 @@ class LDAPAuthProvider(AuthProvider):
             try:
                 client.connect(timeout=settings.ldap.timeout_seconds)
             except LDAPError as e:
-                raise ServiceError("Failed to connect to LDAP") from e
+                msg = "Failed to connect to LDAP"
+                raise ServiceError(msg) from e
 
         if not settings.ldap.lookup.pool.enabled:
             return None
@@ -157,7 +162,7 @@ class LDAPAuthProvider(AuthProvider):
                 connect = client.connect(is_async=True, timeout=self._auth_settings.ldap.timeout_seconds)
 
             async with connect as connection:
-                try:  # noqa: WPS505
+                try:
                     yield connection
                 except LDAPUnrecoverableError:
                     # avoid returning connection back to the pool
@@ -166,7 +171,8 @@ class LDAPAuthProvider(AuthProvider):
                     raise
 
         except LDAPUnrecoverableError as e:
-            raise ServiceError("Failed to connect to LDAP") from e
+            msg = "Failed to connect to LDAP"
+            raise ServiceError(msg) from e
 
     async def _resolve_username_from_ldap(self, login: str, password: str) -> str:
         log.info("Resolve user %r in LDAP", login)
@@ -228,9 +234,11 @@ class LDAPAuthProvider(AuthProvider):
             async with connection:
                 await connection.whoami()
         except (AuthenticationError, InvalidDN) as e:
-            raise AuthorizationError("Wrong credentials") from e
+            msg = "Wrong credentials"
+            raise AuthorizationError(msg) from e
         except LDAPUnrecoverableError as e:
-            raise ServiceError("Failed to connect to LDAP") from e
+            msg = "Failed to connect to LDAP"
+            raise ServiceError(msg) from e
 
     def _generate_access_token(self, user: User) -> Tuple[str, float]:
         expires_at = time() + self._auth_settings.access_token.expire_seconds
@@ -254,4 +262,5 @@ class LDAPAuthProvider(AuthProvider):
             )
             return int(payload["user_id"])
         except (KeyError, TypeError, ValueError) as e:
-            raise AuthorizationError("Invalid token") from e
+            msg = "Invalid token"
+            raise AuthorizationError(msg) from e

@@ -11,9 +11,8 @@ import textwrap
 from typing import TYPE_CHECKING, Optional, Type, Union
 
 from bonsai import LDAPSearchScope
-from pydantic import AnyUrl, BaseModel, Field, SecretStr
+from pydantic import AnyUrl, BaseModel, Field, SecretStr, validator
 from pydantic import __version__ as pydantic_version
-from pydantic import validator
 from typing_extensions import Annotated, Literal
 
 from horizon.backend.settings.auth.jwt import JWTSettings
@@ -22,16 +21,16 @@ if TYPE_CHECKING:
     LDAPUrl = AnyUrl
 elif pydantic_version < "2":
 
-    class LDAPUrl(AnyUrl):  # noqa: WPS440
+    class LDAPUrl(AnyUrl):
         """LDAP connection url, like ``ldap://127.0.0.1:389`` or ``ldaps://127.0.0.1:636``"""
 
-        allowed_schemes = ["ldap", "ldaps"]
+        allowed_schemes = ["ldap", "ldaps"]  # noqa: RUF012
         host_required = True
 
 else:
     from pydantic import UrlConstraints
 
-    LDAPUrl: Type[AnyUrl] = Annotated[  # noqa: WPS440
+    LDAPUrl: Type[AnyUrl] = Annotated[
         AnyUrl,
         UrlConstraints(allowed_schemes=["ldap", "ldaps"], host_required=True),
     ]
@@ -144,7 +143,7 @@ class LDAPLookupSettings(BaseModel):
     )
 
     @validator("scope", pre=True)
-    def _convert_scope_to_enum(cls, value: Union[str, int, LDAPSearchScope]) -> LDAPSearchScope:
+    def _convert_scope_to_enum(cls, value: Union[str, int, LDAPSearchScope]) -> LDAPSearchScope:  # noqa: N805
         if isinstance(value, str):
             return LDAPSearchScope[value.upper()]
         return LDAPSearchScope(value)
@@ -190,7 +189,8 @@ class LDAPSettings(BaseModel):
         default="{uid_attribute}={login},{base_dn}",
         description=textwrap.dedent(
             """
-            Template for building DN string, used for checking credentials in LDAP. You can pass any DN value supported by LDAP.
+            Template for building DN string, used for checking credentials in LDAP.
+            You can pass any DN value supported by LDAP.
 
             Supported substitution values:
               * ``{login}``

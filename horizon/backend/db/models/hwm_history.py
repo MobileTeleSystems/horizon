@@ -22,10 +22,10 @@ class HWMHistory(Base, ChangedByMixin):
         nullable=True,
     )
 
-    name: Mapped[str] = mapped_column(String(2048), nullable=False)  # noqa: WPS432
+    name: Mapped[str] = mapped_column(String(2048), nullable=False)
     description: Mapped[str] = mapped_column(Text(), nullable=False)
-    type: Mapped[str] = mapped_column(String(64), nullable=False)  # noqa: WPS432
+    type: Mapped[str] = mapped_column(String(64), nullable=False)
     value: Mapped[str] = mapped_column(JSON(), nullable=False)
     entity: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
     expression: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
-    action: Mapped[str] = mapped_column(String(255), nullable=False)  # noqa: WPS432
+    action: Mapped[str] = mapped_column(String(255), nullable=False)

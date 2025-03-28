@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 try:
     from pydantic import ImportString
 except ImportError:
-    from pydantic import PyObject as ImportString  # type: ignore[no-redef] # noqa: WPS440
+    from pydantic import PyObject as ImportString  # type: ignore[no-redef]
 
 from horizon.backend.providers.auth.dummy import DummyAuthProvider
 

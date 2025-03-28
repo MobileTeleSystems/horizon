@@ -9,19 +9,18 @@ import warnings
 from typing import Any, Generic, Optional, Tuple, TypeVar
 from urllib.parse import urlparse
 
-from pydantic import AnyHttpUrl, BaseModel, PrivateAttr, ValidationError
+from pydantic import AnyHttpUrl, BaseModel, PrivateAttr, ValidationError, parse_obj_as, validator
 from pydantic import __version__ as pydantic_version
-from pydantic import parse_obj_as, validator
 
 if pydantic_version >= "2":
-    from pydantic import BaseModel as GenericModel  # noqa: WPS474
+    from pydantic import BaseModel as GenericModel
 else:
-    from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
+    from pydantic.generics import GenericModel  # type: ignore[no-redef]
 
 from typing_extensions import Protocol
 
 import horizon
-from horizon.client.auth.base import BaseAuth
+from horizon.client.auth.base import BaseAuth  # noqa: TC001
 from horizon.commons.errors import get_response_for_status_code
 from horizon.commons.errors.base import APIErrorSchema
 
@@ -35,7 +34,7 @@ class BaseResponse(Protocol):
     """Response-like object. Same interface is shared between requests.Response and httpx.Response"""
 
     @property
-    def status_code(self) -> int: ...  # noqa: WPS473
+    def status_code(self) -> int: ...
 
     @property
     def content(self) -> Any: ...
@@ -68,14 +67,14 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         return cls.__bases__[0].__annotations__["session"].__args__[0]
 
     @validator("base_url")
-    def _validate_url(cls, value: AnyHttpUrl):
+    def _validate_url(cls, value: AnyHttpUrl):  # noqa: N805
         """``http://localhost:8000/`` -> ``http://localhost:8000``"""
         if value.path:
-            return urlparse(str(value))._replace(path=value.path.rstrip("/")).geturl()  # noqa: WPS437
+            return urlparse(str(value))._replace(path=value.path.rstrip("/")).geturl()
         return value
 
     @validator("session", always=True)
-    def _default_session(cls, session: SessionClass | None):
+    def _default_session(cls, session: SessionClass | None):  # noqa: N805
         """If session is not passed, create it automatically"""
         if session:
             return session
@@ -83,7 +82,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         return RealSessionClass()
 
     @validator("session", always=True)
-    def _patch_session(cls, session: SessionClass, values: dict):
+    def _patch_session(cls, session: SessionClass, values: dict):  # noqa: N805
         """Patch session for chosen auth method, if required"""
         auth: BaseAuth = values.get("auth")  # type: ignore[assignment]
         return auth.patch_session(session)
@@ -91,7 +90,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
     def _parse_body(self, body: dict, response_class: type[ResponseSchema]) -> ResponseSchema:
         try:
             return parse_obj_as(response_class, body)
-        except ValidationError as e:  # noqa: WPS329
+        except ValidationError as e:
             # Response does not match expected schema. Probably API was changed.
             # ValidationError does not contain body, so we attaching it to response.
             raise e from ValueError(body)
@@ -100,7 +99,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         if self._backend_version_tuple or not backend_version:
             return
 
-        self._backend_version_tuple = tuple(map(int, backend_version.split(".")))  # noqa: WPS601
+        self._backend_version_tuple = tuple(map(int, backend_version.split(".")))
         if self._backend_version_tuple > horizon.__version_tuple__:
             message = (
                 f"Horizon client version {horizon.__version__!r} does not match backend version {backend_version!r}. "
@@ -108,7 +107,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
             )
             warnings.warn(message, UserWarning, stacklevel=5)
 
-    def _handle_response(  # noqa: WPS238, WPS231
+    def _handle_response(  # noqa: C901
         self,
         response: BaseResponse,
         response_class: type[ResponseSchema] | None,
@@ -132,7 +131,7 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         http_exception: Exception = AssertionError("If you see this message, something went wrong")
         try:
             response.raise_for_status()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             http_exception = e
 
         if request_id and hasattr(http_exception, "add_note"):
@@ -143,13 +142,13 @@ class BaseClient(GenericModel, Generic[SessionClass]):
         try:
             body = response.json()
             if hasattr(http_exception, "add_note"):
-                http_exception.add_note(f"Response body:\n{pprint.pformat(body)}")  # noqa: WPS237
+                http_exception.add_note(f"Response body:\n{pprint.pformat(body)}")
 
-        except Exception as format_err:  # noqa: WPS329
+        except Exception as format_err:  # noqa: BLE001
             if hasattr(http_exception, "add_note"):
                 http_exception.add_note(f"Response body:\n{response.content!r}")
             else:
-                logger.error("Response body:\n%r", response.content)
+                logger.error("Response body:\n%r", response.content)  # noqa: TRY400
 
             raise format_err from http_exception
 
@@ -160,9 +159,9 @@ class BaseClient(GenericModel, Generic[SessionClass]):
 
         try:
             error_value = parse_obj_as(APIErrorSchema[error_response.schema], body)  # type: ignore[name-defined]
-        except ValidationError:  # noqa: WPS329
+        except ValidationError:
             # Something wrong with API response, probably wrong URL
-            raise http_exception
+            raise http_exception  # noqa: B904
 
         get_exception = getattr(error_value.error, "to_exception", None)
         if get_exception:

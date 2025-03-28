@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -41,7 +42,7 @@ async def test_create_hwm_anonymous_user(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -70,7 +71,7 @@ async def test_create_hwm_missing_namespace(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -126,7 +127,7 @@ async def test_create_hwm(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
 
     content = response.json()
     hmw_id = content["id"]
@@ -192,7 +193,7 @@ async def test_create_hwm_only_mandatory_fields(
             "value": None,
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
 
     content = response.json()
     hmw_id = content["id"]
@@ -242,7 +243,7 @@ async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
             "value": 123,
         },
     )
-    assert response1.status_code == 201
+    assert response1.status_code == HTTPStatus.CREATED
 
     response2 = await test_client.post(
         "v1/hwm/",
@@ -254,7 +255,7 @@ async def test_create_hwm_create_new_with_same_name_in_different_namespaces(
             "value": 234,
         },
     )
-    assert response2.status_code == 201
+    assert response2.status_code == HTTPStatus.CREATED
 
     hmw1_id = response1.json()["id"]
     hmw2_id = response2.json()["id"]
@@ -296,7 +297,7 @@ async def test_create_hwm_already_exist(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 409
+    assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {
         "error": {
             "code": "already_exists",
@@ -351,7 +352,7 @@ async def test_create_hwm_value_can_be_any_valid_json(
             "value": value,
         },
     )
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
 
     content = response.json()
     hmw_id = content["id"]
@@ -424,37 +425,36 @@ async def test_create_hwm_invalid_field_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
+    elif len(new_hwm.name) > 2048:
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at most 2048 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 2048},
+                "input": new_hwm.name,
+            },
+        ]
+    elif len(new_hwm.type) > 64:
+        details = [
+            {
+                "location": ["body", "type"],
+                "message": "String should have at most 64 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 64},
+                "input": new_hwm.type,
+            },
+        ]
     else:
-        if len(new_hwm.name) > 2048:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at most 2048 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 2048},
-                    "input": new_hwm.name,
-                },
-            ]
-        elif len(new_hwm.type) > 64:
-            details = [
-                {
-                    "location": ["body", "type"],
-                    "message": "String should have at most 64 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 64},
-                    "input": new_hwm.type,
-                },
-            ]
-        else:
-            details = [
-                {
-                    "location": ["body", "type" if not new_hwm.type else "name"],
-                    "message": "String should have at least 1 character",
-                    "code": "string_too_short",
-                    "context": {"min_length": 1},
-                    "input": "",
-                },
-            ]
+        details = [
+            {
+                "location": ["body", "type" if not new_hwm.type else "name"],
+                "message": "String should have at least 1 character",
+                "code": "string_too_short",
+                "context": {"min_length": 1},
+                "input": "",
+            },
+        ]
 
     expected = {
         "error": {
@@ -464,7 +464,7 @@ async def test_create_hwm_invalid_field_length(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     # HWM is not created
@@ -494,14 +494,14 @@ async def test_create_hwm_with_same_name_after_deletion(
         headers={"Authorization": f"Bearer {access_token}"},
         json=hwm_data,
     )
-    assert create_response.status_code == 201
+    assert create_response.status_code == HTTPStatus.CREATED
     old_hwm_id = create_response.json()["id"]
 
     delete_response = await test_client.delete(
         f"/v1/hwm/{old_hwm_id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert delete_response.status_code == 204
+    assert delete_response.status_code == HTTPStatus.NO_CONTENT
     result = await async_session.execute(
         select(HWMHistory).where(HWMHistory.hwm_id == old_hwm_id).order_by(desc(HWMHistory.id)),
     )
@@ -513,7 +513,7 @@ async def test_create_hwm_with_same_name_after_deletion(
         headers={"Authorization": f"Bearer {access_token}"},
         json=hwm_data,
     )
-    assert recreate_response.status_code == 201
+    assert recreate_response.status_code == HTTPStatus.CREATED
 
     new_hwm_id = recreate_response.json()["id"]
     assert new_hwm_id != old_hwm_id
@@ -539,7 +539,7 @@ async def test_create_hwm_with_same_name_after_deletion(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.GUEST,

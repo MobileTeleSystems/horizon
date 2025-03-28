@@ -9,9 +9,9 @@ from horizon.commons.errors.schemas.permission_denied import PermissionDeniedSch
 
 __all__ = [
     "AlreadyExistsSchema",
+    "BadRequestError",
     "InvalidRequestSchema",
     "NotAuthorizedSchema",
     "NotFoundSchema",
-    "BadRequestError",
     "PermissionDeniedSchema",
 ]

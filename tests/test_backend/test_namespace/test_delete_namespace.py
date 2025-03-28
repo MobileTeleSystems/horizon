@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -28,7 +29,7 @@ async def test_delete_namespace_anonymous_user(
     response = await test_client.delete(
         f"v1/namespaces/{namespace.id}",
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -47,7 +48,7 @@ async def test_delete_namespace_missing(
         f"v1/namespaces/{new_namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -84,7 +85,7 @@ async def test_delete_namespace(
     )
     post_delete_timestamp = datetime.now(timezone.utc)
 
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
     assert not response.content
 
     query = select(Namespace).where(Namespace.id == namespace.id)
@@ -117,7 +118,7 @@ async def test_delete_namespace_with_existing_hwm(
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
-    assert response.status_code == 400
+    assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {
         "error": {
             "code": "bad_request",
@@ -141,13 +142,13 @@ async def test_delete_namespace_with_existing_hwm(
         headers={"Authorization": f"Bearer {access_token}"},
     )
 
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
 
     response = await test_client.delete(
         f"v1/namespaces/{namespace.id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
 
     query = select(Namespace).where(Namespace.id == namespace.id)
     result = await async_session.execute(query)
@@ -161,7 +162,7 @@ async def test_delete_namespace_with_existing_hwm(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.MAINTAINER,

@@ -1,20 +1,24 @@
 from __future__ import annotations
 
 import textwrap
+from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
-from httpx import AsyncClient
 
-from horizon.backend.db.models.hwm import HWM
-from horizon.backend.db.models.namespace import Namespace
-from horizon.backend.db.models.user import User
+if TYPE_CHECKING:
+    from httpx import AsyncClient
+
+    from horizon.backend.db.models.hwm import HWM
+    from horizon.backend.db.models.namespace import Namespace
+    from horizon.backend.db.models.user import User
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
 
 async def test_stats_empty(test_client: AsyncClient):
     response = await test_client.get("/monitoring/stats")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     expected = textwrap.dedent(
         """
             # HELP horizon_user_count Number of users registered in Horizon database
@@ -34,7 +38,7 @@ async def test_stats_empty(test_client: AsyncClient):
 @pytest.mark.parametrize("settings", [{"server": {"monitoring": {"labels": {"a": "b", "c": "d"}}}}], indirect=True)
 async def test_stats_with_custom_labels(test_client: AsyncClient):
     response = await test_client.get("/monitoring/stats")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     expected = textwrap.dedent(
         """
             # HELP horizon_user_count Number of users registered in Horizon database
@@ -61,7 +65,7 @@ async def test_stats(
     hwms: list[HWM],
 ):
     response = await test_client.get("/monitoring/stats")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     # hwm namespace creates separated namespace, namespace creates separate user
     # so number of users and namespaces is +1 of described in current test params

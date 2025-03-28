@@ -307,7 +307,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                 NamespaceResponseV1(name="my_namespace", ...),
             ],
         )
-        """
+        """  # noqa: E501
         query = query or NamespacePaginateQueryV1()
         return self._request(  # type: ignore[return-value]
             "GET",
@@ -512,7 +512,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             ),
             items=[NamespaceHistoryResponseV1(namespace_id=234, ...), ...],
         )
-        """
+        """  # noqa: E501
         return self._request(  # type: ignore[return-value]
             "GET",
             f"{self.base_url}/v1/namespace-history/",
@@ -597,7 +597,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
                 HWMResponseV1(namespace_id=123, name="my_hwm", ...),
             ],
         )
-        """
+        """  # noqa: E501
         return self._request(  # type: ignore[return-value]
             "GET",
             f"{self.base_url}/v1/hwm/",
@@ -974,7 +974,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
             ),
             items=[HWMHistoryResponseV1(hwm_id=234, ...), ...],
         )
-        """
+        """  # noqa: E501
         return self._request(  # type: ignore[return-value]
             "GET",
             f"{self.base_url}/v1/hwm-history/",
@@ -984,7 +984,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
 
     # retry validator is called after "session" validators, when session already created by default or passed directly
     @root_validator(pre=False, skip_on_failure=True)
-    def _configure_retries(cls, values):
+    def _configure_retries(cls, values):  # noqa: N805
         session = values.get("session")
         retry_config = values.get("retry")
 
@@ -1007,7 +1007,7 @@ class HorizonClientSync(BaseClient[OAuth2Session]):
         return values
 
     @validator("session", always=True)
-    def _set_client_info(cls, session: OAuth2Session):
+    def _set_client_info(cls, session: OAuth2Session):  # noqa: N805
         session.headers["X-Client-Name"] = "python-horizon[sync]"
         session.headers["X-Client-Version"] = horizon_version
         return session

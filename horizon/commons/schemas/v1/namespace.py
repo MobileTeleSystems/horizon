@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
+
 from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 from pydantic import __version__ as pydantic_version
-from pydantic import root_validator
 
 from horizon.commons.dto import Unset
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
@@ -14,7 +14,7 @@ from horizon.commons.schemas.v1.pagination import PaginateQueryV1
 MAX_NAME_LENGTH = 256
 
 
-class NamespaceUserRole(str, Enum):  # noqa: WPS60
+class NamespaceUserRole(str, Enum):
     DEVELOPER = "DEVELOPER"
     MAINTAINER = "MAINTAINER"
     OWNER = "OWNER"
@@ -65,9 +65,10 @@ class NamespaceUpdateRequestV1(BaseModel):
         arbitrary_types_allowed = True
 
     @root_validator(skip_on_failure=True)
-    def _any_field_set(cls, values):
+    def _any_field_set(cls, values):  # noqa: N805
         """Validate that at least one field is set."""
         values_set = {k for k, v in values.items() if not isinstance(v, Unset)}
         if not values_set:
-            raise ValueError("At least one field must be set.")
+            msg = "At least one field must be set."
+            raise ValueError(msg)
         return values

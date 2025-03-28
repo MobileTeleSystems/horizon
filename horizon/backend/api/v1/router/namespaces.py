@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-# mypy: disable-error-code="pydantic-orm"
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import Annotated
@@ -146,7 +145,8 @@ async def get_namespace_permissions(
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
 
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+            PermissionResponseItemV1(username=user.username, role=NamespaceUserRole[role.name])
+            for user, role in permissions_dict.items()
         ]
 
     return PermissionsResponseV1(permissions=permissions_response)
@@ -157,7 +157,7 @@ async def get_namespace_permissions(
     summary="Update namespace permissions",
     dependencies=[Depends(current_user)],
 )
-async def update_namespace_permissions(  # noqa: WPS217
+async def update_namespace_permissions(
     namespace_id: int,
     changes: PermissionsUpdateRequestV1,
     unit_of_work: Annotated[UnitOfWork, Depends()],
@@ -176,11 +176,15 @@ async def update_namespace_permissions(  # noqa: WPS217
             update_user = await unit_of_work.user.get_by_username(perm.username)
 
             # Ensure the current owner isn't changing their role without assigning a new owner
-            if update_user.id == user.id and perm.role != NamespaceUserRole.OWNER:
-                if not any(
+            if (
+                update_user.id == user.id
+                and perm.role != NamespaceUserRole.OWNER
+                and not any(
                     p.role == NamespaceUserRole.OWNER for p in changes.permissions if p.username != user.username
-                ):
-                    raise BadRequestError("Cannot drop ownership without assigning a new owner.")
+                )
+            ):
+                msg = "Cannot drop ownership without assigning a new owner."
+                raise BadRequestError(msg)
 
             if perm.role:
                 if perm.role == NamespaceUserRole.OWNER and not owner_change_detected:
@@ -194,6 +198,7 @@ async def update_namespace_permissions(  # noqa: WPS217
 
         permissions_dict = await unit_of_work.namespace.get_namespace_users_permissions(namespace_id)
         permissions_response = [
-            PermissionResponseItemV1(username=user.username, role=role.name) for user, role in permissions_dict.items()
+            PermissionResponseItemV1(username=user.username, role=NamespaceUserRole[role.name])
+            for user, role in permissions_dict.items()
         ]
         return PermissionsResponseV1(permissions=permissions_response)

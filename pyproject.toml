@@ -332,7 +332,7 @@ ignore = ["ARG", "ANN", "D", "COM812", "TD", "FIX002", "UP035", "UP006", "UP007"
 "horizon/backend/scripts/manage_admins.py" = ["LOG015"]
 "horizon/backend/providers/auth/*" = ["PLR0913"]
 
-"tests/*" = ["S", "A", "PLR0913", "FBT001", "SLF001"]
+"tests/*" = ["S", "A", "PLR0913", "PLR2004", "FBT001", "SLF001"]
 "tests/*/fixtures/*" = ["INP001"]
 "tests/fixtures/*" = ["INP001"]
 

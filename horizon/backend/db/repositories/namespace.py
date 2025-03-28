@@ -140,7 +140,7 @@ class NamespaceRepository(Repository[Namespace]):
 
         namespace = await self.get(namespace_id)
         owner = await self._session.get(User, namespace.owner_id)
-        owner = cast("User", owner)
+        owner = cast(User, owner)
         permissions_dict[owner] = NamespaceUserRoleInt.OWNER
 
         query = (

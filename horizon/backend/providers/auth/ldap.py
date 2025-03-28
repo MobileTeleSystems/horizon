@@ -8,11 +8,11 @@ Based on `bonsai <https://github.com/noirello/bonsai>`_
 
 Similar to:
 * `JupyterHub LDAPAuthenticator <https://github.com/jupyterhub/ldapauthenticator>`_
-* `Flask-AppBuilder LDAP integration <https://github.com/dpgaspar/Flask-AppBuilder/blob/master/docs/config.rst>`_, used in Apache Airflow
-"""  # noqa: E501
+* `Flask-AppBuilder LDAP integration <https://github.com/dpgaspar/Flask-AppBuilder/blob/master/docs/config.rst>`_,
+used in Apache Airflow
+"""
 
 import logging
-from asyncio import TimeoutError  # noqa: A004
 from contextlib import asynccontextmanager
 from time import time
 from typing import Any, AsyncContextManager, AsyncGenerator, Dict, List, Optional, Tuple

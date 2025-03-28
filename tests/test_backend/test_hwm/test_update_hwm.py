@@ -405,7 +405,7 @@ async def test_update_hwm_invalid_field_length(
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
-        if len(new_hwm.name) > 2048:  # noqa: PLR2004
+        if len(new_hwm.name) > 2048:
             details = [
                 {
                     "location": ["body", "name"],
@@ -413,7 +413,7 @@ async def test_update_hwm_invalid_field_length(
                     "code": "value_error.any_str.max_length",
                 },
             ]
-        elif len(new_hwm.type) > 64:  # noqa: PLR2004
+        elif len(new_hwm.type) > 64:
             details = [
                 {
                     "location": ["body", "type"],
@@ -429,7 +429,7 @@ async def test_update_hwm_invalid_field_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
-    elif len(new_hwm.name) > 2048:  # noqa: PLR2004
+    elif len(new_hwm.name) > 2048:
         details = [
             {
                 "location": ["body", "name"],
@@ -439,7 +439,7 @@ async def test_update_hwm_invalid_field_length(
                 "input": new_hwm.name,
             },
         ]
-    elif len(new_hwm.type) > 64:  # noqa: PLR2004
+    elif len(new_hwm.type) > 64:
         details = [
             {
                 "location": ["body", "type"],

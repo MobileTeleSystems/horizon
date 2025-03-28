@@ -189,13 +189,14 @@ class LDAPSettings(BaseModel):
         default="{uid_attribute}={login},{base_dn}",
         description=textwrap.dedent(
             """
-            Template for building DN string, used for checking credentials in LDAP. You can pass any DN value supported by LDAP.
+            Template for building DN string, used for checking credentials in LDAP.
+            You can pass any DN value supported by LDAP.
 
             Supported substitution values:
               * ``{login}``
               * ``{uid_attribute}`` (see :obj:`~uid_attribute`)
               * ``{base_dn}`` (see :obj:`~base_dn`)
-            """,  # noqa: E501
+            """,
         ),
     )
 

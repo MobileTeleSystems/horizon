@@ -295,7 +295,7 @@ async def test_update_namespace_invalid_name_length(
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
-        if len(new_namespace.name) > 256:  # noqa: PLR2004
+        if len(new_namespace.name) > 256:
             details = [
                 {
                     "location": ["body", "name"],
@@ -311,7 +311,7 @@ async def test_update_namespace_invalid_name_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
-    elif len(new_namespace.name) > 256:  # noqa: PLR2004
+    elif len(new_namespace.name) > 256:
         details = [
             {
                 "location": ["body", "name"],

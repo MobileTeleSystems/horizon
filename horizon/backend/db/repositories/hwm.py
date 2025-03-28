@@ -51,8 +51,7 @@ class HWMRepository(Repository[HWM]):
             HWM.id == hwm_id,
         )
         if not result:
-            msg = "HWM"
-            raise EntityNotFoundError(msg, "id", hwm_id)
+            raise EntityNotFoundError("HWM", "id", hwm_id)
         return result
 
     async def create(
@@ -67,12 +66,10 @@ class HWMRepository(Repository[HWM]):
             constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
 
             if constraint == "fk__hwm__namespace_id__namespace":
-                msg = "Namespace"
-                raise EntityNotFoundError(msg, "id", data["namespace_id"]) from e
+                raise EntityNotFoundError("Namespace", "id", data["namespace_id"]) from e
 
             if constraint == "hwm_name_unique_per_namespace":
-                msg = "HWM"
-                raise EntityAlreadyExistsError(msg, "name", data["name"]) from e
+                raise EntityAlreadyExistsError("HWM", "name", data["name"]) from e
 
             raise
         else:
@@ -90,14 +87,12 @@ class HWMRepository(Repository[HWM]):
                 changes={**changes, "changed_by_user_id": user.id},
             )
             if result is None:
-                msg = "HWM"
-                raise EntityNotFoundError(msg, "id", hwm_id)
+                raise EntityNotFoundError("HWM", "id", hwm_id)
 
             await self._session.flush()
             await self._session.refresh(result)
         except IntegrityError as e:
-            msg = "HWM"
-            raise EntityAlreadyExistsError(msg, "name", changes["name"]) from e
+            raise EntityAlreadyExistsError("HWM", "name", changes["name"]) from e
         else:
             return result
 
@@ -149,8 +144,7 @@ class HWMRepository(Repository[HWM]):
                     r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.",
                     e.__cause__.__cause__.detail,  # type: ignore[union-attr]
                 ).group(1)  # type: ignore[union-attr]
-                msg = "HWM"
-                raise EntityAlreadyExistsError(msg, "name", hwm_name) from e
+                raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
 
         if with_history:
             for original_hwm, copied_hwm in zip(hwms, copied_hwms):

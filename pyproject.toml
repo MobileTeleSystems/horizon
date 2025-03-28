@@ -346,6 +346,9 @@ inline-quotes = "double"
 multiline-quotes = "double"
 docstring-quotes = "double"
 
+[tool.ruff.lint.flake8-errmsg]
+max-string-length=20
+
 [tool.codespell]
 exclude-file = "poetry.lock"
 ignore-words-list = "selectin"

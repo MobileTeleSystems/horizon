@@ -23,6 +23,6 @@ class CredentialsCacheRepository(Repository[CredentialsCache]):
         await self._session.flush()
         return result
 
-    async def delete(self, _id: int) -> None:
-        await self._delete(_id)
+    async def delete(self, id_: int) -> None:
+        await self._delete(id_)
         await self._session.flush()

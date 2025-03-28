@@ -218,8 +218,7 @@ class LDAPAuthProvider(AuthProvider):
             )
 
         if not results:
-            msg = "User"
-            raise EntityNotFoundError(msg, "username", login)
+            raise EntityNotFoundError("User", "username", login)
 
         entry = results[0]
         log.debug("Found entry:\n%s", pformat(entry))

@@ -73,6 +73,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: prod
           file: docker/Dockerfile.backend
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

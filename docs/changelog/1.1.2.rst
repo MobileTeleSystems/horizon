@@ -1,0 +1,8 @@
+1.1.2 (2025-04-07)
+==================
+
+Improvements
+------------
+
+- Reduce image size down to x2.
+- Change docker image user from ``root`` to ``horizon``, to improve security.

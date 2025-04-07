@@ -1,6 +1,44 @@
-FROM python:3.13-slim AS prod
-LABEL maintainer="DataOps.ETL"
+ARG PYTHON_VERSION=3.13
+FROM python:$PYTHON_VERSION-slim AS base
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        # Used for healthcheck
+        curl \
+    && rm -rf /var/lib/apt/lists/* /var/cache/*
+
+WORKDIR /app
+ENV PYTHONPATH=/app \
+    PATH="/app/.venv/bin:$PATH" \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1
+
+# Logo
+COPY docs/_static/*.svg /app/horizon/backend/static/
+
+# Swagger UI
+ADD https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css \
+    /app/horizon/backend/static/swagger/
+
+# Redoc
+ADD https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js /app/horizon/backend/static/redoc/redoc.standalone.js
+
+ENV HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/static/swagger/swagger-ui-bundle.js \
+    HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/static/swagger/swagger-ui.css \
+    HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/static/redoc/redoc.standalone.js \
+    HORIZON__SERVER__STATIC_FILES__DIRECTORY=/app/horizon/backend/static
+
+COPY ./docker/entrypoint_server.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh \
+    && chmod +r -R /app/horizon/backend/static
+ENTRYPOINT ["/app/entrypoint.sh"]
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]
+
+
+FROM base AS builder
+
+# required for building bonsai
 RUN apt-get update && apt-get install -y \
         libkrb5-dev \
         libsasl2-dev \
@@ -15,41 +53,41 @@ RUN apt-get update && apt-get install -y \
         make \
         libnghttp2-dev \
         libffi-dev \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /var/cache/*
 
-WORKDIR /app
-ENV PYTHONPATH=/app
-
-RUN pip install poetry \
-    && poetry config virtualenvs.create false
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install poetry
 
 COPY ./pyproject.toml ./poetry.lock* ./
+RUN --mount=type=cache,target=/root/.cache/pypoetry \
+    poetry install \
+        --no-root \
+        --all-extras \
+        --without test,docs,dev \
+    && python -m compileall -j 4 .venv
+
+
+FROM base AS prod
+
+# We don't need poetry in final image
+COPY --from=builder /app/.venv/ /app/.venv/
+COPY ./horizon/ /app/horizon/
+RUN python -m compileall -b horizon
+
+# Do not run production as root, to improve security.
+# Also user does not own anything inside the image, including venv and source code.
+RUN useradd horizon
+USER horizon
+
+
+FROM builder AS test
 
 RUN --mount=type=cache,target=/root/.cache/pypoetry \
     poetry install \
         --no-root \
         --all-extras \
-        --without dev,test,docs
+        --with test \
+        --without docs,dev \
+    && python -m compileall -j 4 .venv
 
-COPY ./docker/entrypoint.sh ./docker/
-RUN chmod +x ./docker/*.sh
-
-COPY ./horizon/ ./horizon/
-COPY docs/_static/*.svg /app/horizon/backend/static/
-
-# Swagger UI
-ADD https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui-bundle.js /app/horizon/backend/static/swagger/swagger-ui-bundle.js
-ADD https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest/swagger-ui.css /app/horizon/backend/static/swagger/swagger-ui.css
-
-# Redoc
-ADD https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js /app/horizon/backend/static/redoc/redoc.standalone.js
-
-ENV HORIZON__SERVER__OPENAPI__SWAGGER__JS_URL=/static/swagger/swagger-ui-bundle.js \
-    HORIZON__SERVER__OPENAPI__SWAGGER__CSS_URL=/static/swagger/swagger-ui.css \
-    HORIZON__SERVER__OPENAPI__REDOC__JS_URL=/static/redoc/redoc.standalone.js \
-    HORIZON__SERVER__STATIC_FILES__DIRECTORY=/app/horizon/backend/static
-
-EXPOSE 8000
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD ["curl", "-f", "http://localhost:8000/monitoring/ping"]
+RUN sed -i 's/python -m/coverage run -m/g' /app/entrypoint.sh

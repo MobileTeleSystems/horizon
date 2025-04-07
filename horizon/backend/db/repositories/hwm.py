@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import re
-from typing import List, Sequence
+from collections.abc import Sequence
+from typing import List
 
 from sqlalchemy import SQLColumnExpression, delete, select
 from sqlalchemy.exc import IntegrityError
@@ -61,7 +62,6 @@ class HWMRepository(Repository[HWM]):
         try:
             result = await self._create(data={**data, "changed_by_user_id": user.id})
             await self._session.flush()
-            return result
         except IntegrityError as e:
             constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
 
@@ -72,6 +72,8 @@ class HWMRepository(Repository[HWM]):
                 raise EntityAlreadyExistsError("HWM", "name", data["name"]) from e
 
             raise
+        else:
+            return result
 
     async def update(
         self,
@@ -89,9 +91,10 @@ class HWMRepository(Repository[HWM]):
 
             await self._session.flush()
             await self._session.refresh(result)
-            return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError("HWM", "name", changes["name"]) from e
+        else:
+            return result
 
     async def delete(
         self,
@@ -116,7 +119,7 @@ class HWMRepository(Repository[HWM]):
         source_namespace_id: int,
         target_namespace_id: int,
         hwm_ids: list[int],
-        with_history: bool,
+        with_history: bool,  # noqa: FBT001
     ) -> Sequence[HWM]:
         result = await self._session.execute(
             select(HWM).where(HWM.id.in_(hwm_ids), HWM.namespace_id == source_namespace_id),
@@ -137,7 +140,10 @@ class HWMRepository(Repository[HWM]):
         except IntegrityError as e:
             constraint = e.__cause__.__cause__.constraint_name  # type: ignore[union-attr]
             if constraint == "hwm_name_unique_per_namespace":
-                hwm_name = re.search(r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.", e.__cause__.__cause__.detail).group(1)  # type: ignore[union-attr]
+                hwm_name = re.search(
+                    r"Key \(namespace_id, name\)=\(\d+, (.+)\) already exists.",
+                    e.__cause__.__cause__.detail,  # type: ignore[union-attr]
+                ).group(1)  # type: ignore[union-attr]
                 raise EntityAlreadyExistsError("HWM", "name", hwm_name) from e
 
         if with_history:
@@ -145,7 +151,7 @@ class HWMRepository(Repository[HWM]):
                 history = await self._session.execute(
                     select(HWMHistory).where(HWMHistory.hwm_id == original_hwm.id),
                 )
-                history = history.scalars().all()  # type: ignore
+                history = history.scalars().all()  # type: ignore[assignment]
                 for record in history:
                     new_history_record = HWMHistory(
                         **record.to_dict(exclude={"id", "hwm_id"}),

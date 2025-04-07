@@ -43,19 +43,25 @@ jobs:
       - name: Build Backend Container
         uses: docker/build-push-action@v6
         with:
-          tags: mtsrus/horizon-backend:${{ github.sha }}
           context: .
           file: docker/Dockerfile.backend
+          tags: mtsrus/horizon-backend:develop
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python-version }}
           push: false
           load: true
-          cache-from: mtsrus/horizon-backend:develop
+          cache-to: type=gha,mode=max
+          cache-from: type=gha
+
+      - name: Creare reports dir
+        run: |
+          mkdir -p reports/
+          sudo chmod 777 -R reports/
 
       - name: Start Backend Container
         run: |
           docker compose -f docker-compose.test.yml down -v --remove-orphans
-          docker compose -f docker-compose.test.yml up --wait-timeout 5 -d
-        env:
-          TAG: ${{ github.sha }}
+          docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 60
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -91,7 +97,6 @@ jobs:
       - name: Run Tests
         run: |
           source .env.local
-          mkdir -p reports/
           poetry run coverage run -m pytest
 
       - name: Dump backend logs on failure

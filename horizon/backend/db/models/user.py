@@ -12,7 +12,7 @@ class User(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     username: Mapped[str] = mapped_column(
-        String(256),  # noqa: WPS432
+        String(256),
         nullable=False,
         unique=True,
         index=True,

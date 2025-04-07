@@ -8,6 +8,9 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
 
+env:
+  DEFAULT_PYTHON: '3.13'
+
 jobs:
   release:
     name: Build & push image to Dockerhub
@@ -30,29 +33,57 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set tag
-        id: set_tag
+      - name: Set up Python ${{ env.DEFAULT_PYTHON }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON }}
+
+      - name: Install poetry
+        uses: snok/install-poetry@v1
+
+      - name: Get version
+        id: get_version
         run: |
+          echo "VERSION=$(poetry version --short)" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: mtsrus/horizon-backend
+          labels: |
+            org.opencontainers.image.title=Horizon
+            org.opencontainers.image.vendor=MTS PJSC
+            org.opencontainers.image.documentation=https://data-horizon.readthedocs.io
+            org.opencontainers.image.url=https://hub.docker.com/r/mtsrus/horizon-backend
+            org.opencontainers.image.authors=DataOps.ETL <onetools@mts.ru>
+            org.opencontainers.image.version=${{ env.VERSION }}
+
+      - name: Set platforms
+        id: set_platforms
+        run: |
+          # Building krb5 on ARM is time consuming, do this only at release
           if [[ "${{ github.ref_type }}" == "branch" && "${{ github.ref_name }}" == "develop" ]]; then
-            echo "TAG=mtsrus/horizon-backend:develop" >> $GITHUB_ENV
+            echo "PLATFORMS=linux/amd64" >> $GITHUB_ENV
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            echo "TAG=mtsrus/horizon-backend:latest,mtsrus/horizon-backend:${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "PLATFORMS=linux/amd64,linux/arm64/v8" >> $GITHUB_ENV
           fi
 
       - name: Build Backend image
         uses: docker/build-push-action@v6
         with:
-          tags: ${{ env.TAG }}
           context: .
+          target: prod
           file: docker/Dockerfile.backend
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           pull: true
           push: true
-          cache-to: type=inline
-          cache-from: mtsrus/horizon-backend:develop
-          platforms: |
-            linux/amd64
-            linux/arm64/v8
+          cache-to: type=gha,mode=max
+          cache-from: type=gha
+          platforms: ${{ env.PLATFORMS }}
           provenance: mode=max
+          sbom: true
 
       - name: Convert README to Markdown
         uses: docker://pandoc/core:2.9

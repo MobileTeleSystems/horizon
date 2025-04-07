@@ -25,9 +25,9 @@ class ChangedByMixin:
     )
 
     @declared_attr
-    def changed_by_user(cls):
+    def changed_by_user(cls):  # noqa: N805
         return relationship(User, foreign_keys=[cls.changed_by_user_id], lazy="selectin")
 
     @declared_attr
-    def changed_by(cls):
+    def changed_by(cls):  # noqa: N805
         return association_proxy("changed_by_user", "username")

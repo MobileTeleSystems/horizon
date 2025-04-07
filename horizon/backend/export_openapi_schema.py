@@ -4,6 +4,7 @@
 
 import json
 import sys
+from pathlib import Path
 
 from fastapi import FastAPI
 
@@ -17,6 +18,6 @@ def get_openapi_schema(app: FastAPI) -> dict:
 if __name__ == "__main__":
     app = get_application()
     schema = get_openapi_schema(app)
-    file_path = sys.argv[1]
-    with open(file_path, "w") as file:
+    file_path = Path(sys.argv[1])
+    with file_path.open("w") as file:
         json.dump(schema, file)

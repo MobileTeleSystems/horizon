@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
-from typing import AsyncContextManager, Callable
+from typing import TYPE_CHECKING, AsyncContextManager, Callable
 
-import pytest
+import pytest  # noqa: TC002
 import pytest_asyncio
 from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import (
     Namespace,
@@ -14,6 +12,11 @@ from horizon.backend.db.models import (
     NamespaceUserRoleInt,
     User,
 )
+
+if TYPE_CHECKING:
+    from typing import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest_asyncio.fixture(

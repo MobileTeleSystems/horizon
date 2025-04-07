@@ -23,7 +23,7 @@ class Namespace(Base, ChangedByMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str] = mapped_column(
-        String(256),  # noqa: WPS432
+        String(256),
         nullable=False,
         unique=True,
         index=True,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import datetime, timezone
+from http import HTTPStatus
 from time import time
 from typing import TYPE_CHECKING, Any
 
@@ -11,12 +12,13 @@ from sqlalchemy import select
 from sqlalchemy_utils.functions import naturally_equivalent
 
 from horizon.backend.db.models import User
-from horizon.backend.settings.auth.jwt import JWTSettings
 from horizon.backend.utils.jwt import decode_jwt
 
 if TYPE_CHECKING:
     from httpx import AsyncClient
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from horizon.backend.settings.auth.jwt import JWTSettings
 
 DUMMY = "horizon.backend.providers.auth.dummy.DummyAuthProvider"
 pytestmark = [pytest.mark.asyncio, pytest.mark.dummy_auth, pytest.mark.auth, pytest.mark.backend]
@@ -39,7 +41,7 @@ async def test_dummy_auth_get_token_creates_user(
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -79,7 +81,7 @@ async def test_dummy_auth_get_token_for_existing_user(
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["access_token"]
@@ -115,7 +117,7 @@ async def test_dummy_auth_get_token_for_inactive_user(
             "password": secrets.token_hex(16),
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -170,7 +172,7 @@ async def test_dummy_auth_get_token_with_malformed_input(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     # user is not created
@@ -190,7 +192,7 @@ async def test_dummy_auth_check(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize("user", [{"is_active": False}], indirect=True)
@@ -204,7 +206,7 @@ async def test_dummy_auth_check_inactive_user(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -224,7 +226,7 @@ async def test_dummy_auth_check_missing_user(
         "v1/users/me",
         headers={"Authorization": f"Bearer {fake_access_token}"},
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -247,7 +249,7 @@ async def test_dummy_auth_check_invalid_token(
         "v1/users/me",
         headers={"Authorization": f"Bearer {invalid_access_token}"},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",

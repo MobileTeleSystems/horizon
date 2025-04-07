@@ -6,3 +6,6 @@ Improvements
 
 - Add compatibility with ``Python 3.13`` (:issue:`94`)
 - Replace outdated ``python-jose`` dependency with ``authlib.jose``, to fix security issues. (:issue:`97`)
+
+Note: preliminary release 1.1.0 was yanked from PyPI because it has wrong ``horizon.__version__`` value.
+The source code of 1.1.1 and dependencies are just the same as 1.1.0.

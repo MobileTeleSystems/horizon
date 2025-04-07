@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
+
 from typing import Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, Field
 from pydantic import __version__ as pydantic_version
 
 if pydantic_version >= "2":
-    from pydantic import BaseModel as GenericModel  # noqa: WPS474
+    from pydantic import BaseModel as GenericModel
 else:
-    from pydantic.generics import GenericModel  # type: ignore[no-redef] # noqa: WPS440
+    from pydantic.generics import GenericModel  # type: ignore[no-redef]
 
 from horizon.commons.dto import Pagination
 
@@ -17,7 +18,7 @@ class PaginateQueryV1(BaseModel):
     """Basic class with pagination query params."""
 
     page: int = Field(gt=0, default=1, description="Page number")
-    page_size: int = Field(gt=0, le=50, default=20, description="Number of items per page")  # noqa: WPS432
+    page_size: int = Field(gt=0, le=50, default=20, description="Number of items per page")
 
 
 class PageMetaResponseV1(BaseModel):

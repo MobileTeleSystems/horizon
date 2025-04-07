@@ -15,7 +15,7 @@ class CredentialsCache(Base, TimestampMixin):
     # Same user can have multiple credentials (e.g. name+password, email+password)
     # So this field is named `login` instead of `username`
     login: Mapped[str] = mapped_column(
-        String(256),  # noqa: WPS432
+        String(256),
         nullable=False,
         unique=True,
         index=True,

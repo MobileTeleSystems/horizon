@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -26,7 +27,7 @@ async def test_bulk_delete_hwm_anonymous_user(
         url="v1/hwm/",
         json={"namespace_id": namespace.id, "hwm_ids": [new_hwm.id]},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -66,7 +67,7 @@ async def test_bulk_delete_hwm(
     )
     post_delete_timestamp = datetime.now(timezone.utc)
 
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
 
     for hwm in hwms:
         query = select(HWM).where(HWM.id == hwm.id)
@@ -107,7 +108,7 @@ async def test_bulk_delete_not_existing_hwm(
         json={"namespace_id": namespace.id, "hwm_ids": [hwm.id, new_hwm.id]},
     )
     # we ignore hwms that are not related to namespace and delete only existing hws in namespace
-    assert response.status_code == 204
+    assert response.status_code == HTTPStatus.NO_CONTENT
 
 
 async def test_bulk_delete_empty_hwm_list(
@@ -125,12 +126,12 @@ async def test_bulk_delete_empty_hwm_list(
         json={"namespace_id": namespace.id, "hwm_ids": []},
     )
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert "List should have at least 1 item after validation, not 0" in response.text
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.DEVELOPER,
@@ -138,7 +139,7 @@ async def test_bulk_delete_empty_hwm_list(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role DEVELOPER but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "DEVELOPER",
@@ -152,7 +153,7 @@ async def test_bulk_delete_empty_hwm_list(
             {
                 "error": {
                     "code": "permission_denied",
-                    "message": f"Permission denied. User has role GUEST but action requires at least MAINTAINER.",
+                    "message": "Permission denied. User has role GUEST but action requires at least MAINTAINER.",
                     "details": {
                         "required_role": "MAINTAINER",
                         "actual_role": "GUEST",

@@ -10,13 +10,13 @@ from horizon.backend.db.models.namespace_user import NamespaceUser
 from horizon.backend.db.models.user import User
 
 __all__ = [
+    "HWM",
     "Base",
     "CredentialsCache",
-    "HWM",
     "HWMHistory",
     "Namespace",
-    "NamespaceUserRoleInt",
     "NamespaceHistory",
     "NamespaceUser",
+    "NamespaceUserRoleInt",
     "User",
 ]

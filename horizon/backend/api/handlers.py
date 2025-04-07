@@ -4,17 +4,22 @@ from __future__ import annotations
 
 import http
 import logging
-from typing import Mapping
+from typing import TYPE_CHECKING
 
 from asgi_correlation_id import correlation_id
 from fastapi import HTTPException, Request, Response
-from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
-from horizon.backend.settings.server import ServerSettings
 from horizon.commons.errors.base import APIErrorSchema, BaseErrorSchema
 from horizon.commons.errors.registration import get_response_for_exception
-from horizon.commons.exceptions import ApplicationError, ServiceError
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from fastapi.exceptions import RequestValidationError
+
+    from horizon.backend.settings.server import ServerSettings
+    from horizon.commons.exceptions import ApplicationError, ServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +123,7 @@ def exception_json_response(
     content: BaseErrorSchema,
     headers: Mapping[str, str] | None = None,
 ) -> Response:
-    # Using Response + `model.json()` because JSONResponse + `model.dict()` does not convert Unset() to JSON value "<unset>"
+    # Using Response + `model.json()` because JSONResponse + `model.dict()` does not convert Unset() to JSON value "<unset>"  # noqa: E501
     content_type = type(content)
     error_schema = APIErrorSchema[content_type]  # type: ignore[valid-type]
     return Response(

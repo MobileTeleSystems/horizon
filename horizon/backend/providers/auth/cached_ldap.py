@@ -57,7 +57,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
         client_secret: Optional[str] = None,
     ) -> Dict[str, Any]:
         if not login or not password:
-            raise AuthorizationError("Missing auth credentials")
+            msg = "Missing auth credentials"
+            raise AuthorizationError(msg)
 
         # firstly check if user credentials already exists in cache
         from_cache = True
@@ -75,7 +76,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
             log.info("User id %r found", user.id)
             if not user.is_active:
                 # TODO: check if user is locked in LDAP
-                raise AuthorizationError(f"User {username!r} is disabled")
+                msg = f"User {username!r} is disabled"
+                raise AuthorizationError(msg)
 
             if not from_cache:
                 # updating cache without checking user in LDAP means cache item will never expire,
@@ -111,7 +113,8 @@ class CachedLDAPAuthProvider(LDAPAuthProvider):
 
         hasher = self._get_hasher()
         if not hasher.verify(password, user_cache.password_hash):
-            raise AuthorizationError("Wrong credentials")
+            msg = "Wrong credentials"
+            raise AuthorizationError(msg)
 
         log.info("Credentials match the cache")
         return user_cache.user.username

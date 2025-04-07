@@ -9,9 +9,9 @@ from horizon.backend.db.repositories.user import UserRepository
 
 __all__ = [
     "CredentialsCacheRepository",
-    "HWMRepository",
     "HWMHistoryRepository",
-    "NamespaceRepository",
+    "HWMRepository",
     "NamespaceHistoryRepository",
+    "NamespaceRepository",
     "UserRepository",
 ]

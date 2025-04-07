@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
@@ -32,7 +33,7 @@ async def test_copy_hwms_anonymous_user(
             "with_history": False,
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -61,7 +62,7 @@ async def test_copy_hwms_same_source_and_target_namespace(
         json=body,
     )
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     if pydantic_version >= "2":
         detail = {
@@ -114,7 +115,7 @@ async def test_copy_hwms(
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
 
     for original_hwm in hwms:
         query = select(HWM).where(HWM.namespace_id == target_namespace.id, HWM.name == original_hwm.name)
@@ -173,7 +174,7 @@ async def test_copy_hwms_empty_hwm_ids_list(
         },
     )
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     if pydantic_version >= "2":
         detail = {
@@ -222,7 +223,7 @@ async def test_copy_hwms_with_non_existing_hwm_ids(
         },
     )
     # we ignore hwms that are not related to namespace and copy only existing hws in namespace
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
     assert response.json() == {"hwms": []}
 
     query = select(HWM).where(HWM.namespace_id == target_namespace.id, HWM.name == new_hwm.name)
@@ -260,7 +261,7 @@ async def test_copy_hwms_non_existing_namespace(
         },
     )
 
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -310,7 +311,7 @@ async def test_copy_hwms_with_existing_hwm_name(
         },
     )
 
-    assert response.status_code == 409
+    assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {
         "error": {
             "code": "already_exists",
@@ -322,7 +323,7 @@ async def test_copy_hwms_with_existing_hwm_name(
 
 @pytest.mark.parametrize("namespaces", [(1, {})], indirect=True)
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.GUEST,

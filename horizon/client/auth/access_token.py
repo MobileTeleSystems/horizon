@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import BadSignatureError, ExpiredTokenError
-from authlib.oauth2.auth import OAuth2Token as AuthlibToken
+from authlib.oauth2.auth import OAuth2Token as AuthlibToken  # type: ignore[attr-defined]
 from pydantic import AnyHttpUrl, BaseModel, validator
 from typing_extensions import Literal
 
@@ -67,13 +67,14 @@ class AccessToken(BaseAuth, BaseModel):
             )
 
         if "exp" not in claims:
-            raise ExpiredTokenError("Missing expiration time in token")
+            msg = "Missing expiration time in token"
+            raise ExpiredTokenError(msg)
 
         claims.validate()
         return claims
 
     @validator("token")
-    def _validate_access_token(cls, value):
+    def _validate_access_token(cls, value):  # noqa: N805
         # AuthlibToken doesn't perform any validation, so we have to
         cls._parse_token(value)
         return value

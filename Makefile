@@ -2,6 +2,7 @@
 
 include .env.local
 
+VERSION = develop
 PIP = .venv/bin/pip
 POETRY = .venv/bin/poetry
 
@@ -31,11 +32,10 @@ venv-cleanup: ##@Env Cleanup venv
 	@rm -rf .venv || true
 	python3 -m venv .venv
 	${PIP} install -U setuptools wheel pip
-	${PIP} install poetry
+	${PIP} install poetry poetry-bumpversion
 
 venv-install: ##@Env Install requirements to venv
 	${POETRY} config virtualenvs.create false
-	${POETRY} self add poetry-bumpversion
 	${POETRY} install --no-root --all-extras --with dev,test,docs $(ARGS)
 
 
@@ -61,10 +61,10 @@ ldap-start: ##@LDAP Start LDAP container
 test: db-start ldap-start ##@Test Run tests
 	${POETRY} run pytest $(PYTEST_ARGS)
 
-check-fixtures: ##@Test Check declared fixtures
+test-check-fixtures: ##@Test Check declared fixtures
 	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
 
-cleanup: ##@Test Cleanup tests dependencies
+test-cleanup: ##@Test Cleanup tests dependencies
 	docker compose -f docker-compose.test.yml down $(ARGS)
 
 
@@ -73,10 +73,13 @@ dev: db-start ##@Application Run development server (without docker)
 	${POETRY} run python -m horizon.backend $(ARGS)
 
 prod-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t mtsrus/horizon-backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
+	docker build --progress=plain --network=host -t mtsrus/horizon-backend:latest -f ./docker/Dockerfile.backend --target prod $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
-	docker compose up -d
+	docker compose up -d $(ARGS)
+
+prod-cleanup: ##@Application Stop production server
+	docker compose down --remove-orphans $(ARGS)
 
 .PHONY: docs
 
@@ -92,3 +95,6 @@ docs-cleanup: ##@Docs Cleanup docs
 	$(MAKE) -C docs clean
 
 docs-fresh: docs-cleanup docs-build ##@Docs Cleanup & build docs
+
+docs-openapi: ##@Docs Generate OpenAPI schema
+	python -m horizon.backend.export_openapi_schema docs/_static/openapi.json

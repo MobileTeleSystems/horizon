@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from copy import copy
 from datetime import datetime
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
 from pydantic import __version__ as pydantic_version
 
-from horizon.backend.db.models import HWM, Namespace
-
 if TYPE_CHECKING:
     from httpx import AsyncClient
+
+    from horizon.backend.db.models import HWM, Namespace
 
 pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 
@@ -23,7 +24,7 @@ async def test_paginate_hwm_anonymous_user(
         "v1/hwm/",
         params={"namespace_id": new_namespace.id},
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -41,7 +42,7 @@ async def test_paginate_hwm_not_enough_arguments(
         "v1/hwm/",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
@@ -82,7 +83,7 @@ async def test_paginate_hwm_missing_namespace(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"namespace_id": new_namespace.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,
@@ -108,7 +109,7 @@ async def test_paginate_hwm_empty_namespace(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"namespace_id": namespace.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,
@@ -137,7 +138,7 @@ async def test_paginate_hwm(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"namespace_id": namespace.id},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     assert response_dict.keys() == {"meta", "items"}
@@ -185,7 +186,7 @@ async def test_paginate_hwm_filter_by_name(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"namespace_id": namespace.id, "name": hwm.name},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     response_dict = response.json()
     assert response_dict.keys() == {"meta", "items"}
@@ -231,7 +232,7 @@ async def test_paginate_hwm_filter_by_missing_name(
         headers={"Authorization": f"Bearer {access_token}"},
         params={"namespace_id": namespace.id, "name": new_hwm.name},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "meta": {
             "page": 1,

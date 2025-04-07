@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import re
+from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 
 from horizon.backend.db.models import Namespace, NamespaceUserRoleInt, User
-from horizon.client.sync import HorizonClientSync
 from horizon.commons.exceptions import EntityNotFoundError
 from horizon.commons.schemas.v1 import (
     NamespaceUserRole,
@@ -14,6 +15,9 @@ from horizon.commons.schemas.v1 import (
     PermissionsUpdateRequestV1,
     PermissionUpdateRequestItemV1,
 )
+
+if TYPE_CHECKING:
+    from horizon.client.sync import HorizonClientSync
 
 pytestmark = [pytest.mark.client_sync, pytest.mark.client]
 
@@ -62,4 +66,4 @@ def test_sync_client_update_namespace_permissions_namespace_missing(
         sync_client.update_namespace_permissions(new_namespace.id, changes)
 
     assert isinstance(exc_info.value.__cause__, requests.exceptions.HTTPError)
-    assert exc_info.value.__cause__.response.status_code == 404
+    assert exc_info.value.__cause__.response.status_code == HTTPStatus.NOT_FOUND

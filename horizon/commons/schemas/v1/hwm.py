@@ -3,9 +3,8 @@
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator, validator
 from pydantic import __version__ as pydantic_version
-from pydantic import root_validator, validator
 
 from horizon.commons.dto import Unset
 from horizon.commons.schemas.v1.pagination import PaginateQueryV1
@@ -80,11 +79,12 @@ class HWMUpdateRequestV1(BaseModel):
         arbitrary_types_allowed = True
 
     @root_validator(skip_on_failure=True)
-    def _any_field_set(cls, values):
+    def _any_field_set(cls, values):  # noqa: N805
         """Validate that at least one field is set."""
         values_set = {k for k, v in values.items() if not isinstance(v, Unset)}
         if not values_set:
-            raise ValueError("At least one field must be set.")
+            msg = "At least one field must be set."
+            raise ValueError(msg)
         return values
 
 
@@ -97,17 +97,19 @@ class HWMBulkCopyRequestV1(BaseModel):
     with_history: bool = Field(default=False, description="Whether to copy HWM history.")
 
     @validator("hwm_ids", pre=True, always=True)
-    def _check_hwm_ids_not_empty(cls, v):
+    def _check_hwm_ids_not_empty(cls, v):  # noqa: N805
         if not len(v):
-            raise ValueError("List should have at least 1 item after validation, not 0")
+            msg = "List should have at least 1 item after validation, not 0"
+            raise ValueError(msg)
         return v
 
     @root_validator(skip_on_failure=True)
-    def _check_namespace_ids(cls, values):
+    def _check_namespace_ids(cls, values):  # noqa: N805
         """Validator to ensure source and target namespace IDs are different."""
         source_namespace_id, target_namespace_id = values.get("source_namespace_id"), values.get("target_namespace_id")
         if source_namespace_id == target_namespace_id:
-            raise ValueError("Source and target namespace IDs must not be the same.")
+            msg = "Source and target namespace IDs must not be the same."
+            raise ValueError(msg)
         return values
 
 
@@ -118,7 +120,8 @@ class HWMBulkDeleteRequestV1(BaseModel):
     hwm_ids: List[int]
 
     @validator("hwm_ids", pre=True, always=True)
-    def _check_hwm_ids_not_empty(cls, v):
+    def _check_hwm_ids_not_empty(cls, v):  # noqa: N805
         if not len(v):
-            raise ValueError("List should have at least 1 item after validation, not 0")
+            msg = "List should have at least 1 item after validation, not 0"
+            raise ValueError(msg)
         return v

@@ -15,9 +15,9 @@ class NamespaceHistory(Base, ChangedByMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     namespace_id: Mapped[int] = mapped_column(BigInteger, index=True, nullable=True)
 
-    name: Mapped[str] = mapped_column(String(2048), nullable=False)  # noqa: WPS432
+    name: Mapped[str] = mapped_column(String(2048), nullable=False)
     description: Mapped[str] = mapped_column(Text(), nullable=False)
-    action: Mapped[str] = mapped_column(String(255), nullable=False)  # noqa: WPS432
+    action: Mapped[str] = mapped_column(String(255), nullable=False)
     owner_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("user.id", ondelete="SET NULL"),

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Type
+from typing import TYPE_CHECKING, Type
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
@@ -18,9 +18,11 @@ from horizon.backend.api.handlers import (
 from horizon.backend.api.router import api_router
 from horizon.backend.db.factory import create_session_factory
 from horizon.backend.middlewares import apply_middlewares
-from horizon.backend.providers.auth.base import AuthProvider
 from horizon.backend.settings import Settings
 from horizon.commons.exceptions import ApplicationError, ServiceError
+
+if TYPE_CHECKING:
+    from horizon.backend.providers.auth.base import AuthProvider
 
 
 def application_factory(settings: Settings) -> FastAPI:

@@ -1,8 +1,12 @@
 services:
   db:
-    image: postgres:alpine
+    image: postgres:17
     restart: unless-stopped
-    env_file: .env.docker
+    environment:
+      POSTGRES_DB: horizon
+      POSTGRES_USER: horizon
+      POSTGRES_PASSWORD: 123UsedForTestOnly
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
     ports:
       - 5432:5432
     volumes:
@@ -15,7 +19,7 @@ services:
       retries: 3
 
   backend:
-    image: mtsrus/horizon-backend:develop
+    image: mtsrus/horizon-backend:${VERSION:-latest}
     restart: unless-stopped
     env_file: .env.docker
     environment:
@@ -26,7 +30,7 @@ services:
       PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus-metrics
     # tmpfs dir is cleaned up each container restart
     tmpfs:
-      - /tmp/prometheus-metrics
+      - /tmp/prometheus-metrics:mode=1777
     ports:
       - 8000:8000
     depends_on:

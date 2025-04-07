@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from httpx import AsyncClient
 
@@ -9,7 +11,7 @@ pytestmark = [pytest.mark.backend, pytest.mark.asyncio]
 # other negative tests can be found in DummyAuthProvider & LDAPAuthProvider tests
 async def test_whoami_anonymous_user(test_client: AsyncClient):
     response = await test_client.get("v1/users/me")
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -28,7 +30,7 @@ async def test_whoami(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "id": user.id,
         "username": user.username,
@@ -52,7 +54,7 @@ async def test_whoami_superadmin(
         "v1/users/me",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         "id": user.id,
         "username": user.username,

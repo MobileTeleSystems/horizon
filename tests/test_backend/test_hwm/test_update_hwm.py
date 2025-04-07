@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -33,7 +34,7 @@ async def test_update_hwm_anonymous_user(
             "value": hwm.value,
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {
         "error": {
             "code": "unauthorized",
@@ -55,7 +56,7 @@ async def test_update_hwm_missing(
             "value": new_hwm.value,
         },
     )
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {
         "error": {
             "code": "not_found",
@@ -111,7 +112,7 @@ async def test_update_hwm(
             "expression": new_hwm.expression,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     assert content["id"] == hwm.id
@@ -172,7 +173,7 @@ async def test_update_hwm_already_exists(
         headers={"Authorization": f"Bearer {access_token}"},
         json={"name": hwm2.name},
     )
-    assert response.status_code == 409
+    assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {
         "error": {
             "code": "already_exists",
@@ -194,7 +195,7 @@ async def test_update_hwm_already_exists(
 
 
 @pytest.mark.parametrize(
-    "field, is_none",
+    ["field", "is_none"],
     [
         ("name", False),
         ("type", False),
@@ -227,7 +228,7 @@ async def test_update_hwm_partial(
             field: value,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
 
@@ -296,7 +297,7 @@ async def test_update_hwm_no_data(
         headers={"Authorization": f"Bearer {access_token}"},
         json={"unexpected": "value"},
     )
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     details: list[dict[str, Any]]
     if pydantic_version < "2":
@@ -355,7 +356,7 @@ async def test_update_hwm_value_can_be_any_valid_json(
         headers={"Authorization": f"Bearer {access_token}"},
         json={"value": value},
     )
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
 
     content = response.json()
     hmw_id = content["id"]
@@ -428,37 +429,36 @@ async def test_update_hwm_invalid_field_length(
                     "code": "value_error.any_str.min_length",
                 },
             ]
+    elif len(new_hwm.name) > 2048:
+        details = [
+            {
+                "location": ["body", "name"],
+                "message": "String should have at most 2048 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 2048},
+                "input": new_hwm.name,
+            },
+        ]
+    elif len(new_hwm.type) > 64:
+        details = [
+            {
+                "location": ["body", "type"],
+                "message": "String should have at most 64 characters",
+                "code": "string_too_long",
+                "context": {"max_length": 64},
+                "input": new_hwm.type,
+            },
+        ]
     else:
-        if len(new_hwm.name) > 2048:
-            details = [
-                {
-                    "location": ["body", "name"],
-                    "message": "String should have at most 2048 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 2048},
-                    "input": new_hwm.name,
-                },
-            ]
-        elif len(new_hwm.type) > 64:
-            details = [
-                {
-                    "location": ["body", "type"],
-                    "message": "String should have at most 64 characters",
-                    "code": "string_too_long",
-                    "context": {"max_length": 64},
-                    "input": new_hwm.type,
-                },
-            ]
-        else:
-            details = [
-                {
-                    "location": ["body", "type" if not new_hwm.type else "name"],
-                    "message": "String should have at least 1 character",
-                    "code": "string_too_short",
-                    "context": {"min_length": 1},
-                    "input": "",
-                },
-            ]
+        details = [
+            {
+                "location": ["body", "type" if not new_hwm.type else "name"],
+                "message": "String should have at least 1 character",
+                "code": "string_too_short",
+                "context": {"min_length": 1},
+                "input": "",
+            },
+        ]
 
     expected = {
         "error": {
@@ -468,7 +468,7 @@ async def test_update_hwm_invalid_field_length(
         },
     }
 
-    assert response.status_code == 422
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     assert response.json() == expected
 
     query = select(HWM).where(HWM.id == hwm.id)
@@ -480,7 +480,7 @@ async def test_update_hwm_invalid_field_length(
 
 
 @pytest.mark.parametrize(
-    "user_with_role, expected_status, expected_response",
+    ["user_with_role", "expected_status", "expected_response"],
     [
         (
             NamespaceUserRoleInt.GUEST,

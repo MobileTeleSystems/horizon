@@ -34,9 +34,10 @@ class UserRepository(Repository[User]):
         try:
             result = await self._create(data={"username": username})
             await self._session.flush()
-            return result
         except IntegrityError as e:
             raise EntityAlreadyExistsError("User", "username", username) from e
+        else:
+            return result
 
     async def get_or_create(
         self,

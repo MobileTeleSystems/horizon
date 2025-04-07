@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from random import randint
-from typing import AsyncContextManager, Callable
+from typing import TYPE_CHECKING, AsyncContextManager, Callable
 
-import pytest
+import pytest  # noqa: TC002
 import pytest_asyncio
 from passlib.hash import argon2
 from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from horizon.backend.db.models import CredentialsCache
-from horizon.backend.db.models.user import User
 from tests.factories.base import random_string
+
+if TYPE_CHECKING:
+    from typing import AsyncGenerator
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from horizon.backend.db.models.user import User
 
 
 def credentials_cache_factory(**kwargs):

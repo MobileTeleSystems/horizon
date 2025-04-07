@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
+
 from typing import List, Optional, Set
 
 from pydantic import BaseModel, Field, validator
@@ -41,7 +42,7 @@ class PermissionsUpdateRequestV1(BaseModel):
 
     @validator("permissions")
     def _ensure_unique_usernames_and_single_owner(
-        cls,
+        cls,  # noqa: N805
         permissions: List[PermissionUpdateRequestItemV1],
     ) -> List[PermissionUpdateRequestItemV1]:
         seen: Set[str] = set()
@@ -50,13 +51,15 @@ class PermissionsUpdateRequestV1(BaseModel):
             username, role = perm.username, perm.role
 
             if username in seen:
-                raise ValueError(f"Duplicate username detected: {username}. Each username must appear only once.")
+                msg = f"Duplicate username detected: {username}. Each username must appear only once."
+                raise ValueError(msg)
             seen.add(username)
 
             if role == NamespaceUserRole.OWNER:
                 owner_count += 1
 
         if owner_count > 1:
-            raise ValueError("Multiple owner role assignments detected. Only one owner can be assigned.")
+            msg = "Multiple owner role assignments detected. Only one owner can be assigned."
+            raise ValueError(msg)
 
         return permissions

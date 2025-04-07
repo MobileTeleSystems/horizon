@@ -4,9 +4,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
-from pydantic import AnyHttpUrl
+if TYPE_CHECKING:
+    from pydantic import AnyHttpUrl
 
 Session = TypeVar("Session", bound=Any)
 

@@ -43,9 +43,9 @@ jobs:
       - name: Build Backend Container
         uses: docker/build-push-action@v6
         with:
-          tags: mtsrus/horizon-backend:${{ github.sha }}
           context: .
           file: docker/Dockerfile.backend
+          tags: mtsrus/horizon-backend:develop
           build-args: PYTHON_VERSION=${{ matrix.python-version }}
           push: false
           load: true
@@ -56,8 +56,6 @@ jobs:
         run: |
           docker compose -f docker-compose.test.yml down -v --remove-orphans
           docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 30
-        env:
-          TAG: ${{ github.sha }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5

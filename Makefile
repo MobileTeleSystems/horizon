@@ -2,6 +2,7 @@
 
 include .env.local
 
+VERSION = develop
 PIP = .venv/bin/pip
 POETRY = .venv/bin/poetry
 
@@ -60,10 +61,10 @@ ldap-start: ##@LDAP Start LDAP container
 test: db-start ldap-start ##@Test Run tests
 	${POETRY} run pytest $(PYTEST_ARGS)
 
-check-fixtures: ##@Test Check declared fixtures
+test-check-fixtures: ##@Test Check declared fixtures
 	${POETRY} run pytest --dead-fixtures $(PYTEST_ARGS)
 
-cleanup: ##@Test Cleanup tests dependencies
+test-cleanup: ##@Test Cleanup tests dependencies
 	docker compose -f docker-compose.test.yml down $(ARGS)
 
 
@@ -72,10 +73,13 @@ dev: db-start ##@Application Run development server (without docker)
 	${POETRY} run python -m horizon.backend $(ARGS)
 
 prod-build: ##@Application Build docker image
-	docker build --progress=plain --network=host -t mtsrus/horizon-backend:develop -f ./docker/Dockerfile.backend $(ARGS) .
+	docker build --progress=plain --network=host -t mtsrus/horizon-backend:latest -f ./docker/Dockerfile.backend --target prod $(ARGS) .
 
 prod: ##@Application Run production server (with docker)
-	docker compose up -d
+	docker compose up -d $(ARGS)
+
+prod-cleanup: ##@Application Stop production server
+	docker compose down --remove-orphans $(ARGS)
 
 .PHONY: docs
 

@@ -32,7 +32,11 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./:/app
+      - ./horizon:/app/horizon
+      - ./docs/_static:/app/docs/_static
+      - ./reports:/app/reports
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
 
   ldap:
     image: thoteam/slapd-server-mock

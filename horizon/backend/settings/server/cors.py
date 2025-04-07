@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2023-2025 MTS PJSC
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List
+import json
+from typing import Any, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 
 class CORSSettings(BaseModel):
@@ -24,20 +25,20 @@ class CORSSettings(BaseModel):
     .. code-block:: bash
 
         HORIZON__SERVER__CORS__ENABLED=True
-        HORIZON__SERVER__CORS__ALLOW_ORIGINS=["*"]
-        HORIZON__SERVER__CORS__ALLOW_METHODS=["*"]
-        HORIZON__SERVER__CORS__ALLOW_HEADERS=["*"]
-        HORIZON__SERVER__CORS__EXPOSE_HEADERS=["X-Request-ID"]
+        HORIZON__SERVER__CORS__ALLOW_ORIGINS="*"
+        HORIZON__SERVER__CORS__ALLOW_METHODS="*"
+        HORIZON__SERVER__CORS__ALLOW_HEADERS="*"
+        HORIZON__SERVER__CORS__EXPOSE_HEADERS=X-Request-ID,Location,Access-Control-Allow-Credentials
 
     For production environment:
 
     .. code-block:: bash
 
         HORIZON__SERVER__CORS__ENABLED=True
-        HORIZON__SERVER__CORS__ALLOW_ORIGINS=["production.example.com"]
-        HORIZON__SERVER__CORS__ALLOW_METHODS=["GET"]
-        HORIZON__SERVER__CORS__ALLOW_HEADERS=["X-Request-ID", "X-Request-With"]
-        HORIZON__SERVER__CORS__EXPOSE_HEADERS=["X-Request-ID"]
+        HORIZON__SERVER__CORS__ALLOW_ORIGINS="production.example.com"
+        HORIZON__SERVER__CORS__ALLOW_METHODS="GET"
+        HORIZON__SERVER__CORS__ALLOW_HEADERS="X-Request-ID,X-Request-With"
+        HORIZON__SERVER__CORS__EXPOSE_HEADERS="X-Request-ID"
         # custom option passed directly to middleware
         HORIZON__SERVER__CORS__MAX_AGE=600
     """
@@ -55,6 +56,14 @@ class CORSSettings(BaseModel):
         description="HTTP headers allowed for CORS",
     )
     expose_headers: List[str] = Field(default=["X-Request-ID"], description="HTTP headers exposed from backend")
+
+    @validator("allow_origins", "allow_methods", "allow_headers", "expose_headers", pre=True)
+    def _validate_bootstrap_servers(cls, raw_value: Any):  # noqa: N805
+        if not isinstance(raw_value, str):
+            return raw_value
+        if "[" in raw_value:
+            return json.loads(raw_value)
+        return [item.strip() for item in raw_value.split(",")]
 
     class Config:
         extra = "allow"

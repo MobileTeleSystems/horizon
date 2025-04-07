@@ -53,7 +53,7 @@ jobs:
           cache-to: type=gha,mode=max
           cache-from: type=gha
 
-      - name: Run Tests
+      - name: Creare reports dir
         run: |
           mkdir -p reports/
           sudo chmod 777 -R reports/

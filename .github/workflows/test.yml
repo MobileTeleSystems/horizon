@@ -46,7 +46,8 @@ jobs:
           context: .
           file: docker/Dockerfile.backend
           tags: mtsrus/horizon-backend:develop
-          build-args: PYTHON_VERSION=${{ matrix.python-version }}
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python-version }}
           push: false
           load: true
           cache-to: type=gha,mode=max

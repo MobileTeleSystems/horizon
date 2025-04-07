@@ -90,4 +90,4 @@ RUN --mount=type=cache,target=/root/.cache/pypoetry \
         --without docs,dev \
     && python -m compileall -j 4 .venv
 
-RUN sed -i 's/python -m/coverage run -m/g' /app/entrypoint.sh
+RUN sed -i 's/python -m/coverage run -m/g' /app/docker/entrypoint.sh

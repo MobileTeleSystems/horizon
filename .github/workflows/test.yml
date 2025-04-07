@@ -55,7 +55,7 @@ jobs:
       - name: Start Backend Container
         run: |
           docker compose -f docker-compose.test.yml down -v --remove-orphans
-          docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 30
+          docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 60
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -92,6 +92,7 @@ jobs:
         run: |
           source .env.local
           mkdir -p reports/
+          chmod 777 reports/
           poetry run coverage run -m pytest
 
       - name: Dump backend logs on failure

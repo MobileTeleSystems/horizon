@@ -53,6 +53,11 @@ jobs:
           cache-to: type=gha,mode=max
           cache-from: type=gha
 
+      - name: Run Tests
+        run: |
+          mkdir -p reports/
+          sudo chmod 777 -R reports/
+
       - name: Start Backend Container
         run: |
           docker compose -f docker-compose.test.yml down -v --remove-orphans
@@ -92,8 +97,6 @@ jobs:
       - name: Run Tests
         run: |
           source .env.local
-          mkdir -p reports/
-          sudo chmod 777 reports/
           poetry run coverage run -m pytest
 
       - name: Dump backend logs on failure

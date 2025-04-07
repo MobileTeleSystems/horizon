@@ -46,9 +46,11 @@ jobs:
           tags: mtsrus/horizon-backend:${{ github.sha }}
           context: .
           file: docker/Dockerfile.backend
+          build-args: PYTHON_VERSION=${{ matrix.python-version }}
           push: false
           load: true
-          cache-from: mtsrus/horizon-backend:develop
+          cache-to: type=gha,mode=max
+          cache-from: type=gha
 
       - name: Start Backend Container
         run: |

@@ -55,7 +55,7 @@ jobs:
       - name: Generate OpenAPI Schema
         run: |
           source .env.local
-          poetry run python -m horizon.backend.export_openapi_schema openapi.json
+          poetry run python -m horizon.backend.export_openapi_schema docs/_static/openapi.json
 
       - name: Fix logo in Readme
         run: |
@@ -129,5 +129,5 @@ jobs:
           files: |
             dist/*.tar.gz
             dist/*.whl
-            openapi.json
+            docs/_static/openapi.json
             sbom.cyclonedx.json

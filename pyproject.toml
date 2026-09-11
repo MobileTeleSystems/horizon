@@ -94,7 +94,7 @@ test = [
   "pytest~=9.1.1",
   "httpx2>=2.10,<2.13",
   "pytest-asyncio~=1.4.0",
-  "pytest-randomly~=4.1.0",
+  "pytest-randomly>=4.1,<5.1",
   "pytest-rerunfailures~=16.4",
   "pytest-deadfixtures~=3.1.0",
   "pytest-lazy-fixtures~=1.4.0",
@@ -111,7 +111,7 @@ dev = [
   "ruff~=0.16.2",
   "sqlalchemy[mypy]~=2.0.51",
   "types-pyyaml~=6.0.12",
-  "types-authlib~=1.7.2",
+  "types-authlib>=1.7.2,<1.9.0",
   "types-passlib~=1.7.7",
   "types-requests~=2.33.0",
 ]
